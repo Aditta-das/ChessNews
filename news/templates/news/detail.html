@@ -1,0 +1,27 @@
+{% extends 'news/base.html' %}
+
+{% block title %}{{ article.title }} - ChessNews{% endblock %}
+
+{% block content %}
+<div class="row justify-content-center">
+  <div class="col-lg-10">
+    <div class="card shadow-sm p-4 mb-4 bg-white rounded">
+      <h1 class="mb-3 text-primary">{{ article.title }}</h1>
+
+      <p class="text-muted mb-1">
+        <strong>Category:</strong> {{ article.category }}
+      </p>
+      <p class="text-muted">
+        <strong>By:</strong> {{ article.author.username }}
+      </p>
+
+      <div class="mt-3" style="font-size: 1.1rem; line-height: 1.6;">
+        {{ article.content|safe }}
+      </div>
+
+      <a href="{% url 'home' %}" class="btn btn-outline-primary mt-4">← Back to Home</a>
+    </div>
+  </div>
+</div>
+{% endblock %}
+

@@ -1,0 +1,272 @@
+{% extends 'news/base.html' %}
+
+{% block title %}Home - ChessNews{% endblock %}
+
+{% block content %}
+
+{% load nw_filter %}
+{% load static %}
+<!-- Headline Ticker -->
+{% if user.is_authenticated %}
+<h3>Hello, <b>{{ user.username }}</b></h3>
+{% endif %}
+<div class="ticker-container mb-4">
+  <div class="ticker-text text-black">
+    {% for player in players %}
+    <span class="ticker-item">
+      ♔<strong class="text-warning">#{{ player.rank }} </strong>
+      <span class="fw-bold">-{{ player.name }} </span>
+      <span class="flag-icon flag-icon-{{ player.country|lower }}"></span>
+      <span class="text-primary">-{{ player.rating }} </span>
+      <span class="mx-3">|</span>
+    </span>
+    {% endfor %}
+  </div>
+</div>
+
+
+
+<div class="row g-4">
+  <!-- Big News -->
+  <div class="col-lg-8">
+    {% if big_news %}
+    <div class="card border-0 shadow-lg h-100 overflow-hidden">
+      {% if big_news.image %}
+      <img src="{{ big_news.image.url }}" class="card-img-top" alt="{{ big_news.title }}"
+        style="height: 400px; object-fit: cover;">
+      {% endif %}
+      <div class="card-body d-flex flex-column position-relative">
+        <h2 class="card-title display-5 fw-bold mb-3">{{ big_news.title }}</h2>
+        <p class="card-text fs-5 text-muted mb-4">{{ big_news.content|remove_img_tags|truncatewords:100|safe }}</p>
+        <div class="mt-auto d-flex justify-content-between align-items-center">
+          <div>
+            <span class="text-muted">By {{ big_news.author.username }}</span>
+            <span class="mx-2">•</span>
+            <span class="text-muted">{{ big_news.created_at|date:"M d, Y" }}</span>
+          </div>
+          <a href="{% url 'article_detail' slug=big_news.slug %}" class="btn btn-primary btn-lg px-4">
+            Read More <i class="bi bi-arrow-right ms-2"></i>
+          </a>
+        </div>
+      </div>
+    </div>
+    {% else %}
+    <div class="alert alert-info">
+      No featured news available
+    </div>
+    {% endif %}
+  </div>
+
+  <!-- Sidebar -->
+  <div class="col-lg-4">
+    <!-- Live Tournaments -->
+    <div class="card border-0 shadow-sm mb-4 overflow-hidden">
+      <div class="card-header bg-danger text-white py-3">
+        <div class="d-flex justify-content-between align-items-center">
+          <h3 class="h5 mb-0 fw-bold">
+            <i class="bi bi-trophy-fill me-2"></i> Live Tournaments
+          </h3>
+          <span class="badge bg-white text-danger">LIVE</span>
+        </div>
+      </div>
+      <div class="card-body">
+
+        <!-- Tournament 1 -->
+        <div class="mb-3">
+          <h5 class="fw-bold mb-1">Polish Team Championship Ekstraliga 2025</h5>
+          <p class="small text-muted mb-2">
+            <i class="bi bi-calendar-event me-1"></i> Jun 2 – Jun 11, 2025
+          </p>
+        </div>
+
+        <!-- Tournament 2 -->
+        <div>
+          <h5 class="fw-bold mb-1">17th BPB Limburg Open 2025</h5>
+          <p class="small text-muted mb-2">
+            <i class="bi bi-calendar-event me-1"></i> Jun 6 – Jun 10, 2025
+          </p>
+        </div>
+      </div>
+    </div>
+
+    <!-- Rising Talent -->
+    <div class="card mb-3" style="max-width: 500px; border-radius: 0;">
+      <!-- Header outside row -->
+      <div class="card-header bg-warning text-dark py-3"
+        style="border-top-left-radius: 10; border-top-right-radius: 10;">
+        <h3 class="h5 mb-0 fw-bold">
+          <i class="bi bi-stars me-2"></i> Rising Talent of BD
+        </h3>
+      </div>
+
+      <!-- Profile row -->
+      <div class="row g-0">
+        <div class="col-md-4">
+          <img src="{% static 'rayan_rashid_mugdho.jpg' %}" class="img-fluid h-100 object-fit-cover"
+            style="border-radius: 0;" alt="Fabiano Caruana">
+        </div>
+        <div class="col-md-8">
+          <div class="card-body">
+            <h5 class="card-title mb-1">Rayhan Rashid Mugdho
+              <img src="https://flagcdn.com/w20/bd.png" alt="Bangladesh" class="ms-1">
+            </h5>
+            <div class="bg-dark text-white px-3 py-1 d-inline-block mt-2 rounded-pill">
+              Rating: <strong>2210</strong>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Best Reporter -->
+    <!-- <div class="card border-0 shadow-sm">
+      <div class="card-header bg-success text-white py-3">
+        <h3 class="h5 mb-0 fw-bold"><i class="bi bi-award-fill me-2"></i> Best Reporter</h3>
+      </div>
+      <div class="card-body text-center">
+        <h4 class="h5 mb-1">{{ best_reporter.username }}</h4>
+        <p class="text-muted small mb-3">Senior Chess Correspondent</p>
+        <div class="d-flex justify-content-center mb-3">
+          <div class="px-3 text-center">
+            <div class="h4 mb-0">{{ best_reporter.article_set.count }}</div>
+            <small class="text-muted">Articles</small>
+          </div>
+        </div>
+      </div>
+    </div> -->
+  </div>
+</div>
+
+<!-- Top Chess Players -->
+<section class="my-4 py-2">
+  <div class="container text-left">
+    <h2 class="h3 mb-4 fw-bold">
+      <i class="bi bi-chess-pawn text-primary me-2"></i> Top Players
+    </h2>
+
+    <div class="d-flex justify-content-center flex-wrap gap-4">
+      {% for player in players %}
+      <div style="width: 190px;">
+        <div class="player-card hover-scale text-center mx-auto">
+          <img src="{{ player.image_url|default:'/static/img/default-player.jpg' }}" class="player-image"
+            alt="{{ player.name }}" loading="lazy">
+          <div class="image-overlay"></div>
+          <div class="player-rank bg-primary">#{{ player.rank }}</div>
+
+          <!-- Flag on top -->
+          <div class="player-country mb-1">
+            <img src="https://flagcdn.com/w20/{{ player.country|lower|slice:" 2" }}.png" alt="{{ player.country }}">
+          </div>
+
+          <!-- Name below flag -->
+          <div class="player-name">{{ player.name }}</div>
+
+          <div class="rating-container bg-dark mt-2">
+            <div class="rating-box">
+              <div class="rating-value">{{ player.rating }}</div>
+              <div class="rating-label">Rating</div>
+            </div>
+          </div>
+        </div>
+      </div>
+      {% endfor %}
+    </div>
+  </div>
+</section>
+
+
+<!-- Top Bangladeshi Chess Players -->
+<section class="my-0 py-1">
+  <div class="container text-left">
+    <h2 class="h3 mb-4 fw-bold">
+      <i class="bi bi-chess-pawn text-primary me-2"></i> Top Bangladeshi Players
+    </h2>
+
+    <div class="d-flex justify-content-center flex-wrap gap-4">
+      {% for bd_player in top_bd_players %}
+      <div style="width: 190px;">
+        <div class="player-card hover-scale text-center mx-auto">
+          <img src="{{ bd_player.image.url }}" class="player-image" loading="lazy">
+          <div class="image-overlay"></div>
+          <div class="player-rank bg-primary">#{{ bd_player.rank }}</div>
+
+          <!-- Flag on top -->
+          <div class="player-country mb-1">
+            <img src="https://flagcdn.com/w20/bd.png" alt="Bangladesh">
+          </div>
+
+          <!-- Name below flag -->
+          <div class="player-name">{{ bd_player.name }}</div>
+
+          <div class="rating-container bg-dark mt-2">
+            <div class="rating-box">
+              <div class="rating-value">{{ bd_player.fide_rating }}</div>
+              <div class="rating-label">Rating</div>
+            </div>
+          </div>
+        </div>
+      </div>
+      {% endfor %}
+    </div>
+  </div>
+</section>
+
+<!-- More News -->
+<section class="my-5">
+  <div class="container">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+      <h2 class="h3 mb-0 fw-bold">
+        <i class="bi bi-newspaper text-primary me-2"></i> Latest News
+      </h2>
+      <a href="#" class="btn btn-sm btn-outline-primary">
+        View All <i class="bi bi-chevron-right ms-1"></i>
+      </a>
+    </div>
+
+    <div class="row g-4">
+      {% for article in small_news %}
+      <div class="col-lg-4 col-md-6">
+        <div class="card border-0 shadow-sm h-100 hover-lift">
+          {% if article.image %}
+          <img src="{{ article.image.url }}" class="card-img-top" alt="{{ article.title }}"
+            style="height: 200px; object-fit: cover;">
+          {% endif %}
+          <div class="card-body">
+            <div class="d-flex align-items-center mb-3">
+              <span class="badge bg-primary me-2">Chess</span>
+              <small class="text-muted">{{ article.created_at|timesince }} ago</small>
+            </div>
+            <h3 class="h5 card-title">
+              <a href="{% url 'article_detail' slug=article.slug %}"
+                class="text-decoration-none text-dark stretched-link">
+                {{ article.title }}
+              </a>
+            </h3>
+            <p class="card-text text-muted">{{ article.content|remove_img_tags|truncatewords:25|safe }}</p>
+          </div>
+          <div class="card-footer bg-transparent border-0 pt-0">
+            <div class="d-flex align-items-center">
+              <div class="flex-shrink-0">
+                <img
+                  src="https://ui-avatars.com/api/?name={{ article.author.username }}&background=random&size=32&rounded=true"
+                  alt="{{ article.author.username }}" class="rounded-circle">
+              </div>
+              <div class="flex-grow-1 ms-2">
+                <small class="d-block">{{ article.author.username }}</small>
+                <small class="text-muted">Chess Journalist</small>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+      {% empty %}
+      <div class="col-12">
+        <div class="alert alert-info">
+          No articles available at the moment. Check back later!
+        </div>
+      </div>
+      {% endfor %}
+    </div>
+  </div>
+</section>
+{% endblock %}

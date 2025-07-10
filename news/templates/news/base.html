@@ -1,0 +1,634 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <title>{% block title %}ChessNews{% endblock %}</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <!-- Bootstrap 5 CDN -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <!-- Google Fonts -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.0/font/bootstrap-icons.css">
+    <link
+        href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;600;700&family=Playfair+Display:wght@700&display=swap"
+        rel="stylesheet">
+
+    <style>
+        :root {
+            --chess-dark: #1a1a1a;
+            --chess-light: #f8f1e5;
+            --chess-primary: #779556;
+            --chess-secondary: #ebecd0;
+            --chess-accent: #b58863;
+            --chess-red: #c84b4b;
+            --dark-gray: #2a2a2a;
+            --slate-gray: #4b4b4b;
+            --light-gray: #a3a3a3;
+            --warm-accent: #d76a6a;
+            --cool-accent: #6aa8d7;
+            --warm-orange: #d87a2a;
+            --cool-teal: #2aa6a6;
+        }
+
+        html,
+        body {
+            height: 100%;
+            font-family: 'Montserrat', sans-serif;
+        }
+
+        body {
+            display: flex;
+            flex-direction: column;
+            background-color: var(--chess-light);
+        }
+
+        .content {
+            flex: 1 0 auto;
+        }
+
+        footer {
+            flex-shrink: 0;
+        }
+
+        .navbar {
+            background: linear-gradient(135deg, var(--chess-dark) 0%, #2a2a2a 100%) !important;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        .navbar-brand .logo-text {
+            display: flex;
+            flex-direction: column;
+            line-height: 1;
+        }
+
+        .navbar-brand .logo-main {
+            font-family: 'Playfair Display', serif;
+            font-weight: 700;
+            font-size: 1.5rem;
+            letter-spacing: 0.5px;
+        }
+
+        .navbar-brand .logo-sub {
+            font-family: 'Montserrat', sans-serif;
+            font-size: 0.8rem;
+            font-weight: 600;
+            letter-spacing: 1px;
+            margin-top: 2px;
+            color: var(--chess-primary);
+        }
+
+        .nav-link {
+            font-weight: 600;
+            letter-spacing: 0.5px;
+            transition: all 0.3s ease;
+            position: relative;
+            color: rgba(255, 255, 255, 0.9) !important;
+        }
+
+        .nav-link:hover {
+            color: white !important;
+            transform: translateY(-2px);
+        }
+
+        .nav-link-underline {
+            position: absolute;
+            bottom: 0;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 0;
+            height: 2px;
+            background-color: var(--chess-primary);
+            transition: width 0.3s ease;
+        }
+
+        .nav-link:hover .nav-link-underline {
+            width: 60%;
+        }
+
+        .nav-item.active .nav-link-underline {
+            width: 60%;
+        }
+
+        .btn-outline-light {
+            border-color: rgba(255, 255, 255, 0.3);
+            transition: all 0.3s ease;
+        }
+
+        .btn-outline-light:hover {
+            background-color: rgba(255, 255, 255, 0.1);
+            border-color: white;
+        }
+
+        @media (max-width: 991.98px) {
+            .navbar-collapse {
+                padding-top: 1rem;
+            }
+
+            .nav-link {
+                padding: 0.5rem 0;
+            }
+
+            .nav-link-underline {
+                display: none;
+            }
+
+            .btn-outline-light {
+                margin-top: 0.5rem;
+                margin-bottom: 0.5rem;
+            }
+        }
+
+        .ticker-container {
+            /* background-color: var(--chess-red); */
+            overflow: hidden;
+            white-space: nowrap;
+            position: relative;
+        }
+
+        .ticker-text {
+            display: inline-block;
+            padding-left: 100%;
+            white-space: nowrap;
+            will-change: transform;
+            animation: scroll-left 30s linear infinite;
+            color: white;
+            padding: 8px 0;
+            font-weight: 600;
+            font-size: 1rem;
+        }
+
+        .hover-scale {
+            transition: transform 0.3s ease;
+        }
+
+        .hover-scale:hover {
+            transform: scale(1.03);
+        }
+
+        .hover-lift {
+            transition: all 0.3s ease;
+        }
+
+        .hover-lift:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 10px 20px rgba(0, 0, 0, 0.1) !important;
+        }
+
+        .ticker-item {
+            display: inline-flex;
+            align-items: center;
+        }
+
+        .player-country {
+            position: absolute;
+            bottom: 100px;
+            left: 20px;
+            display: flex;
+            align-items: center;
+            font-size: 0.9rem;
+            text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.8);
+        }
+
+        .player-country img {
+            display: inline-block;
+            border-radius: 2px;
+        }
+
+
+        @keyframes scroll-left {
+            0% {
+                transform: translateX(100%);
+            }
+
+            100% {
+                transform: translateX(-100%);
+            }
+        }
+
+        .player-card {
+            width: 210px;
+            border-radius: 12px;
+            overflow: hidden;
+            box-shadow: 0 15px 30px rgba(0, 0, 0, 0.2);
+            margin-bottom: 20px;
+            position: relative;
+            color: white;
+            transition: transform 0.3s ease;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        .player-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.3);
+        }
+
+        .player-image {
+            width: 100%;
+            height: 220px;
+            object-fit: cover;
+            filter: brightness(0.9);
+        }
+
+        .image-overlay {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(to bottom, rgba(0, 0, 0, 0.1), rgba(0, 0, 0, 0.8));
+        }
+
+        .player-rank {
+            position: absolute;
+            top: 20px;
+            left: 20px;
+            background-color: var(--chess-primary);
+            padding: 0px 5px;
+            border-radius: 8px;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.3);
+            font-size: 1.8rem;
+        }
+
+        .player-name {
+            position: absolute;
+            bottom: 80px;
+            left: 50%;
+            transform: translateX(-50%);
+            font-size: 20px;
+            font-family: 'Playfair Display', serif;
+            text-shadow: 2px 2px 5px rgba(0, 0, 0, 0.8);
+            text-align: center;
+            font-weight: 600;
+            margin-top: 4px;
+        }
+
+        .rating-container {
+            display: flex;
+            justify-content: space-around;
+            padding: 20px 15px;
+            background-color: rgba(0, 0, 0, 0.9);
+            border-top: 2px solid var(--chess-primary);
+        }
+
+        .rating-box {
+            text-align: center;
+            position: relative;
+        }
+
+        .rating-box:not(:last-child)::after {
+            content: "";
+            position: absolute;
+            right: -10px;
+            top: 10%;
+            height: 80%;
+            width: 1px;
+            background-color: rgba(255, 255, 255, 0.2);
+        }
+
+        .rating-value {
+            font-size: 20px;
+            font-weight: bold;
+            color: white;
+        }
+
+        .rating-label {
+            font-size: 0.8rem;
+            opacity: 0.8;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            margin-top: 5px;
+        }
+
+        .card {
+            border: none;
+            border-radius: 10px;
+            transition: all 0.3s ease;
+        }
+
+        .card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 10px 20px rgba(0, 0, 0, 0.15);
+        }
+
+        .bg-danger {
+            background-color: var(--chess-red) !important;
+        }
+
+        .bg-success {
+            background-color: var(--chess-primary) !important;
+        }
+
+        .btn-primary {
+            background-color: var(--chess-primary);
+            border-color: var(--chess-primary);
+        }
+
+        .btn-primary:hover {
+            background-color: #67804a;
+            border-color: #67804a;
+        }
+
+        h1,
+        h2,
+        h3,
+        h4,
+        h5,
+        h6 {
+            font-family: 'Playfair Display', serif;
+        }
+
+        .book-cover {
+            height: 220px;
+            object-fit: cover;
+            border-top-left-radius: 10px;
+            border-top-right-radius: 10px;
+        }
+
+        footer {
+            background-color: var(--chess-dark);
+            color: white;
+            padding: 1.5rem 0;
+        }
+
+
+
+        /* puzzle.html */
+        /* puzzle.html */
+        #main-layout {
+            display: grid;
+            grid-template-columns: 300px 400px 300px;
+            gap: 20px;
+            margin-top: 30px;
+            justify-content: center;
+        }
+
+        #puzzle-list {
+            height: 80vh;
+            overflow-y: auto;
+            padding-right: 10px;
+        }
+
+        .puzzle-btn {
+            width: 100%;
+            margin-bottom: 10px;
+            font-weight: 600;
+            text-align: left;
+            white-space: normal;
+        }
+
+        #board {
+            width: 400px;
+            height: 400px;
+            margin: 0 auto;
+        }
+
+        #board .white-1e1d7 {
+            background-color: #eeeed2 !important;
+        }
+
+        #board .black-3c85d {
+            background-color: #769656 !important;
+        }
+
+        .puzzle-info {
+            text-align: center;
+            margin-bottom: 20px;
+        }
+
+        #puzzle-status {
+            font-weight: bold;
+            margin: 10px 0;
+            min-height: 24px;
+            padding: 5px;
+            border-radius: 4px;
+        }
+
+        .controls {
+            display: flex;
+            justify-content: center;
+            gap: 10px;
+            margin-top: 10px;
+        }
+
+        .correct {
+            color: #28a745;
+            background-color: #e6ffed;
+        }
+
+        .wrong {
+            color: #dc3545;
+            background-color: #ffe6e6;
+        }
+
+        .info {
+            color: #17a2b8;
+            background-color: #e6f9ff;
+        }
+
+        .solved {
+            color: #6f42c1;
+            background-color: #f0e6ff;
+            font-size: 1.1em;
+        }
+
+        #notation-box {
+            height: 80vh;
+            overflow-y: auto;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+            padding: 10px;
+            background-color: #f8f9fa;
+        }
+
+        .move-pair {
+            display: flex;
+            margin-bottom: 5px;
+        }
+
+        .move-number {
+            min-width: 30px;
+            font-weight: bold;
+            color: #6c757d;
+        }
+
+        .move-white,
+        .move-black {
+            padding: 3px 8px;
+            margin: 0 5px;
+            border-radius: 3px;
+            cursor: pointer;
+        }
+
+        .move-white {
+            background-color: #f8f9fa;
+        }
+
+        .move-black {
+            background-color: #e9ecef;
+        }
+
+        .move-white:hover,
+        .move-black:hover {
+            background-color: #dee2e6;
+        }
+
+        .current-move {
+            background-color: #b8daff !important;
+            font-weight: bold;
+        }
+
+        .quote-none {
+            display: none !important;
+        }
+
+        .solved-puzzle {
+            background-color: var(--warm-orange) !important;
+            border-color: #bbb !important;
+        }
+
+        .unsolved-puzzle {
+            background-color: var(--cool-teal) !important;
+            border-color: #28a745 !important;
+        }
+    </style>
+</head>
+
+<body>
+    <nav class="navbar navbar-expand-lg navbar-dark mb-3 py-2">
+        <div class="container">
+            <a class="navbar-brand d-flex align-items-center" href="{% url 'home' %}">
+                <i class="fas fa-chess-knight me-2" style="font-size: 1.8rem;"></i>
+                <span class="logo-text">
+                    <span class="logo-main">ChessNews</span>
+                    <span class="logo-sub">BD</span>
+                </span>
+            </a>
+            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
+                <span class="navbar-toggler-icon"></span>
+            </button>
+            <div class="collapse navbar-collapse" id="navbarNav">
+                <ul class="navbar-nav ms-auto">
+                    <li class="nav-item mx-1">
+                        <a class="nav-link position-relative px-3" href="{% url 'book_list' %}">
+                            <i class="fas fa-book me-1"></i>
+                            Books
+                            <span class="nav-link-underline"></span>
+                        </a>
+                    </li>
+                    <li class="nav-item mx-1">
+                        <a class="nav-link position-relative px-3" href="https://forms.gle/sAHhdspNvG9p1YRU7"
+                            target="_blank">
+                            <i class="fas fa-pen-fancy me-1"></i>
+                            Become a Reporter
+                            <span class="nav-link-underline"></span>
+                        </a>
+                    </li>
+                    <li class="nav-item mx-1">
+                        <a class="nav-link position-relative px-3" href="{% url 'puzzle_list' %}">
+                            <i class="fas fa-heart me-1"></i>
+                            Tactics
+                            <span class="nav-link-underline"></span>
+                        </a>
+                    </li>
+                    <li class="nav-item mx-1">
+                        <a class="nav-link position-relative px-3" href="#" data-bs-toggle="modal"
+                            data-bs-target="#qrSupportModal">
+                            <i class="fas fa-heart me-1"></i>
+                            Support Us
+                            <span class="nav-link-underline"></span>
+                        </a>
+                    </li>
+                    {% if user.is_authenticated %}
+                    <li class="nav-item mx-1">
+                        <form action="{% url 'logout' %}" method="post" class="d-inline">
+                            {% csrf_token %}
+                            <button type="submit" class="btn btn-link nav-link px-3"
+                                style="display: inline; text-decoration: none;">
+                                <i class="fas fa-sign-out-alt me-1"></i>
+                                Logout
+                            </button>
+                        </form>
+                    </li>
+                    {% else %}
+                    <li class="nav-item mx-1">
+                        <a class="nav-link px-3" href="{% url 'login' %}">
+                            <i class="fas fa-sign-in-alt me-1"></i>
+                            Login
+                        </a>
+                    </li>
+                    {% endif %}
+
+                </ul>
+            </div>
+        </div>
+    </nav>
+
+    <div class="container content">
+        {% block content %}{% endblock %}
+    </div>
+
+    <!-- Support Us QR Modal -->
+    {% load static %}
+    <div class="modal fade" id="qrSupportModal" tabindex="-1" aria-labelledby="qrSupportModalLabel" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content text-center p-4">
+                <div class="modal-header border-0">
+                    <h5 class="modal-title w-100" id="qrSupportModalLabel">Support Us</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <p class="mb-3">Scan the QR code below to support ChessNewsBD!</p>
+                    <img src="{% static 'phone_qr.png' %}" alt="Support QR" class="img-fluid rounded shadow"
+                        style="max-width: 250px;">
+                    <p class="mt-3">Only Bkash Available</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    {% if banner %}
+    <div class="modal fade" id="tournamentBannerModal" tabindex="-1" aria-labelledby="tournamentBannerLabel"
+        aria-hidden="true">
+        <div class="modal-dialog modal-lg modal-dialog-centered">
+            <div class="modal-content text-center p-4">
+                <div class="modal-header border-0">
+                    <h5 class="modal-title w-100" id="tournamentBannerLabel">{{ banner.title }}</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    {% if banner.image %}
+                    <img src="{{ banner.image.url }}" alt="Tournament Banner" class="img-fluid rounded shadow mb-3">
+                    {% endif %}
+                    {% if banner.description %}
+                    <p>{{ banner.description }}</p>
+                    {% endif %}
+                    {% if banner.link %}
+                    <a href="{{ banner.link }}" class="btn btn-primary mt-2" target="_blank">View Details</a>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        window.addEventListener('DOMContentLoaded', function () {
+            if (!sessionStorage.getItem('bannerShown')) {
+                var bannerModal = new bootstrap.Modal(document.getElementById('tournamentBannerModal'));
+                bannerModal.show();
+                sessionStorage.setItem('bannerShown', 'true');
+            }
+        });
+    </script>
+    {% endif %}
+
+
+    <footer class="py-3 mt-auto">
+        <div class="container text-center">
+            &copy; {{ now|date:"Y" }} ChessNewsBD. All rights reserved.
+        </div>
+
+        <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+
+</html>
