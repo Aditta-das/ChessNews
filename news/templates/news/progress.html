@@ -1,0 +1,72 @@
+{% extends 'news/base.html' %}
+{% load static %}
+
+{% block title %}Your Chess Progress{% endblock %}
+
+{% block content %}
+<div class="container py-5">
+    <div class="text-center mb-4">
+        <h2 class="fw-bold">Your Puzzle Solving Progress</h2>
+        <p class="text-muted">Track how you're improving over time!</p>
+    </div>
+
+    <div class="card p-4 shadow-sm mb-5">
+        <h5 class="mb-3">Time Taken per Puzzle</h5>
+        <canvas id="progressChart" height="250"></canvas>
+    </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script>
+    const labels = {{ labels| safe }};
+    const data = {
+        labels: labels,
+        datasets: [{
+            label: 'Time Taken (seconds)',
+            data: {{ data| safe }},
+    fill: false,
+        borderColor: 'rgb(75, 192, 192)',
+            backgroundColor: 'rgb(75, 192, 192)',
+                tension: 0.1
+    }]
+};
+
+    const config = {
+        type: 'line',
+        data: data,
+        options: {
+            responsive: true,
+            plugins: {
+                legend: {
+                    display: true,
+                    position: 'top',
+                }
+            },
+            scales: {
+                y: {
+                    beginAtZero: true,
+                    title: {
+                        display: true,
+                        text: 'Time Taken (seconds)'
+                    }
+                },
+                x: {
+                    title: {
+                        display: true,
+                        text: 'Puzzle Title'
+                    },
+                    ticks: {
+                        maxRotation: 90,
+                        autoSkip: false,
+                    }
+                }
+            }
+        }
+    };
+
+    new Chart(
+        document.getElementById('progressChart'),
+        config
+    );
+</script>
+{% endblock %}

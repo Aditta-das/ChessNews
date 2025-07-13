@@ -146,6 +146,7 @@ class PuzzleSolve(models.Model):
     user = models.ForeignKey(User, on_delete=models.CASCADE)
     solve_puzzle = models.ForeignKey(Puzzle, on_delete=models.CASCADE)
     solved_at = models.DateTimeField(auto_now_add=True)
+    time_taken = models.IntegerField(null=True, blank=True)
 
     class Meta:
         unique_together = ('user', 'solve_puzzle')

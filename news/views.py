@@ -2,7 +2,7 @@ from django.shortcuts import render, get_object_or_404, redirect
 from .models import Article, TopPlayerImg, TournamentBanner, BangladeshiTopPlayer, Book, Puzzle, EmailOTP, PuzzleSolve
 from django.contrib.auth.models import User
 from django.contrib.auth import logout
-import requests, random
+import requests, random, json
 from .forms import EmailLoginForm
 from django.core.mail import send_mail
 from django.contrib import messages
@@ -77,10 +77,46 @@ def puzzle_list(request):
 @csrf_exempt
 def mark_puzzle_solved(request, puzzle_id):
     if request.method == 'POST':
-        puzzle = Puzzle.objects.get(pk=puzzle_id)
-        PuzzleSolve.objects.get_or_create(user=request.user, solve_puzzle=puzzle)
-        return JsonResponse({'status': 'ok'})
+        try:
+            data = json.loads(request.body)
+            time_taken = data.get('time_taken')
+
+            puzzle = Puzzle.objects.get(pk=puzzle_id)
+
+            solve, created = PuzzleSolve.objects.get_or_create(
+                user=request.user,
+                solve_puzzle=puzzle,
+                defaults={'time_taken': time_taken}
+            )
+
+            if not created and time_taken is not None:
+                solve.time_taken = time_taken
+                solve.save()
+
+            return JsonResponse({'status': 'ok', 'time_taken': time_taken})
+        except Exception as e:
+            return JsonResponse({'error': str(e)}, status=400)
+
     return JsonResponse({'error': 'invalid request'}, status=400)
+
+
+@login_required
+def progress_profile(request):
+    solves = PuzzleSolve.objects.filter(user=request.user).order_by('solved_at')
+
+    # X-axis: Puzzle titles
+    labels = [solve.solve_puzzle.title.split('.')[0] for solve in solves]
+
+    # Y-axis: Time taken for each puzzle
+    times = [solve.time_taken for solve in solves]
+
+    context = {
+        'labels': json.dumps(labels),
+        'data': json.dumps(times),
+    }
+
+    return render(request, 'news/progress.html', context)
+
 
 
 #users
