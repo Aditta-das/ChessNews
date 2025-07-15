@@ -19,37 +19,23 @@
 <div id="main-layout" class="d-flex justify-content-center gap-4 flex-wrap">
   <div id="puzzle-list" style="width: 300px; max-height: 80vh; overflow-y: auto;">
     {% for puzzle in puzzles %}
-      {% if puzzle.id in solved_ids and request.user.is_authenticated %}
-        <button class="puzzle-btn btn btn-secondary solved-puzzle mb-2 w-100" 
-                data-fen="{{ puzzle.fen }}"
-                data-solution="{{ puzzle.solution }}" 
-                data-title="{{ puzzle.title }}" 
-                data-turn="{{ puzzle.turn }}"
-                data-index="{{ forloop.counter0 }}" 
-                data-puzzle-id="{{ puzzle.id }}"
-                {% if puzzle.quote %}
-                  data-quote-name="{{ puzzle.quote.name }}" 
-                  data-quote-text="{{ puzzle.quote.Quote }}"
-                {% endif %}>
-          <strong>{{ puzzle.title }}</strong><br>
-        </button>
-      {% else %}
-        <button class="puzzle-btn btn btn-success unsolved-puzzle mb-2 w-100" 
-                data-fen="{{ puzzle.fen }}"
-                data-solution="{{ puzzle.solution }}" 
-                data-title="{{ puzzle.title }}" 
-                data-turn="{{ puzzle.turn }}"
-                data-index="{{ forloop.counter0 }}" 
-                data-puzzle-id="{{ puzzle.id }}"
-                {% if puzzle.quote %}
-                  data-quote-name="{{ puzzle.quote.name }}" 
-                  data-quote-text="{{ puzzle.quote.Quote }}"
-                {% endif %}>
-          <strong>{{ puzzle.title }}</strong><br>
-        </button>
-      {% endif %}
+    {% if puzzle.id in solved_ids and request.user.is_authenticated %}
+    <button class="puzzle-btn btn btn-secondary solved-puzzle mb-2 w-100" data-fen="{{ puzzle.fen }}"
+      data-solution="{{ puzzle.solution }}" data-title="{{ puzzle.title }}" data-turn="{{ puzzle.turn }}"
+      data-index="{{ forloop.counter0 }}" data-puzzle-id="{{ puzzle.id }}" {% if puzzle.quote %}
+      data-quote-name="{{ puzzle.quote.name }}" data-quote-text="{{ puzzle.quote.Quote }}" {% endif %}>
+      <strong>{{ puzzle.title }}</strong><br>
+    </button>
+    {% else %}
+    <button class="puzzle-btn btn btn-success unsolved-puzzle mb-2 w-100" data-fen="{{ puzzle.fen }}"
+      data-solution="{{ puzzle.solution }}" data-title="{{ puzzle.title }}" data-turn="{{ puzzle.turn }}"
+      data-index="{{ forloop.counter0 }}" data-puzzle-id="{{ puzzle.id }}" {% if puzzle.quote %}
+      data-quote-name="{{ puzzle.quote.name }}" data-quote-text="{{ puzzle.quote.Quote }}" {% endif %}>
+      <strong>{{ puzzle.title }}</strong><br>
+    </button>
+    {% endif %}
     {% empty %}
-      <div class="alert alert-info">No puzzles available yet.</div>
+    <div class="alert alert-info">No puzzles available yet.</div>
     {% endfor %}
   </div>
 
@@ -90,274 +76,295 @@
 <script src="https://cdnjs.cloudflare.com/ajax/libs/chess.js/0.10.2/chess.min.js"></script>
 
 <script>
-$(document).ready(function () {
-  const moveSound = document.getElementById('moveSound');
-  const captureSound = document.getElementById('captureSound');
-  const checkSound = document.getElementById('checkSound');
+  $(document).ready(function () {
+    const moveSound = document.getElementById('moveSound');
+    const captureSound = document.getElementById('captureSound');
+    const checkSound = document.getElementById('checkSound');
 
-  function safePlay(audioElement) {
-    audioElement.currentTime = 0;
-    const playPromise = audioElement.play();
-    if (playPromise !== undefined) {
-      playPromise.catch(error => {
-        console.warn("Audio play failed:", error);
+    function safePlay(audioElement) {
+      audioElement.currentTime = 0;
+      const playPromise = audioElement.play();
+      if (playPromise !== undefined) {
+        playPromise.catch(error => {
+          console.warn("Audio play failed:", error);
+        });
+      }
+    }
+
+    function playSoundForMove(move) {
+      if (move.flags.includes('c')) {
+        safePlay(captureSound);
+      } else if (game.in_check()) {
+        safePlay(checkSound);
+      } else {
+        safePlay(moveSound);
+      }
+    }
+
+    function playSound(src) {
+      const audio = new Audio(src);
+      audio.currentTime = 0;
+      audio.play().catch((err) => {
+        console.warn("Audio play failed:", err);
       });
     }
-  }
 
-  function playSoundForMove(move) {
-    if (move.flags.includes('c')) {
-      safePlay(captureSound);
-    } else if (game.in_check()) {
-      safePlay(checkSound);
-    } else {
-      safePlay(moveSound);
-    }
-  }
+    const $buttons = $('.puzzle-btn');
+    const $puzzleTitle = $('#puzzle-title');
+    const $puzzleTurn = $('#puzzle-turn');
+    const $fenDisplay = $('#fen-display');
+    const $puzzleStatus = $('#puzzle-status');
+    const $nextBtn = $('#next-btn');
+    const $resetBtn = $('#reset-btn');
+    const $hintBtn = $('#hint-btn');
+    const $moveHistory = $('#move-history');
 
-  function playSound(src) {
-    const audio = new Audio(src);
-    audio.currentTime = 0;
-    audio.play().catch((err) => {
-      console.warn("Audio play failed:", err);
-    });
-  }
+    let board = null;
+    let game = null;
+    let currentSolutionMoves = [];
+    let currentMoveIndex = 0;
+    let currentPuzzleIndex = 0;
+    let currentPuzzleTurn = 'w';
+    let currentFen = '';
+    let moveHistory = [];
 
-  const $buttons = $('.puzzle-btn');
-  const $puzzleTitle = $('#puzzle-title');
-  const $puzzleTurn = $('#puzzle-turn');
-  const $fenDisplay = $('#fen-display');
-  const $puzzleStatus = $('#puzzle-status');
-  const $nextBtn = $('#next-btn');
-  const $resetBtn = $('#reset-btn');
-  const $hintBtn = $('#hint-btn');
-  const $moveHistory = $('#move-history');
+    let solveStartTime = null;
 
-  let board = null;
-  let game = null;
-  let currentSolutionMoves = [];
-  let currentMoveIndex = 0;
-  let currentPuzzleIndex = 0;
-  let currentPuzzleTurn = 'w';
-  let currentFen = '';
-  let moveHistory = [];
-
-  let solveStartTime = null;
-
-  function initBoard(fen, orientation) {
-    if (board) board.destroy();
-    board = Chessboard('board', {
-      position: fen,
-      orientation: orientation,
-      draggable: true,
-      dropOffBoard: 'snapback',
-      pieceTheme: "{% static 'chessboardjs-1.0.0/img/chesspieces/wikipedia/' %}" + '{piece}' + '.png',
-      onDragStart: onDragStart,
-      onDrop: onDrop,
-    });
-  }
-
-  function onDragStart(source, piece) {
-    if ((game.turn() === 'w' && piece.startsWith('b')) ||
-      (game.turn() === 'b' && piece.startsWith('w'))) {
-      return false;
-    }
-    if (game.game_over()) return false;
-  }
-
-  function onDrop(source, target) {
-    const move = game.move({ from: source, to: target, promotion: 'q' });
-    if (move === null) {
-      showStatus("Illegal move", "wrong");
-      return 'snapback';
+    function initBoard(fen, orientation) {
+      if (board) board.destroy();
+      board = Chessboard('board', {
+        position: fen,
+        orientation: orientation,
+        draggable: true,
+        dropOffBoard: 'snapback',
+        pieceTheme: "{% static 'chessboardjs-1.0.0/img/chesspieces/wikipedia/' %}" + '{piece}' + '.png',
+        onDragStart: onDragStart,
+        onDrop: onDrop,
+      });
     }
 
-    const expectedMove = currentSolutionMoves[currentMoveIndex].replace(/[+#]/, '');
-    if (move.san.replace(/[+#]/, '') === expectedMove) {
+    function onDragStart(source, piece) {
+      if ((game.turn() === 'w' && piece.startsWith('b')) ||
+        (game.turn() === 'b' && piece.startsWith('w'))) {
+        return false;
+      }
+      if (game.game_over()) return false;
+    }
+    function normalizeSAN(san) {
+      return san.replace(/[+#]/g, '')  // remove check and mate symbols
+        .replace(/=/g, '')     // remove promotion equals sign
+        .toLowerCase();        // make lowercase for comparison
+    }
+
+    function onDrop(source, target) {
+      const piece = game.get(source);
+      const isPromotion = piece && piece.type === 'p' && (
+        (piece.color === 'w' && target[1] === '8') ||
+        (piece.color === 'b' && target[1] === '1')
+      );
+
+      // Get expected promotion from solution
+      const moveSANFromSolution = currentSolutionMoves[currentMoveIndex];
+      const promotionMatch = moveSANFromSolution.match(/=([QRBN])/i);
+      const promotionPiece = promotionMatch ? promotionMatch[1].toLowerCase() : (isPromotion ? 'q' : undefined);
+
+      const move = game.move({
+        from: source,
+        to: target,
+        promotion: promotionPiece // only pass promotion if needed
+      });
+
+      if (move === null) {
+        showStatus("Illegal move", "wrong");
+        return 'snapback';
+      }
+
+      const userMove = normalizeSAN(move.san);
+      const expectedMove = normalizeSAN(moveSANFromSolution);
+
+      if (userMove === expectedMove) {
+        playSoundForMove(move);
+        addToMoveHistory(move);
+        currentMoveIndex++;
+        showStatus("Correct!", "correct");
+        board.position(game.fen(), false);
+
+        if (currentMoveIndex >= currentSolutionMoves.length) {
+          showStatus("🎉 Puzzle solved!", "solved");
+          playSound("{% static 'sound/puzzle-correct.mp3' %}");
+          const puzzleId = $buttons.eq(currentPuzzleIndex).data('puzzle-id');
+
+          const solveEndTime = Date.now();
+          const timeTaken = Math.floor((solveEndTime - solveStartTime) / 1000);
+
+          $.ajax({
+            url: `/puzzles/mark_solved/${puzzleId}/`,
+            method: 'POST',
+            headers: {
+              'X-CSRFToken': '{{ csrf_token }}',
+              'Content-Type': 'application/json'
+            },
+            data: JSON.stringify({ time_taken: timeTaken }),
+            success: function () {
+              const $btn = $buttons.eq(currentPuzzleIndex);
+              $btn.removeClass('btn-success unsolved-puzzle')
+                .addClass('btn-secondary solved-puzzle');
+            },
+            error: function () {
+              console.error("Error marking puzzle solved");
+            }
+          });
+
+          $nextBtn.show();
+        } else {
+          setTimeout(makeOpponentMove, 500);
+        }
+
+        return true;
+      } else {
+        game.undo();
+        showStatus("Wrong move", "wrong");
+        playSound("{% static 'sound/puzzle-wrong.mp3' %}");
+        return 'snapback';
+      }
+    }
+
+
+    function makeOpponentMove() {
+      if (currentMoveIndex >= currentSolutionMoves.length) return;
+      const moveSAN = currentSolutionMoves[currentMoveIndex];
+      const move = game.move(moveSAN);
+      if (!move) {
+        showStatus("Error in solution", "wrong");
+        return;
+      }
       playSoundForMove(move);
       addToMoveHistory(move);
+      board.position(game.fen());
       currentMoveIndex++;
-      showStatus("Correct!", "correct");
-      board.position(game.fen(), false);
+      showStatus(`Opponent played ${moveSAN}`, "info");
 
       if (currentMoveIndex >= currentSolutionMoves.length) {
         showStatus("🎉 Puzzle solved!", "solved");
-        playSound("{% static 'sound/puzzle-correct.mp3' %}");
-        const puzzleId = $buttons.eq(currentPuzzleIndex).data('puzzle-id');
-        
-        const solveEndTime = Date.now();
-        const timeTaken = Math.floor(
-          (solveEndTime - solveStartTime) / 1000
-        );
-
-        $.ajax({
-          url: `/puzzles/mark_solved/${puzzleId}/`,
-          method: 'POST',
-          headers: {
-            'X-CSRFToken': '{{ csrf_token }}',
-            'Content-Type': 'application/json'
-          },
-          data: JSON.stringify({ time_taken: timeTaken }),
-          success: function () {
-            const $btn = $buttons.eq(currentPuzzleIndex);
-            $btn.removeClass('btn-success unsolved-puzzle')
-              .addClass('btn-secondary solved-puzzle');
-          },
-          error: function() {
-            console.error("Error marking puzzle solved");
-          }
-        });
-
         $nextBtn.show();
+      }
+    }
 
+    function loadPuzzle(index) {
+      const btn = $buttons.eq(index);
+      const fen = btn.data('fen');
+      const solution = btn.data('solution').trim();
+      const title = btn.data('title');
+
+      const quoteName = btn.data('quote-name');
+      const quoteText = btn.data('quote-text');
+      if (quoteName && quoteText) {
+        $('#quote-author').text(quoteName);
+        $('#quote-text').html(quoteText);
+        $('#quote-box').removeClass('quote-none');
+        setTimeout(function () {
+          $('#quote-box').fadeOut(500, function () {
+            $(this).addClass('quote-none').show();
+          });
+        }, 5000);
       } else {
-        setTimeout(makeOpponentMove, 500);
+        $('#quote-box').addClass('quote-none');
+        $('#quote-author').text('');
+        $('#quote-text').text('');
       }
+      currentPuzzleTurn = btn.data('turn');
 
-      return true;
-    } else {
-      game.undo();
-      showStatus("Wrong move", "wrong");
-      playSound("{% static 'sound/puzzle-wrong.mp3' %}")
-      return 'snapback';
-    }
-  }
+      currentPuzzleIndex = index;
+      currentSolutionMoves = solution.split(/\s+/);
+      currentMoveIndex = 0;
+      currentFen = fen;
+      moveHistory = [];
+      game = new Chess(fen);
 
-  function makeOpponentMove() {
-    if (currentMoveIndex >= currentSolutionMoves.length) return;
-    const moveSAN = currentSolutionMoves[currentMoveIndex];
-    const move = game.move(moveSAN);
-    if (!move) {
-      showStatus("Error in solution", "wrong");
-      return;
-    }
-    playSoundForMove(move);
-    addToMoveHistory(move);
-    board.position(game.fen());
-    currentMoveIndex++;
-    showStatus(`Opponent played ${moveSAN}`, "info");
+      solveStartTime = Date.now();
 
-    if (currentMoveIndex >= currentSolutionMoves.length) {
-      showStatus("🎉 Puzzle solved!", "solved");
-      $nextBtn.show();
-    }
-  }
+      $puzzleTitle.text(title);
+      $puzzleTurn.text((currentPuzzleTurn === 'w' ? 'White' : 'Black') + ' to play');
+      $fenDisplay.text(fen);
+      showStatus("", "");
+      $nextBtn.hide();
+      updateMoveHistory();
 
-  function loadPuzzle(index) {
-    const btn = $buttons.eq(index);
-    const fen = btn.data('fen');
-    const solution = btn.data('solution').trim();
-    const title = btn.data('title');
+      initBoard(fen, currentPuzzleTurn === 'w' ? 'white' : 'black');
 
-    const quoteName = btn.data('quote-name');
-    const quoteText = btn.data('quote-text');
-    if (quoteName && quoteText) {
-      $('#quote-author').text(quoteName);
-      $('#quote-text').html(quoteText);
-      $('#quote-box').removeClass('quote-none');
-      setTimeout(function () {
-        $('#quote-box').fadeOut(500, function () {
-          $(this).addClass('quote-none').show();
-        });
-      }, 5000);
-    } else {
-      $('#quote-box').addClass('quote-none');
-      $('#quote-author').text('');
-      $('#quote-text').text('');
-    }
-    currentPuzzleTurn = btn.data('turn');
-
-    currentPuzzleIndex = index;
-    currentSolutionMoves = solution.split(/\s+/);
-    currentMoveIndex = 0;
-    currentFen = fen;
-    moveHistory = [];
-    game = new Chess(fen);
-
-    solveStartTime = Date.now(); 
-
-    $puzzleTitle.text(title);
-    $puzzleTurn.text((currentPuzzleTurn === 'w' ? 'White' : 'Black') + ' to play');
-    $fenDisplay.text(fen);
-    showStatus("", "");
-    $nextBtn.hide();
-    updateMoveHistory();
-
-    initBoard(fen, currentPuzzleTurn === 'w' ? 'white' : 'black');
-
-    if (game.turn() !== currentPuzzleTurn) {
-      showStatus("Opponent moves first...", "info");
-      setTimeout(makeOpponentMove, 800);
-    } else {
-      showStatus("Your move", "info");
-    }
-  }
-
-  function showStatus(message, type) {
-    const alertBox = document.getElementById('puzzle-status');
-    alertBox.classList.remove('d-none');
-    $puzzleStatus.text(message).removeClass("correct wrong info solved").addClass(type || "");
-
-    setTimeout(() => {
-      alertBox.classList.add('d-none');
-    }, 4000);
-  }
-
-  function addToMoveHistory(move) {
-    moveHistory.push({ san: move.san, color: move.color });
-    updateMoveHistory();
-  }
-
-  function updateMoveHistory() {
-    $moveHistory.empty();
-    for (let i = 0; i < moveHistory.length; i += 2) {
-      const movePair = $('<div class="move-pair"></div>');
-      const moveNumber = Math.floor(i / 2) + 1;
-      movePair.append(`<div class="move-number">${moveNumber}.</div>`);
-
-      if (i < moveHistory.length) {
-        const whiteMove = moveHistory[i];
-        const whiteMoveElement = $(`<div class="move-white">${whiteMove.san}</div>`);
-        if (i === currentMoveIndex - 1) whiteMoveElement.addClass('current-move');
-        movePair.append(whiteMoveElement);
+      if (game.turn() !== currentPuzzleTurn) {
+        showStatus("Opponent moves first...", "info");
+        setTimeout(makeOpponentMove, 800);
+      } else {
+        showStatus("Your move", "info");
       }
+    }
 
-      if (i + 1 < moveHistory.length) {
-        const blackMove = moveHistory[i + 1];
-        const blackMoveElement = $(`<div class="move-black">${blackMove.san}</div>`);
-        if (i + 1 === currentMoveIndex - 1) blackMoveElement.addClass('current-move');
-        movePair.append(blackMoveElement);
+    function showStatus(message, type) {
+      const alertBox = document.getElementById('puzzle-status');
+      alertBox.classList.remove('d-none');
+      $puzzleStatus.text(message).removeClass("correct wrong info solved").addClass(type || "");
+
+      setTimeout(() => {
+        alertBox.classList.add('d-none');
+      }, 4000);
+    }
+
+    function addToMoveHistory(move) {
+      moveHistory.push({ san: move.san, color: move.color });
+      updateMoveHistory();
+    }
+
+    function updateMoveHistory() {
+      $moveHistory.empty();
+      for (let i = 0; i < moveHistory.length; i += 2) {
+        const movePair = $('<div class="move-pair"></div>');
+        const moveNumber = Math.floor(i / 2) + 1;
+        movePair.append(`<div class="move-number">${moveNumber}.</div>`);
+
+        if (i < moveHistory.length) {
+          const whiteMove = moveHistory[i];
+          const whiteMoveElement = $(`<div class="move-white">${whiteMove.san}</div>`);
+          if (i === currentMoveIndex - 1) whiteMoveElement.addClass('current-move');
+          movePair.append(whiteMoveElement);
+        }
+
+        if (i + 1 < moveHistory.length) {
+          const blackMove = moveHistory[i + 1];
+          const blackMoveElement = $(`<div class="move-black">${blackMove.san}</div>`);
+          if (i + 1 === currentMoveIndex - 1) blackMoveElement.addClass('current-move');
+          movePair.append(blackMoveElement);
+        }
+
+        $moveHistory.append(movePair);
       }
-
-      $moveHistory.append(movePair);
     }
-  }
 
-  $buttons.on('click', function () {
-    loadPuzzle($(this).data('index'));
-  });
+    $buttons.on('click', function () {
+      loadPuzzle($(this).data('index'));
+    });
 
-  $nextBtn.on('click', function () {
-    let next = currentPuzzleIndex + 1;
-    if (next >= $buttons.length) next = 0;
-    loadPuzzle(next);
-  });
+    $nextBtn.on('click', function () {
+      let next = currentPuzzleIndex + 1;
+      if (next >= $buttons.length) next = 0;
+      loadPuzzle(next);
+    });
 
-  $resetBtn.on('click', function () {
-    if (currentFen) {
-      loadPuzzle(currentPuzzleIndex);
+    $resetBtn.on('click', function () {
+      if (currentFen) {
+        loadPuzzle(currentPuzzleIndex);
+      }
+    });
+
+    $hintBtn.on('click', function () {
+      if (currentMoveIndex < currentSolutionMoves.length) {
+        showStatus(`Hint: ${currentSolutionMoves[currentMoveIndex]}`, "info");
+      }
+    });
+
+    if ($buttons.length > 0) {
+      loadPuzzle(0);
     }
   });
-
-  $hintBtn.on('click', function () {
-    if (currentMoveIndex < currentSolutionMoves.length) {
-      showStatus(`Hint: ${currentSolutionMoves[currentMoveIndex]}`, "info");
-    }
-  });
-
-  if ($buttons.length > 0) {
-    loadPuzzle(0);
-  }
-});
 </script>
 {% endblock %}
