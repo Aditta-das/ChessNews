@@ -1,0 +1,234 @@
+{% extends 'news/base.html' %}
+{% load static %}
+
+{% block title %}Find the Square Trainer{% endblock %}
+
+{% block content %}
+<link rel="stylesheet" href="{% static 'chessboardjs-1.0.0/css/chessboard-1.0.0.min.css' %}">
+<link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600&display=swap" rel="stylesheet">
+
+<style>
+  .trainer-container {
+    max-width: 900px;
+    margin: 1rem auto;
+    padding: 0 1rem;
+  }
+  
+  .trainer-title {
+    font-weight: 600;
+    color: #2c3e50;
+    text-align: center;
+    margin-bottom: 10px;
+  }
+  
+  #board {
+    width: 420px;
+    height: 420px;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+    border-radius: 8px;
+  }
+  
+  #target-square {
+    font-size: 1.4rem;
+    font-weight: 600;
+    color: #3498db;
+    text-align: center;
+    margin: 1rem 0;
+    padding: 0.5rem;
+    background: #f8f9fa;
+    border-radius: 6px;
+  }
+  
+  .stats-panel {
+    background: white;
+    border-radius: 8px;
+    padding: 1.5rem;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+    min-width: 220px;
+    margin-top: 82px;
+  }
+  
+  .stat-item {
+    margin-bottom: 1rem;
+    font-size: 1.1rem;
+  }
+  
+  #feedback {
+    min-height: 1rem;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: 600;
+    margin: 1rem 0;
+    padding: 0.75rem;
+    border-radius: 6px;
+  }
+  
+  #start-btn {
+    font-weight: 600;
+    padding: 0.75rem 1.5rem;
+    border-radius: 6px;
+    transition: transform 0.2s;
+  }
+  
+  #start-btn:hover {
+    transform: translateY(-2px);
+  }
+  
+  .highlight {
+    animation: pulse 0.5s;
+  }
+
+
+  @keyframes pulse {
+    0% { transform: scale(1); }
+    50% { transform: scale(1.05); }
+    100% { transform: scale(1); }
+  }
+</style>
+
+<audio id="correctSound" src="{% static 'sound/puzzle-correct.mp3' %}"></audio>
+<audio id="wrongSound" src="{% static 'sound/puzzle-wrong.mp3' %}"></audio>
+
+<div class="trainer-container">
+  <h2 class="trainer-title">Board Vision</h2>
+
+  <div class="d-flex justify-content-center gap-4 flex-wrap align-items-start">
+    <!-- Chessboard -->
+    <div>
+      <div id="target-square">Click Start to begin!</div>
+      <div id="board"></div>
+    </div>
+
+    <!-- Stats Panel -->
+    <div class="stats-panel">
+      <div class="stat-item">
+        <strong>⏱ Time:</strong> <span id="timer" class="text-primary">2:00</span>
+      </div>
+      <div class="stat-item text-success">
+        <strong>✓ Correct:</strong> <span id="correct-count">0</span>
+      </div>
+      <div class="stat-item text-danger">
+        <strong>✗ Wrong:</strong> <span id="wrong-count">0</span>
+      </div>
+      
+      <div id="feedback"></div>
+      
+      <div class="text-center mt-1">
+        <button id="start-btn" class="btn btn-success">Start Training</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+<script src="{% static 'chessboardjs-1.0.0/js/chessboard-1.0.0.min.js' %}"></script>
+
+<script>
+  $(document).ready(function() {
+    const $targetSquare = $('#target-square');
+    const $feedback = $('#feedback');
+    const $correct = $('#correct-count');
+    const $wrong = $('#wrong-count');
+    const $timer = $('#timer');
+    const $startBtn = $('#start-btn');
+
+    const correctSound = document.getElementById('correctSound');
+    const wrongSound = document.getElementById('wrongSound');
+
+    let board = Chessboard('board', {
+      position: 'empty',
+      draggable: false,
+      pieceTheme: '',
+    });
+
+    let correctCount = 0;
+    let wrongCount = 0;
+    let targetSquare = '';
+    let timerInterval = null;
+    let timeRemaining = 120;
+
+    function getRandomSquare() {
+      const files = ['a','b','c','d','e','f','g','h'];
+      const ranks = ['1','2','3','4','5','6','7','8'];
+      return files[Math.floor(Math.random() * 8)] + ranks[Math.floor(Math.random() * 8)];
+    }
+
+    function newTargetSquare() {
+      orientation = Math.random() < 0.5 ? 'white' : 'black';
+      console.log('New orientation:', orientation);
+      board.orientation(orientation);
+      targetSquare = getRandomSquare();
+      $targetSquare.text('Find: ' + targetSquare).addClass('highlight');
+      setTimeout(() => $targetSquare.removeClass('highlight'), 300);
+      $feedback.text('').removeClass('alert-success alert-danger');
+    }
+
+    function updateTimerDisplay() {
+      const mins = Math.floor(timeRemaining / 60);
+      const secs = timeRemaining % 60;
+      $timer.text(`${mins}:${secs < 10 ? '0' : ''}${secs}`);
+      
+      if (timeRemaining <= 30) {
+        $timer.addClass('text-danger').removeClass('text-primary');
+      }
+    }
+
+    function endGame() {
+      clearInterval(timerInterval);
+      $targetSquare.text('Training complete!');
+      $startBtn.text('Play Again').show();
+    }
+
+    function startGame() {
+      correctCount = 0;
+      wrongCount = 0;
+      timeRemaining = 120;
+      $correct.text(0);
+      $wrong.text(0);
+      $timer.text('2:00').removeClass('text-danger').addClass('text-primary');
+      newTargetSquare();
+      $startBtn.hide();
+      $feedback.removeClass('alert-info');
+
+      timerInterval = setInterval(() => {
+        timeRemaining--;
+        updateTimerDisplay();
+        if (timeRemaining <= 0) endGame();
+      }, 1000);
+    }
+
+    function playSound(audio) {
+      audio.currentTime = 0;
+      audio.play().catch(e => console.log('Audio error:', e));
+    }
+
+    $(document).on('click', '.square-55d63', function() {
+      if (timeRemaining <= 0 || !targetSquare) return;
+
+      const clicked = $(this).attr('data-square')
+      const $square = $(this);
+
+      if (clicked === targetSquare) {
+        correctCount++;
+        $correct.text(correctCount);
+        $feedback.text('Correct!').addClass('alert alert-success');
+        playSound(correctSound);
+        $square.addClass('highlight');
+        setTimeout(() => $square.removeClass('highlight'), 500);
+      } else {
+        wrongCount++;
+        $wrong.text(wrongCount);
+        $feedback.text('Wrong!').addClass('alert alert-danger');
+        playSound(wrongSound);
+        $square.css('background-color', '#ffdddd');
+        setTimeout(() => $square.css('background-color', ''), 500);
+      }
+
+      setTimeout(newTargetSquare, 800);
+    });
+
+    $startBtn.on('click', startGame);
+  });
+</script>
+{% endblock %}

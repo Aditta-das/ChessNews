@@ -236,9 +236,9 @@
               <span class="badge bg-primary me-2">Chess</span>
               <small class="text-muted">{{ article.created_at|timesince }} ago</small>
             </div>
-            <h3 class="h5 card-title">
+            <h3 class="card-title h5">
               <a href="{% url 'article_detail' slug=article.slug %}"
-                class="text-decoration-none text-dark stretched-link">
+                class="text-decoration-none text-light stretched-link">
                 {{ article.title }}
               </a>
             </h3>

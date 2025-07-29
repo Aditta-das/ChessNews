@@ -48,7 +48,7 @@
     </div>
 
     <div id="board" class="mx-auto" style="width: 400px;"></div>
-    <div id="puzzle-status" class="text-center mt-3 d-none"></div>
+    
   </div>
 
   <div style="width: 300px;">
@@ -66,6 +66,7 @@
       </div>
       <button id="reset-btn" class="btn btn-secondary btn-sm w-100">Reset</button>
       <button id="hint-btn" class="btn btn-info btn-sm w-100">Hint</button>
+      <div id="puzzle-status" class="text-center mt-3 d-none"></div>
       <button id="next-btn" class="btn btn-success btn-sm w-100" style="display:none;">Next Puzzle</button>
     </div>
   </div>
@@ -305,9 +306,9 @@
       alertBox.classList.remove('d-none');
       $puzzleStatus.text(message).removeClass("correct wrong info solved").addClass(type || "");
 
-      setTimeout(() => {
-        alertBox.classList.add('d-none');
-      }, 4000);
+      // setTimeout(() => {
+      //   alertBox.classList.add('d-none');
+      // }, 4000);
     }
 
     function addToMoveHistory(move) {

@@ -1,5 +1,5 @@
 from django.shortcuts import render, get_object_or_404, redirect
-from .models import Article, TopPlayerImg, TournamentBanner, BangladeshiTopPlayer, Book, Puzzle, EmailOTP, PuzzleSolve
+from .models import Article, TopPlayerImg, TournamentBanner, BangladeshiTopPlayer, Book, Puzzle, EmailOTP, PuzzleSolve, UserProfile
 from django.contrib.auth.models import User
 from django.contrib.auth import logout
 import requests, random, json
@@ -11,6 +11,7 @@ from django.conf import settings
 from django.views.decorators.csrf import csrf_exempt
 from django.http import JsonResponse
 from django.contrib.auth.decorators import login_required
+from django.utils import timezone
 
 def home(request):
     # Big news
@@ -61,17 +62,48 @@ def book_list(request):
 
 
 def puzzle_list(request):
-    puzzles = Puzzle.objects.order_by('id')
-    solved_ids = []
-    if request.user.is_authenticated:
-        solved_ids = PuzzleSolve.objects.filter(user=request.user).values_list('solve_puzzle_id', flat=True)
-    else:
+    if not request.user.is_authenticated:
         return redirect('login')
+
+    if not hasattr(request.user, 'userprofile') or not request.user.userprofile.is_premium:
+        return redirect('buy_premium')  # Name of your premium purchase view or page
+
+    puzzles = Puzzle.objects.order_by('id')
+    solved_ids = PuzzleSolve.objects.filter(user=request.user).values_list('solve_puzzle_id', flat=True)
+
     return render(request, 'news/puzzles.html', {
         'puzzles': puzzles,
         'solved_ids': list(solved_ids),
     })
+    
+@login_required
+def find_the_square(request):
+    return render(request, 'news/find_square.html')    
+    
+    
+    
+def buy_premium(request):
+    return render(request, 'news/buy_premium.html')
 
+####################### Extra Remove after payment integration #######################
+@login_required
+def submit_premium_request(request):
+    if request.method == 'POST':
+        email = request.POST.get('email')
+        phone = request.POST.get('phone')
+        trx_id = request.POST.get('trx_id')
+
+        # Save payment info to user's profile
+        profile, created = UserProfile.objects.get_or_create(user=request.user)
+        profile.phone = phone
+        profile.trx_id = trx_id
+        profile.payment_requested_at = timezone.now()
+        profile.save()
+
+        return render(request, 'news/premium_thankyou.html')
+
+    return redirect('buy_premium')
+############################################################
 
 @login_required
 @csrf_exempt
@@ -131,9 +163,9 @@ def login_view(request):
 
     if request.method == 'POST':
         email = request.POST.get('email')
-        username = request.POST.get('username')
         password = request.POST.get('password')
         otp_input = request.POST.get('otp')
+        username_from_email = email.split('@')[0]
 
         try:
             user = User.objects.get(email=email)
@@ -146,8 +178,9 @@ def login_view(request):
         except User.DoesNotExist:
             show_otp = True
             otp_obj, created = EmailOTP.objects.get_or_create(email=email)
+
             if created or otp_input == "":
-                otp = random.randint(10000, 99999)
+                otp = generate_otp()
                 otp_obj.otp = otp
                 otp_obj.save()
                 send_mail(
@@ -158,19 +191,23 @@ def login_view(request):
                     fail_silently=False,
                 )
                 email_sent = True
+
             elif otp_input and otp_input == str(otp_obj.otp):
-                # Validate new username
-                if User.objects.filter(username=username).exists():
-                    form.add_error('username', 'Username already taken')
+                if User.objects.filter(username=username_from_email).exists():
+                    form.add_error('email', 'Email is already linked to an account. Try logging in.')
                 else:
-                    user = User.objects.create_user(username=username, email=email, password=password)
+                    user = User.objects.create_user(username=username_from_email, email=email, password=password)
                     otp_obj.delete()
                     login(request, user)
                     return redirect('home')
             else:
                 form.add_error('otp', 'Invalid OTP')
 
-    return render(request, 'news/login.html', {'form': form, 'show_otp': show_otp, 'email_sent': email_sent})
+    return render(request, 'news/login.html', {
+        'form': form,
+        'show_otp': show_otp,
+        'email_sent': email_sent
+    })
 
     
 def logout_view(request):

@@ -3,6 +3,8 @@ from django.contrib.auth.models import User
 from django.utils.text import slugify
 from django_ckeditor_5.fields import CKEditor5Field
 from django.core.validators import RegexValidator
+from django.db.models.signals import post_save
+from django.dispatch import receiver
 
 class Category(models.Model):
     name = models.CharField(max_length=100)
@@ -170,3 +172,23 @@ class EmailOTP(models.Model):
 
     def __str__(self):
         return f"{self.email} - {self.otp}"
+
+class UserProfile(models.Model):
+    user = models.OneToOneField(User, on_delete=models.CASCADE)
+    is_premium = models.BooleanField(default=False)
+    
+    # New fields for storing payment info
+    phone = models.CharField(max_length=20, blank=True, null=True)
+    trx_id = models.CharField("Transaction ID", max_length=100, blank=True, null=True)
+    payment_requested_at = models.DateTimeField(blank=True, null=True)
+
+    def __str__(self):
+        return f"{self.user} - Premium: {self.is_premium}"
+
+@receiver(post_save, sender=User)
+def create_or_update_user_profile(sender, instance, created, **kwargs):
+    if created:
+        UserProfile.objects.create(user=instance)
+    else:
+        # Try to get or create the UserProfile
+        UserProfile.objects.get_or_create(user=instance)

@@ -1,5 +1,5 @@
 from django.contrib import admin
-from .models import Article, Category, TopPlayerImg, TournamentBanner, BangladeshiTopPlayer, Book, Puzzle, EmailOTP, Quote, PuzzleSolve
+from .models import Article, Category, TopPlayerImg, TournamentBanner, BangladeshiTopPlayer, Book, Puzzle, EmailOTP, Quote, PuzzleSolve, UserProfile
 import requests
 
 admin.site.register(Article)
@@ -18,3 +18,9 @@ class PuzzleSolveAdmin(admin.ModelAdmin):
     list_display = ('user', 'solve_puzzle', 'solved_at')
 admin.site.register(Quote)
 admin.site.register(EmailOTP)
+
+@admin.register(UserProfile)
+class UserProfileAdmin(admin.ModelAdmin):
+    list_display = ('user', 'is_premium', 'phone', 'trx_id', 'payment_requested_at')
+    list_filter = ('is_premium',)
+    search_fields = ('user__username', 'phone', 'trx_id')

@@ -1,0 +1,12 @@
+{% extends 'news/base.html' %}
+
+{% block title %}Thank You{% endblock %}
+
+{% block content %}
+<div class="container text-center mt-5">
+  <h2>✅ Thank You!</h2>
+  <p class="lead">We received your payment information.</p>
+  <p>Your premium account will be activated shortly.</p>
+  <a href="{% url 'home' %}" class="btn btn-primary mt-3">Back to Home</a>
+</div>
+{% endblock %}

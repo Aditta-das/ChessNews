@@ -37,20 +37,6 @@
                             {% endfor %}
                         </div>
 
-                        <!-- Username -->
-                        <div class="mb-4">
-                            <label for="{{ form.username.id_for_label }}" class="form-label fw-bold">
-                                <i class="fas fa-user me-2"></i>Username
-                            </label>
-                            <input type="text"
-                                class="form-control form-control-lg {% if form.username.errors %}is-invalid{% endif %}"
-                                id="{{ form.username.id_for_label }}" name="{{ form.username.name }}"
-                                value="{{ form.username.value|default:'' }}" required>
-                            {% for error in form.username.errors %}
-                            <div class="invalid-feedback">{{ error }}</div>
-                            {% endfor %}
-                        </div>
-
                         <!-- Password -->
                         <div class="mb-4">
                             <label for="{{ form.password.id_for_label }}" class="form-label fw-bold">
