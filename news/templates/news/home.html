@@ -8,16 +8,16 @@
 {% load static %}
 <!-- Headline Ticker -->
 {% if user.is_authenticated %}
-<h3>Hello, <b>{{ user.username }}</b></h3>
+<h3 class="username">Hello, <b>{{ user.username }}</b></h3>
 {% endif %}
 <div class="ticker-container mb-4">
-  <div class="ticker-text text-black">
+  <div class="ticker-text">
     {% for player in players %}
     <span class="ticker-item">
       ♔<strong class="text-warning">#{{ player.rank }} </strong>
       <span class="fw-bold">-{{ player.name }} </span>
       <span class="flag-icon flag-icon-{{ player.country|lower }}"></span>
-      <span class="text-primary">-{{ player.rating }} </span>
+      <span class="ticker-rating">-{{ player.rating }} </span>
       <span class="mx-3">|</span>
     </span>
     {% endfor %}
@@ -74,7 +74,7 @@
         <!-- Tournament 1 -->
         <div class="mb-3">
           <h5 class="fw-bold mb-1">Polish Team Championship Ekstraliga 2025</h5>
-          <p class="small text-muted mb-2">
+          <p class="small mb-2 author-name">
             <i class="bi bi-calendar-event me-1"></i> Jun 2 – Jun 11, 2025
           </p>
         </div>
@@ -82,7 +82,7 @@
         <!-- Tournament 2 -->
         <div>
           <h5 class="fw-bold mb-1">17th BPB Limburg Open 2025</h5>
-          <p class="small text-muted mb-2">
+          <p class="small mb-2 author-name">
             <i class="bi bi-calendar-event me-1"></i> Jun 6 – Jun 10, 2025
           </p>
         </div>
@@ -140,8 +140,8 @@
 <!-- Top Chess Players -->
 <section class="my-4 py-2">
   <div class="container text-left">
-    <h2 class="h3 mb-4 fw-bold">
-      <i class="bi bi-chess-pawn text-primary me-2"></i> Top Players
+    <h2 class="h3 mb-4 fw-bold player-headline">
+      <i class="bi bi-chess-pawn text-white me-2"></i> Top Players
     </h2>
 
     <div class="d-flex justify-content-center flex-wrap gap-4">
@@ -178,8 +178,8 @@
 <!-- Top Bangladeshi Chess Players -->
 <section class="my-0 py-1">
   <div class="container text-left">
-    <h2 class="h3 mb-4 fw-bold">
-      <i class="bi bi-chess-pawn text-primary me-2"></i> Top Bangladeshi Players
+    <h2 class="h3 mb-4 fw-bold player-headline">
+      <i class="bi bi-chess-pawn me-2 text-white"></i> Top Bangladeshi Players
     </h2>
 
     <div class="d-flex justify-content-center flex-wrap gap-4">
@@ -215,8 +215,8 @@
 <section class="my-5">
   <div class="container">
     <div class="d-flex justify-content-between align-items-center mb-4">
-      <h2 class="h3 mb-0 fw-bold">
-        <i class="bi bi-newspaper text-primary me-2"></i> Latest News
+      <h2 class="h3 mb-0 fw-bold player-headline">
+        <i class="bi bi-newspaper me-2 text-white"></i> Latest News
       </h2>
       <a href="#" class="btn btn-sm btn-outline-primary">
         View All <i class="bi bi-chevron-right ms-1"></i>
@@ -242,7 +242,7 @@
                 {{ article.title }}
               </a>
             </h3>
-            <p class="card-text text-muted">{{ article.content|remove_img_tags|truncatewords:25|safe }}</p>
+            <p class="card-text">{{ article.content|remove_img_tags|truncatewords:25|safe }}</p>
           </div>
           <div class="card-footer bg-transparent border-0 pt-0">
             <div class="d-flex align-items-center">
@@ -252,8 +252,7 @@
                   alt="{{ article.author.username }}" class="rounded-circle">
               </div>
               <div class="flex-grow-1 ms-2">
-                <small class="d-block">{{ article.author.username }}</small>
-                <small class="text-muted">Chess Journalist</small>
+                <small class="d-block author-name">{{ article.author.username }}</small>
               </div>
             </div>
           </div>
