@@ -1,5 +1,7 @@
 from django.shortcuts import render, get_object_or_404, redirect
-from .models import Article, TopPlayerImg, TournamentBanner, BangladeshiTopPlayer, Book, Puzzle, EmailOTP, PuzzleSolve, UserProfile
+from .models import Article, TopPlayerImg, \
+    TournamentBanner, BangladeshiTopPlayer, Book, \
+        Puzzle, EmailOTP, PuzzleSolve, UserProfile, BoardVision
 from django.contrib.auth.models import User
 from django.contrib.auth import logout
 import requests, random, json
@@ -76,9 +78,37 @@ def puzzle_list(request):
         'solved_ids': list(solved_ids),
     })
     
+from django.db.models import Sum, F, ExpressionWrapper, IntegerField
+
 @login_required
 def find_the_square(request):
-    return render(request, 'news/find_square.html')    
+    if request.method == 'POST' and request.headers.get('x-requested-with') == 'XMLHttpRequest':
+        correct = int(request.POST.get('correct', 0))
+        wrong = int(request.POST.get('wrong', 0))
+
+        BoardVision.objects.create(
+            user=request.user,
+            positive_value=correct,
+            negative_value=wrong
+        )
+        return JsonResponse({'status': 'success'})
+
+    # Top 5 players based on score = correct - wrong
+    top_players = (
+        BoardVision.objects
+        .values('user__username')
+        .annotate(
+            total_correct=Sum('positive_value'),
+            total_wrong=Sum('negative_value'),
+            score=ExpressionWrapper(Sum('positive_value') - Sum('negative_value'), output_field=IntegerField())
+        )
+        .order_by('-score')[:5]
+    )
+
+    return render(request, 'news/find_square.html', {
+        'top_players': top_players
+    })
+
     
     
     

@@ -6,12 +6,12 @@
 {% block content %}
 <div class="container py-5">
     <div class="text-center mb-4">
-        <h2 class="fw-bold">Your Puzzle Solving Progress</h2>
-        <p class="text-muted">Track how you're improving over time!</p>
+        <h2 class="fw-bold text-white">Your Puzzle Solving Progress</h2>
+        <p class="text-white">Track how you're improving over time!</p>
     </div>
 
-    <div class="card p-4 shadow-sm mb-5">
-        <h5 class="mb-3">Time Taken per Puzzle</h5>
+    <div class="card graph p-4 shadow-sm mb-5">
+        <h5 class="mb-3 text-white">Time Taken per Puzzle</h5>
         <canvas id="progressChart" height="250"></canvas>
     </div>
 </div>
@@ -24,12 +24,12 @@
         datasets: [{
             label: 'Time Taken (seconds)',
             data: {{ data| safe }},
-    fill: false,
-        borderColor: 'rgb(75, 192, 192)',
-            backgroundColor: 'rgb(75, 192, 192)',
-                tension: 0.1
-    }]
-};
+            fill: false,
+            borderColor: '#fff',
+            backgroundColor: '#fff',
+            tension: 0.1
+        }]
+    };
 
     const config = {
         type: 'line',
@@ -47,17 +47,25 @@
                     beginAtZero: true,
                     title: {
                         display: true,
-                        text: 'Time Taken (seconds)'
+                        text: 'Time Taken (seconds)',
+                        color: 'white'
+                    },
+                    ticks: {
+                        // Changed the y-axis tick color to white
+                        color: 'white'
                     }
                 },
                 x: {
                     title: {
                         display: true,
-                        text: 'Puzzle Title'
+                        text: 'Puzzle Title',
+                        color: 'white',
                     },
                     ticks: {
                         maxRotation: 90,
                         autoSkip: false,
+                        // Changed the x-axis tick color to white
+                        color: 'white'
                     }
                 }
             }

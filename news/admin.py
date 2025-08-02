@@ -1,6 +1,11 @@
 from django.contrib import admin
-from .models import Article, Category, TopPlayerImg, TournamentBanner, BangladeshiTopPlayer, Book, Puzzle, EmailOTP, Quote, PuzzleSolve, UserProfile
-import requests
+from .models import Article, \
+    Category, TopPlayerImg, TournamentBanner, BangladeshiTopPlayer, \
+    Book, Puzzle, EmailOTP, Quote, PuzzleSolve, UserProfile, BoardVision
+
+admin.site.site_header = "ChessBD AdminPanel"
+admin.site.site_title = "ChessBD"
+admin.site.index_title = "Welcome to ChessBD Admin Panel"
 
 admin.site.register(Article)
 admin.site.register(Category)
@@ -24,3 +29,5 @@ class UserProfileAdmin(admin.ModelAdmin):
     list_display = ('user', 'is_premium', 'phone', 'trx_id', 'payment_requested_at')
     list_filter = ('is_premium',)
     search_fields = ('user__username', 'phone', 'trx_id')
+    
+admin.site.register(BoardVision)

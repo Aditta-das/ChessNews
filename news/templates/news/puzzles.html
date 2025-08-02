@@ -39,7 +39,7 @@
     {% endfor %}
   </div>
 
-  <div style="width: 400px;">
+  <div style="width: 420px;">
     <div class="puzzle-info mb-3 text-center">
       <h4 id="puzzle-title">Select a puzzle</h4>
       <p id="puzzle-turn"></p>
@@ -47,13 +47,13 @@
       <code id="fen-display" class="d-none"></code>
     </div>
 
-    <div id="board" class="mx-auto" style="width: 400px;"></div>
-    
+    <div id="board" class="mx-auto"></div>
+
   </div>
 
-  <div style="width: 300px;">
-    <div id="notation-box" class="mb-3 p-2 border rounded bg-light" style="max-height: 50vh; overflow-y: auto;">
-      <h5 class="text-center">Move Notation</h5>
+  <div style="width: 250px;">
+    <div id="notation-box" class="mb-3 p-2" style="max-height: 50vh; overflow-y: auto;">
+      <h5 class="text-center text-white">Move Notation</h5>
       <div id="move-history"></div>
     </div>
 
@@ -312,34 +312,87 @@
     }
 
     function addToMoveHistory(move) {
-      moveHistory.push({ san: move.san, color: move.color });
+      moveHistory.push({
+        san: move.san,
+        piece: move.piece,
+        to: move.to,
+        color: move.color,
+        flags: move.flags
+      });
       updateMoveHistory();
     }
 
+
+
+    function formatMove(move) {
+      const blackSymbols = {
+        'p': '',
+        'n': '♘',
+        'b': '♗',
+        'r': '♖',
+        'q': '♕',
+        'k': '♔'
+      };
+
+      const whiteSymbols = {
+        'p': '',
+        'n': '♞',
+        'b': '♝',
+        'r': '♜',
+        'q': '♛',
+        'k': '♚'
+      };
+
+      const color = move.color || 'w';
+      const piece = move.piece || 'p';
+      const to = move.to || '';
+      const isCapture = move.flags && move.flags.includes('c');
+
+      const symbols = color === 'w' ? whiteSymbols : blackSymbols;
+      const icon = symbols[piece] || '';
+
+      if (piece === 'p') {
+        // Pawn captures (like exd5), otherwise just destination
+        if (isCapture && move.san.length >= 4) {
+          return `${move.san[0]}x${to}`;
+        } else {
+          return to;
+        }
+      }
+
+      return `${icon}${isCapture ? 'x' : ''}${to}`;
+    }
+
+    // Update move history display
     function updateMoveHistory() {
       $moveHistory.empty();
+
       for (let i = 0; i < moveHistory.length; i += 2) {
         const movePair = $('<div class="move-pair"></div>');
         const moveNumber = Math.floor(i / 2) + 1;
         movePair.append(`<div class="move-number">${moveNumber}.</div>`);
 
+        const isWhiteCurrent = i === moveHistory.length - 1;
+        const isBlackCurrent = i + 1 === moveHistory.length - 1;
+
         if (i < moveHistory.length) {
           const whiteMove = moveHistory[i];
-          const whiteMoveElement = $(`<div class="move-white">${whiteMove.san}</div>`);
-          if (i === currentMoveIndex - 1) whiteMoveElement.addClass('current-move');
+          const whiteMoveElement = $(`<div class="move-white">${formatMove(whiteMove)}</div>`);
+          if (isWhiteCurrent) whiteMoveElement.addClass('active');
           movePair.append(whiteMoveElement);
         }
 
         if (i + 1 < moveHistory.length) {
           const blackMove = moveHistory[i + 1];
-          const blackMoveElement = $(`<div class="move-black">${blackMove.san}</div>`);
-          if (i + 1 === currentMoveIndex - 1) blackMoveElement.addClass('current-move');
+          const blackMoveElement = $(`<div class="move-black">${formatMove(blackMove)}</div>`);
+          if (isBlackCurrent) blackMoveElement.addClass('active');
           movePair.append(blackMoveElement);
         }
 
         $moveHistory.append(movePair);
       }
     }
+
 
     $buttons.on('click', function () {
       loadPuzzle($(this).data('index'));

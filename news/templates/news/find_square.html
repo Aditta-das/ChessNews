@@ -7,37 +7,38 @@
 <link rel="stylesheet" href="{% static 'chessboardjs-1.0.0/css/chessboard-1.0.0.min.css' %}">
 <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600&display=swap" rel="stylesheet">
 
-<style>
-  
-</style>
-
 <audio id="correctSound" src="{% static 'sound/puzzle-correct.mp3' %}"></audio>
 <audio id="wrongSound" src="{% static 'sound/puzzle-wrong.mp3' %}"></audio>
 
 <div class="trainer-container">
   <h2 class="trainer-title">Board Vision</h2>
 
+  {% if not request.user.is_authenticated %}
+  <div class="alert alert-warning text-center">You must <a href="{% url 'login' %}">log in</a> to save results.</div>
+  {% endif %}
+
   <div class="d-flex justify-content-center gap-4 flex-wrap align-items-start">
+
     <!-- Chessboard -->
     <div>
-      <div id="target-square">Click Start to begin!</div>
-      <div id="board"></div>
+      <div id="board" style="width: 480px; height: 480px;"></div>
     </div>
 
-    <!-- Stats Panel -->
-    <div class="stats-panel">
-      <div class="stat-item">
+    <!-- Stats Panel Column -->
+    <div class="stats-panel d-flex flex-column align-items-center gap-3">
+      <div class="target-box text-center p-2 w-100">
+        <div id="target-square">Click Start to begin!</div>
+      </div>
+
+      <div class="stat-item text-success"><strong>✓ Correct:</strong> <span id="correct-count">0</span></div>
+      <div class="stat-item text-danger"><strong>✗ Wrong:</strong> <span id="wrong-count">0</span></div>
+
+      <div class="timer-box text-center p-2 w-100">
         <strong>⏱ Time:</strong> <span id="timer" class="text-primary">2:00</span>
       </div>
-      <div class="stat-item text-success">
-        <strong>✓ Correct:</strong> <span id="correct-count">0</span>
-      </div>
-      <div class="stat-item text-danger">
-        <strong>✗ Wrong:</strong> <span id="wrong-count">0</span>
-      </div>
-      
-      <div id="feedback"></div>
-      
+
+      <div id="feedback" class="text-center mt-2"></div>
+
       <div class="text-center mt-1">
         <button id="start-btn" class="btn btn-success">Start Training</button>
       </div>
@@ -45,11 +46,38 @@
   </div>
 </div>
 
+
+<div class="leaderboard mt-5">
+  <h4 class="text-center text-primary">🏆 Top Players</h4>
+  <table class="table custom-leaderboard text-center mt-3">
+    <thead>
+      <tr>
+        <th>Rank</th>
+        <th>Username</th>
+        <th>✓ Correct</th>
+        <th>✗ Wrong</th>
+        <th>Score</th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for player in top_players %}
+      <tr>
+        <td class="counter">{{ forloop.counter }}</td>
+        <td class="name">{{ player.user__username }}</td>
+        <td class="correct">{{ player.total_correct }}</td>
+        <td class="wrong">{{ player.total_wrong }}</td>
+        <td class="score">{{ player.score }}</td>
+      </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+</div>
+
 <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
 <script src="{% static 'chessboardjs-1.0.0/js/chessboard-1.0.0.min.js' %}"></script>
 
 <script>
-  $(document).ready(function() {
+  $(document).ready(function () {
     const $targetSquare = $('#target-square');
     const $feedback = $('#feedback');
     const $correct = $('#correct-count');
@@ -73,14 +101,13 @@
     let timeRemaining = 120;
 
     function getRandomSquare() {
-      const files = ['a','b','c','d','e','f','g','h'];
-      const ranks = ['1','2','3','4','5','6','7','8'];
+      const files = ['a', 'b', 'c', 'd', 'e', 'f', 'g', 'h'];
+      const ranks = ['1', '2', '3', '4', '5', '6', '7', '8'];
       return files[Math.floor(Math.random() * 8)] + ranks[Math.floor(Math.random() * 8)];
     }
 
     function newTargetSquare() {
-      orientation = Math.random() < 0.5 ? 'white' : 'black';
-      console.log('New orientation:', orientation);
+      const orientation = Math.random() < 0.5 ? 'white' : 'black';
       board.orientation(orientation);
       targetSquare = getRandomSquare();
       $targetSquare.text('Find: ' + targetSquare).addClass('highlight');
@@ -92,7 +119,6 @@
       const mins = Math.floor(timeRemaining / 60);
       const secs = timeRemaining % 60;
       $timer.text(`${mins}:${secs < 10 ? '0' : ''}${secs}`);
-      
       if (timeRemaining <= 30) {
         $timer.addClass('text-danger').removeClass('text-primary');
       }
@@ -102,12 +128,30 @@
       clearInterval(timerInterval);
       $targetSquare.text('Training complete!');
       $startBtn.text('Play Again').show();
+
+      $.ajax({
+        type: 'POST',
+        url: '', // same URL
+        headers: { 'X-Requested-With': 'XMLHttpRequest' },
+        data: {
+          csrfmiddlewaretoken: '{{ csrf_token }}',
+          correct: correctCount,
+          wrong: wrongCount
+        },
+        success: function (response) {
+          console.log('Result saved:', response);
+        },
+        error: function () {
+          console.error('Result not saved.');
+        }
+      });
     }
 
     function startGame() {
       correctCount = 0;
       wrongCount = 0;
       timeRemaining = 120;
+
       $correct.text(0);
       $wrong.text(0);
       $timer.text('2:00').removeClass('text-danger').addClass('text-primary');
@@ -127,10 +171,10 @@
       audio.play().catch(e => console.log('Audio error:', e));
     }
 
-    $(document).on('click', '.square-55d63', function() {
+    $(document).on('click', '.square-55d63', function () {
       if (timeRemaining <= 0 || !targetSquare) return;
 
-      const clicked = $(this).attr('data-square')
+      const clicked = $(this).attr('data-square');
       const $square = $(this);
 
       if (clicked === targetSquare) {

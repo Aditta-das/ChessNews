@@ -164,6 +164,16 @@ class Quote(models.Model):
     
     def __str__(self):
         return self.name
+    
+class BoardVision(models.Model):
+    user = models.ForeignKey(User, on_delete=models.CASCADE)
+    positive_value = models.PositiveIntegerField(default=0)
+    negative_value = models.PositiveIntegerField(default=0) 
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    def __str__(self):
+        return f"{self.user.username} - {self.positive_value}✓ / {self.negative_value}✗"
+
 # users
 class EmailOTP(models.Model):
     email = models.EmailField(unique=True)
