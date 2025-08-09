@@ -141,23 +141,23 @@ class Puzzle(models.Model):
             self.fen = ' '.join(parts)
         else:
             print(f"⚠️ Warning: FEN is invalid: {self.fen}")
-        super().save(*args, **kwargs)
-        
-
+        super().save(*args, **kwargs)     
+    
+    
 class PuzzleSolve(models.Model):
     user = models.ForeignKey(User, on_delete=models.CASCADE)
     solve_puzzle = models.ForeignKey(Puzzle, on_delete=models.CASCADE)
     solved_at = models.DateTimeField(auto_now_add=True)
     time_taken = models.IntegerField(null=True, blank=True)
-
+    made_mistake = models.BooleanField(default=False)
+    
     class Meta:
         unique_together = ('user', 'solve_puzzle')
 
     def __str__(self):
         return f"{self.user.username} solved {self.solve_puzzle.title}"
 
-
-        
+    
 class Quote(models.Model):
     name = models.CharField(max_length=50)
     Quote = CKEditor5Field('Text', config_name='extends')
