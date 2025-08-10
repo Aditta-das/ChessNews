@@ -14,6 +14,7 @@ from django.views.decorators.csrf import csrf_exempt
 from django.http import JsonResponse
 from django.contrib.auth.decorators import login_required
 from django.utils import timezone
+from django.db.models import Sum, F, ExpressionWrapper, IntegerField
 
 def home(request):
     # Big news
@@ -62,7 +63,6 @@ def book_list(request):
     books = Book.objects.filter(is_available=True)
     return render(request, 'news/book_list.html', {'books': books})
 
-
 def puzzle_list(request):
     if not request.user.is_authenticated:
         return redirect('login')
@@ -78,10 +78,10 @@ def puzzle_list(request):
         'solved_ids': list(solved_ids),
     })
     
-from django.db.models import Sum, F, ExpressionWrapper, IntegerField
 
-@login_required
 def find_the_square(request):
+    if not request.user.is_authenticated:
+        return redirect('login')
     if request.method == 'POST' and request.headers.get('x-requested-with') == 'XMLHttpRequest':
         correct = int(request.POST.get('correct', 0))
         wrong = int(request.POST.get('wrong', 0))
@@ -160,6 +160,11 @@ def mark_puzzle_solved(request, puzzle_id):
             return JsonResponse({'error': str(e)}, status=400)
 
     return JsonResponse({'error': 'invalid request'}, status=400)
+
+
+def games(request):
+    return render(request, 'news/games.html', {})
+
 
 
 @login_required

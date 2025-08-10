@@ -611,27 +611,77 @@
         }
 
         /* find square.html */
-        .trainer-container {
-            max-width: 1000px;
-            margin: 0 auto;
-            padding: 20px;
-            justify-content: center;
+        .stats-panel {
+            border-radius: 12px;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+            width: 300px;
         }
 
-        .trainer-title {
+        #target-square {
+            font-size: 1.5rem;
             font-weight: 600;
-            color: var(--chess-secondary);
-            text-align: center;
-            margin-bottom: 20px;
+            color: #fff;
+            padding: 10px 20px;
+            background: linear-gradient(135deg, #007bff, #0056b3);
+            border-radius: 8px;
+            margin-bottom: 1rem;
+            transition: transform 0.2s ease-in-out;
         }
 
-        /* Chessboard Square Highlight */
-        .highlight {
-            background-color: #d4edda !important;
-            animation: pulse 0.5s ease;
+        #target-square.highlight {
+            transform: scale(1.05);
         }
 
-        /* Animated Pulse Effect */
+        .stat-item,
+        .timer-box {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 5px 5px;
+            border-radius: 8px;
+            font-size: 1.1rem;
+            width: 100%;
+            margin-bottom: 0.1rem;
+        }
+
+        .stat-item.text-success {
+            background-color: #e9f7ef;
+            color: #155724;
+        }
+
+        .stat-item.text-danger {
+            background-color: #f8d7da;
+            color: #721c24;
+        }
+
+        .stat-item strong,
+        .timer-box strong {
+            font-weight: 600;
+        }
+
+        #correct-count,
+        #wrong-count {
+            font-weight: bold;
+            background-color: rgba(0, 0, 0, 0.05);
+            padding: 2px 8px;
+            border-radius: 5px;
+        }
+
+        .timer-box {
+            background-color: #e7f3ff;
+        }
+
+        #timer {
+            font-weight: bold;
+            font-family: 'Courier New', Courier, monospace;
+            font-size: 1.2rem;
+        }
+
+        #timer.text-danger {
+            color: #dc3545 !important;
+            animation: pulse 1s infinite;
+        }
+
         @keyframes pulse {
             0% {
                 transform: scale(1);
@@ -646,134 +696,108 @@
             }
         }
 
-        /* Stats Panel Container */
-        .stats-panel {
-            width: 250px;
-            padding: 15px;
-            border-radius: 10px;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            gap: 15px;
-        }
-
-        /* Box for target and timer */
-        .target-box,
-        .timer-box {
-            width: 100%;
-            background-color: #ffffff;
-            border-radius: 10px;
-            padding: 10px;
-            font-size: 18px;
-            font-weight: 600;
-            color: #333;
-            text-align: center;
-        }
-
-        /* Stats Items */
-        .stat-item {
-            font-size: 16px;
-            margin-bottom: 5px;
-            font-weight: 500;
-            width: 100%;
-            text-align: center;
-        }
-
-        /* Feedback Message */
-        #feedback {
-            min-height: 1rem;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-weight: 600;
-            margin: 1rem 0 0.5rem;
-            padding: 0.75rem;
-            border-radius: 6px;
-            width: 100%;
-            text-align: center;
-        }
-
-        /* Start Button */
         #start-btn {
-            font-weight: 600;
-            padding: 0.75rem 1.5rem;
-            border-radius: 6px;
-            transition: transform 0.2s ease;
             width: 100%;
+            padding: 12px 10px;
+            font-size: 1.2rem;
+            font-weight: 600;
+            letter-spacing: 0.5px;
+            border-radius: 8px;
+            transition: all 0.3s ease;
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
         }
 
         #start-btn:hover {
-            transform: translateY(-2px);
+            transform: translateY(-3px);
+            box-shadow: 0 4px 10px rgba(40, 167, 69, 0.4);
         }
 
-        .graph {
-            background-color: var(--notation-box) !important;
+        #feedback {
+            width: 100%;
+            font-weight: 600;
         }
 
-        .table.custom-leaderboard {
-            background-color: var(--notation-box);
-            border: 2px solid #e5c07b;
-            border-radius: 8px;
-            overflow: hidden;
-            font-family: 'Poppins', sans-serif;
-        }
+        /* --- Responsive Styles for Smaller Devices --- */
+        /* This block now comes AFTER the desktop styles to ensure it overrides them */
+        @media (max-width: 768px) {
+            .trainer-container {
+                padding: 10px;
+                margin: 0;
+                border-radius: 0;
+                box-shadow: none;
+            }
 
-        .table.custom-leaderboard,
-        .table.custom-leaderboard th {
-            color: var(--chess-secondary) !important;
-        }
+            .d-flex.flex-wrap {
+                flex-direction: column;
+                /* Stack board and stats vertically */
+                gap: 1.5rem;
+            }
 
-        .table.custom-leaderboard thead {
-            background-color: #f1c40f;
-            color: #222;
-        }
+            #board-container {
+                width: 100% !important;
+                /* Ensure container is full width */
+            }
 
-        .table.custom-leaderboard tbody tr:nth-child(even),
-        .table.custom-leaderboard tbody tr:nth-child(odd) {
-            background-color: var(--notation-box);
-        }
+            #board {
+                width: 100% !important;
+                height: auto !important;
+                aspect-ratio: 1/1;
+                /* Maintain square shape */
+            }
 
-        .table.custom-leaderboard tbody tr:hover {
-            background-color: #4c4c4c;
-            transition: background-color 0.3s ease;
-        }
+            /* THIS IS THE KEY FIX: Reset stats panel width for mobile */
+            .stats-panel {
+                width: 100% !important;
+                /* Override the 300px desktop width */
+            }
 
-        .table.custom-leaderboard th,
-        .table.custom-leaderboard td {
-            background-color: var(--notation-box);
-            padding: 10px;
-            vertical-align: middle;
-            border-color: #e0b146;
-        }
+            /* Adjust font size for smaller screens */
+            #target-square {
+                font-size: 1.3rem;
+                margin-bottom: 10px;
+                padding: 5px 8px;
+            }
 
-        .table.custom-leaderboard td.counter {
-            color: var(--chess-secondary);
-            font-weight: bold;
-        }
+            #start-btn {
+                padding: 6px 12px;
+            }
 
-        .table.custom-leaderboard td.name {
-            color: var(--chess-secondary);
-            font-weight: bold;
-        }
+            /* Styles for the responsive leaderboard */
+            .custom-leaderboard {
+                width: 100%;
+            }
 
-        .table.custom-leaderboard td.correct {
-            color: var(--status);
-            font-weight: bold;
-        }
+            .custom-leaderboard thead {
+                display: none;
+            }
 
-        .table.custom-leaderboard td.wrong {
-            color: var(--chess-red);
-            font-weight: bold;
-        }
+            .custom-leaderboard tr {
+                display: block;
+                margin-bottom: 10px;
+                border: 1px solid #dee2e6;
+                border-radius: 8px;
+            }
 
-        .table.custom-leaderboard td.score {
-            color: var(--chess-secondary);
-            font-weight: bold;
-        }
+            .custom-leaderboard td {
+                display: flex;
+                justify-content: space-between;
+                text-align: right;
+                padding-left: 50%;
+                position: relative;
+            }
 
-        .leaderboard {
-            max-width: 600px;
-            margin: auto;
+            .custom-leaderboard td::before {
+                content: attr(data-label);
+                position: absolute;
+                left: 10px;
+                font-weight: 600;
+                color: #333;
+            }
+
+            .leaderboard {
+                display: none;
+                /* This was in your original code, keeping it */
+            }
         }
     </style>
 </head>
@@ -831,16 +855,6 @@
                         </a>
                     </li>
                     {% if user.is_authenticated %}
-                    <!-- <li class="nav-item mx-1">
-                        <form action="{% url 'logout' %}" method="post" class="d-inline">
-                            {% csrf_token %}
-                            <button type="submit" class="btn btn-link nav-link px-3"
-                                style="display: inline; text-decoration: none;">
-                                <i class="fas fa-sign-out-alt me-1"></i>
-                                {{ user.username }}
-                            </button>
-                        </form>
-                    </li> -->
                     <li class="nav-item dropdown mx-1">
                         <a class="nav-link dropdown-toggle px-3" href="#" id="userDropdown" role="button"
                             data-bs-toggle="dropdown" aria-expanded="false">

@@ -8,113 +8,43 @@
 <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600&display=swap" rel="stylesheet">
 <style>
   /* Responsive styles for small screens */
-  @media (max-width: 768px) {
-    .trainer-container {
-      padding: 10px;
-      margin: 0;
-      border-radius: 0;
-      box-shadow: none;
-    }
-
-    #board-container {
-      width: 100% !important;
-      justify-content: center;
-    }
-
-    #board {
-      width: 100% !important;
-      height: auto !important;
-      aspect-ratio: 1/1;
-    }
-
-    .d-flex.flex-wrap {
-      flex-direction: column;
-      gap: 1rem;
-    }
-
-    .d-flex>div[style="width: 420px;"] {
-      width: 100% !important;
-    }
-
-    .stats-panel {
-      width: 100%;
-    }
-
-    .custom-leaderboard {
-      width: 100%;
-    }
-
-    .custom-leaderboard thead {
-      display: none;
-    }
-
-    .custom-leaderboard tr {
-      display: block;
-      margin-bottom: 10px;
-      border: 1px solid #dee2e6;
-      border-radius: 8px;
-    }
-
-    .custom-leaderboard td {
-      display: flex;
-      justify-content: space-between;
-      text-align: right;
-      padding-left: 50%;
-      position: relative;
-    }
-
-    .custom-leaderboard td::before {
-      content: attr(data-label);
-      position: absolute;
-      left: 10px;
-      font-weight: 600;
-      color: #333;
-    }
-    .leaderboard {
-      display: none;
-    }
-  }
 </style>
 
 <audio id="correctSound" src="{% static 'sound/puzzle-correct.mp3' %}"></audio>
 <audio id="wrongSound" src="{% static 'sound/puzzle-wrong.mp3' %}"></audio>
 
 <div class="trainer-container">
-  <h2 class="trainer-title">Board Vision</h2>
-
   {% if not request.user.is_authenticated %}
   <div class="alert alert-warning text-center">You must <a href="{% url 'login' %}">log in</a> to save results.</div>
   {% endif %}
 
-  <div class="d-flex justify-content-center gap-4 flex-wrap align-items-start">
+  <div class="d-flex justify-content-center gap-3 flex-wrap align-items-start">
 
-    <!-- Chessboard -->
     <div id="board-container" style="width: 500px;">
       <div id="board" class="mx-auto"></div>
     </div>
 
-    <!-- Stats Panel Column -->
-    <div class="stats-panel d-flex flex-column align-items-center gap-3">
-      <div class="target-box text-center p-2 w-100">
-        <div id="target-square">Click Start to begin!</div>
+    <div class="stats-panel d-flex flex-column align-items-center gap-1">
+      <div id="target-square" class="w-100 text-center">Click Start to begin!</div>
+
+      <div class="d-flex w-100 flex-column flex-md-row gap-1">
+        <div class="stat-item text-success flex-fill"><strong>Correct:</strong> <span id="correct-count">0</span></div>
+        <div class="stat-item text-danger flex-fill"><strong>Wrong:</strong> <span id="wrong-count">0</span></div>
       </div>
 
-      <div class="stat-item text-success"><strong>✓ Correct:</strong> <span id="correct-count">0</span></div>
-      <div class="stat-item text-danger"><strong>✗ Wrong:</strong> <span id="wrong-count">0</span></div>
 
-      <div class="timer-box text-center p-2 w-100">
+      <div class="timer-box w-100">
         <strong>⏱ Time:</strong> <span id="timer" class="text-primary">2:00</span>
       </div>
 
-      <div id="feedback" class="text-center mt-2"></div>
+      <div id="feedback" class="text-center"></div>
 
-      <div class="text-center mt-1">
+      <div class="text-center w-100 mt-auto">
         <button id="start-btn" class="btn btn-success">Start Training</button>
       </div>
     </div>
   </div>
 </div>
-
 
 <div class="leaderboard mt-5">
   <h4 class="text-center text-primary">🏆 Top Players</h4>
@@ -188,7 +118,7 @@
       const mins = Math.floor(timeRemaining / 60);
       const secs = timeRemaining % 60;
       $timer.text(`${mins}:${secs < 10 ? '0' : ''}${secs}`);
-      if (timeRemaining <= 30) {
+      if (timeRemaining <= 30 && !$timer.hasClass('text-danger')) {
         $timer.addClass('text-danger').removeClass('text-primary');
       }
     }
@@ -197,6 +127,7 @@
       clearInterval(timerInterval);
       $targetSquare.text('Training complete!');
       $startBtn.text('Play Again').show();
+      $('#timer').removeClass('text-danger'); // Stop pulsing animation
 
       $.ajax({
         type: 'POST',
@@ -251,21 +182,24 @@
         $correct.text(correctCount);
         $feedback.text('Correct!').addClass('alert alert-success');
         playSound(correctSound);
-        $square.addClass('highlight');
-        setTimeout(() => $square.removeClass('highlight'), 500);
+        $square.addClass('highlight-correct'); // Use a custom class for correct
+        setTimeout(() => $square.removeClass('highlight-correct'), 500);
       } else {
         wrongCount++;
         $wrong.text(wrongCount);
         $feedback.text('Wrong!').addClass('alert alert-danger');
         playSound(wrongSound);
-        $square.css('background-color', '#ffdddd');
-        setTimeout(() => $square.css('background-color', ''), 500);
+        $square.addClass('highlight-wrong'); // Use a custom class for wrong
+        setTimeout(() => $square.removeClass('highlight-wrong'), 500);
       }
 
       setTimeout(newTargetSquare, 800);
     });
 
     $startBtn.on('click', startGame);
+
+    // Add styles for square highlights to avoid inline styles
+    $('head').append('<style>.highlight-correct { background-color: #d4edda !important; } .highlight-wrong { background-color: #f8d7da !important; }</style>');
   });
 </script>
 {% endblock %}

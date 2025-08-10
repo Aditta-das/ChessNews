@@ -10,6 +10,7 @@ urlpatterns = [
     path('puzzles/mark_solved/<int:puzzle_id>/', views.mark_puzzle_solved, name='mark_puzzle_solved'),
     path('trainer/find-square/', views.find_the_square, name='find_the_square'),
     path('submit-premium/', views.submit_premium_request, name='submit_premium_request'),
+    path('games/', views.games, name='games'),
     path('progress/', views.progress_profile, name='progress'),
     path('login/', views.login_view, name='login'),
     path('logout/', views.logout_view, name='logout'),

@@ -3,38 +3,46 @@
 {% block title %}Buy Premium{% endblock %}
 
 {% block content %}
-<div class="container mt-5" style="max-width: 600px;">
-  <h2 class="text-center mb-4">🚀 Upgrade to Premium</h2>
-  <p class="lead text-center">Unlock access to all chess puzzles and improve your game faster.</p>
-
-  <form method="post" action="{% url 'submit_premium_request' %}" class="mt-4 border p-4 rounded shadow-sm bg-light">
+<div class="container my-1" style="max-width: 500px;">
+  <form method="post" action="{% url 'submit_premium_request' %}" class="card p-4 shadow-lg bg-light">
     {% csrf_token %}
 
-    <div class="mb-3">
-      <label for="email" class="form-label fw-bold">Email address</label>
-      <input type="email" class="form-control" id="email" name="email"
-        value="{{ request.user.email }}" required>
-    </div>
+    <div class="card-body text-center">
+      <h3 class="card-title text-success">Premium Access</h3>
+      <h1 class="display-3 fw-bold my-1 text-success">
+        ৳200
+        <small class="text-muted fs-6 d-block">one-time payment</small>
+      </h1>
+      <p class="card-text text-muted mb-2">
+        This is a one-time payment for permanent premium access.
+      </p>
 
-    <div class="mb-3">
-      <label for="phone" class="form-label fw-bold">Phone number</label>
-      <input type="text" class="form-control" id="phone" name="phone"
-        placeholder="01XXXXXXXXX" required>
-    </div>
+      <div class="mb-2 text-muted text-start">
+        <label for="email" class="form-label fw-bold">Email address</label>
+        <input type="email" class="form-control" id="email" name="email"
+          value="{{ request.user.email }}" required>
+      </div>
 
-    <div class="mb-3">
-      <label for="trx_id" class="form-label fw-bold">bKash/Nagad Transaction ID</label>
-      <input type="text" class="form-control" id="trx_id" name="trx_id"
-        placeholder="e.g. TX123ABC456" required>
-    </div>
+      <div class="mb-2 text-muted text-start">
+        <label for="phone" class="form-label fw-bold">Phone number</label>
+        <input type="text" class="form-control" id="phone" name="phone"
+          placeholder="01XXXXXXXXX" required>
+      </div>
 
-    <button type="submit" class="btn btn-success w-100 fw-bold">
-      Submit Payment Info
-    </button>
+      <div class="mb-2 text-muted text-start">
+        <label for="trx_id" class="form-label fw-bold">bKash/Nagad Transaction ID</label>
+        <input type="text" class="form-control" id="trx_id" name="trx_id"
+          placeholder="e.g. TX123ABC456" required>
+      </div>
+
+      <button type="submit" class="btn btn-success w-100 fw-bold">
+        Submit Payment Info
+      </button>
+    </div>
   </form>
 
   <div class="alert alert-info mt-4">
-    After submitting, your premium access will be activated within 12 hours.
+    After submitting, your premium access will be activated within 1 hours.
   </div>
 </div>
 {% endblock %}

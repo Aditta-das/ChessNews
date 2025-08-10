@@ -1,0 +1,98 @@
+{% extends 'news/base.html' %}
+{% load static %}
+
+{% block title %}Chess Game Analysis{% endblock %}
+
+{% block content %}
+<style>
+    .game-container {
+        max-width: 500px;
+        margin: 0 auto;
+        border-radius: 10px;
+        box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+    }
+</style>
+<link rel="stylesheet" href="{% static 'chessboardjs-1.0.0/css/chessboard-1.0.0.min.css' %}">
+<div class="game-container">
+    <div id="board" style="width: 500px;"></div>
+    <div class="controls mt-3 d-flex justify-content-center gap-2">
+        <button id="startPositionBtn" class="btn btn-primary">Start</button>
+        <button id="prevBtn" class="btn btn-secondary">Previous</button>
+        <button id="nextBtn" class="btn btn-secondary">Next</button>
+        <button id="endPositionBtn" class="btn btn-primary">End</button>
+    </div>
+    <div id="pgn" class="mt-4 p-3 bg-light rounded text-muted">
+        </div>
+</div>
+
+<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+<script src="{% static 'chessboardjs-1.0.0/js/chessboard-1.0.0.min.js' %}"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/chess.js/0.10.2/chess.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.bundle.min.js"></script>
+
+<script>
+    $(document).ready(function() {
+        const gamePGN = `{{ game_pgn|escapejs }}`;
+        const chess = new Chess();
+        chess.load_pgn(gamePGN);
+        const history = chess.history();
+        let currentMove = 0;
+
+        const board = Chessboard('board', {
+            position: chess.fen(),
+            pieceTheme: "{% static 'chessboardjs-1.0.0/img/chesspieces/wikipedia/' %}" + '{piece}' + '.png',
+        });
+
+        // Update the board and PGN text
+        function updateBoard(moveIndex) {
+            const tempChess = new Chess();
+            tempChess.load_pgn(gamePGN);
+            
+            for (let i = 0; i < moveIndex; i++) {
+                tempChess.move(history[i]);
+            }
+            board.position(tempChess.fen());
+            
+            // Highlight the current move in the PGN text
+            $('#pgn').html(
+                history.map((move, index) => {
+                    if (index === moveIndex - 1) {
+                        return `<span class="fw-bold text-dark">${move}</span>`;
+                    }
+                    return `<span class="text-secondary">${move}</span>`;
+                }).join(' ')
+            );
+        }
+
+        // Event listeners for control buttons
+        $('#startPositionBtn').on('click', () => {
+            currentMove = 0;
+            board.start();
+            $('#pgn').text(gamePGN);
+        });
+
+        $('#prevBtn').on('click', () => {
+            if (currentMove > 0) {
+                currentMove--;
+                updateBoard(currentMove);
+            }
+        });
+
+        $('#nextBtn').on('click', () => {
+            if (currentMove < history.length) {
+                currentMove++;
+                updateBoard(currentMove);
+            }
+        });
+
+        $('#endPositionBtn').on('click', () => {
+            currentMove = history.length;
+            board.position(chess.fen());
+            $('#pgn').text(gamePGN);
+        });
+        
+        // Initial setup
+        updateBoard(currentMove);
+    });
+</script>
+{% endblock %}
