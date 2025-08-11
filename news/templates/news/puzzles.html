@@ -15,12 +15,14 @@
     max-width: 1000px;
     margin: 20px auto;
   }
+
   .trainer-title {
     text-align: center;
     color: #333;
     font-weight: 600;
     margin-bottom: 20px;
   }
+
   .target-box {
     background-color: #6c757d;
     color: #fff;
@@ -28,10 +30,12 @@
     font-weight: 600;
     font-size: 1.2rem;
   }
+
   .stat-item {
     font-size: 1.1rem;
     font-weight: 400;
   }
+
   .timer-box {
     background-color: #e9ecef;
     border-radius: 8px;
@@ -39,33 +43,43 @@
     font-weight: 600;
     font-size: 1.2rem;
   }
+
   .leaderboard {
     margin-top: 40px;
   }
-  .custom-leaderboard th, .custom-leaderboard td {
+
+  .custom-leaderboard th,
+  .custom-leaderboard td {
     border-top: none;
     padding: 12px;
   }
+
   .custom-leaderboard tbody tr:nth-child(odd) {
     background-color: #f8f9fa;
   }
+
   .btn-success {
     background-color: #28a745;
     border-color: #28a745;
   }
+
   .btn-success:hover {
     background-color: #218838;
     border-color: #1e7e34;
   }
+
   #feedback {
     min-height: 25px;
   }
+
   .highlight {
     background-color: #ffc107 !important;
   }
+
   .square-55d63.highlight {
     box-shadow: inset 0 0 0 4px #ffc107;
   }
+
   .alert-success {
     background-color: #d4edda;
     border-color: #c3e6cb;
@@ -73,6 +87,7 @@
     padding: 8px;
     border-radius: 5px;
   }
+
   .alert-danger {
     background-color: #f8d7da;
     border-color: #f5c6cb;
@@ -80,6 +95,7 @@
     padding: 8px;
     border-radius: 5px;
   }
+
   #puzzle-title-large {
     font-weight: 600;
     color: var(--chess-light);
@@ -164,11 +180,13 @@
       align-items: center;
       gap: 8px;
     }
+
     /* New CSS for mobile puzzle list */
     .mobile-puzzle-btn {
       width: 100%;
       margin-bottom: 10px;
     }
+
     .modal-body {
       overflow-y: auto;
     }
@@ -225,7 +243,8 @@
   <div id="board-container" style="width: 500px;">
     <div class="puzzle-info mb-3 text-center">
       <div class="d-flex justify-content-center mb-3 d-lg-none">
-        <button id="puzzle-title-small" class="btn btn-primary w-100" data-bs-toggle="modal" data-bs-target="#mobile-puzzle-modal">Select a puzzle</button>
+        <button id="puzzle-title-small" class="btn btn-primary w-100" data-bs-toggle="modal"
+          data-bs-target="#mobile-puzzle-modal">Select a puzzle</button>
       </div>
       <p id="puzzle-instruction" class="text-muted"></p>
       <code id="fen-display" class="d-none"></code>
@@ -273,7 +292,8 @@
 </div>
 
 <!-- Modal for mobile puzzle list -->
-<div class="modal fade" id="mobile-puzzle-modal" tabindex="-1" aria-labelledby="mobile-puzzle-modal-label" aria-hidden="true">
+<div class="modal fade" id="mobile-puzzle-modal" tabindex="-1" aria-labelledby="mobile-puzzle-modal-label"
+  aria-hidden="true">
   <div class="modal-dialog modal-dialog-centered modal-dialog-scrollable">
     <div class="modal-content">
       <div class="modal-header">
@@ -286,15 +306,17 @@
           {% if puzzle.id in solved_ids and request.user.is_authenticated %}
           <button class="puzzle-btn btn solved-puzzle mb-2 w-100" data-fen="{{ puzzle.fen }}"
             data-solution="{{ puzzle.solution }}" data-title="{{ puzzle.title }}" data-turn="{{ puzzle.turn }}"
-            data-index="{{ forloop.counter0 }}" data-puzzle-id="{{ puzzle.id }}" data-bs-dismiss="modal" {% if puzzle.quote %}
-            data-quote-name="{{ puzzle.quote.name }}" data-quote-text="{{ puzzle.quote.Quote }}" {% endif %}>
+            data-index="{{ forloop.counter0 }}" data-puzzle-id="{{ puzzle.id }}" data-bs-dismiss="modal" {% if
+            puzzle.quote %} data-quote-name="{{ puzzle.quote.name }}" data-quote-text="{{ puzzle.quote.Quote }}" {%
+            endif %}>
             <strong class="text-white">{{ puzzle.title }}</strong><br>
           </button>
           {% else %}
           <button class="puzzle-btn btn unsolved-puzzle mb-2 w-100" data-fen="{{ puzzle.fen }}"
             data-solution="{{ puzzle.solution }}" data-title="{{ puzzle.title }}" data-turn="{{ puzzle.turn }}"
-            data-index="{{ forloop.counter0 }}" data-puzzle-id="{{ puzzle.id }}" data-bs-dismiss="modal" {% if puzzle.quote %}
-            data-quote-name="{{ puzzle.quote.name }}" data-quote-text="{{ puzzle.quote.Quote }}" {% endif %}>
+            data-index="{{ forloop.counter0 }}" data-puzzle-id="{{ puzzle.id }}" data-bs-dismiss="modal" {% if
+            puzzle.quote %} data-quote-name="{{ puzzle.quote.name }}" data-quote-text="{{ puzzle.quote.Quote }}" {%
+            endif %}>
             <strong class="text-white">{{ puzzle.title }}</strong><br>
           </button>
           {% endif %}
@@ -410,39 +432,40 @@
         .toLowerCase();
     }
 
-    function onDrop(source, target) {
-      const piece = game.get(source);
-      const isPromotion = piece && piece.type === 'p' && (
-        (piece.color === 'w' && target[1] === '8') ||
-        (piece.color === 'b' && target[1] === '1')
-      );
-      const moveSANFromSolution = currentSolutionMoves[currentMoveIndex];
-      const promotionMatch = moveSANFromSolution.match(/=([QRBN])/i);
-      const promotionPiece = promotionMatch ? promotionMatch[1].toLowerCase() : (isPromotion ? 'q' : undefined);
+    // Add this variable at the top of your puzzle JS file
+    let wrongCounted = false;
 
-      const move = game.move({
+    function onDrop(source, target) {
+      const tempGame = new Chess(game.fen());
+      const move = tempGame.move({
         from: source,
         to: target,
-        promotion: promotionPiece
+        promotion: 'q' // Use queen as default for pawn promotions
       });
 
       if (move === null) {
-        showStatus("Illegal move", "wrong");
-        return 'snapback';
+        showStatus("Illegal move", "wrong"); // Show feedback
+        return 'snapback'; // Piece returns to its original spot.
       }
 
-      const userMove = normalizeSAN(move.san);
-      const expectedMove = normalizeSAN(moveSANFromSolution);
+      // --- STEP 2: The move was legal. Now, check if it's the CORRECT puzzle solution. ---
+      const userMoveSAN = normalizeSAN(move.san);
+      const expectedMoveSAN = normalizeSAN(currentSolutionMoves[currentMoveIndex]);
 
-      if (userMove === expectedMove) {
-        playSoundForMove(move);
-        addToMoveHistory(move);
+      if (userMoveSAN === expectedMoveSAN) {
+        // --- CORRECT! ---
+        // Your move was legal AND correct. We now apply it to the real board.
+        const realMove = game.move({ from: source, to: target, promotion: 'q' });
+
+        playSoundForMove(realMove);
+        addToMoveHistory(realMove);
         currentMoveIndex++;
+        board.position(game.fen(), false); // Update the visual board
         showStatus("Correct!", "correct");
-        board.position(game.fen(), false);
 
+        // ... the rest of the logic for when you get a move right ...
         if (currentMoveIndex >= currentSolutionMoves.length) {
-          showStatus("🎉 Puzzle solved!", "solved");
+          showStatus("Puzzle solved!", "solved");
           playSound("{% static 'sound/puzzle-correct.mp3' %}");
           stopTimerDisplay();
           const puzzleId = $buttons.eq(currentPuzzleIndex).data('puzzle-id');
@@ -452,32 +475,40 @@
           $.ajax({
             url: `/puzzles/mark_solved/${puzzleId}/`,
             method: 'POST',
-            headers: {
-              'X-CSRFToken': '{{ csrf_token }}',
-              'Content-Type': 'application/json'
-            },
+            headers: { 'X-CSRFToken': '{{ csrf_token }}', 'Content-Type': 'application/json' },
             data: JSON.stringify({ time_taken: timeTaken }),
             success: function () {
               const $btn = $buttons.eq(currentPuzzleIndex);
-              $btn.removeClass('btn-success unsolved-puzzle')
-                .addClass('btn-secondary solved-puzzle');
-            },
-            error: function () {
-              console.error("Error marking puzzle solved");
+              $btn.removeClass('unsolved-puzzle').addClass('solved-puzzle');
             }
           });
           $nextBtn.show();
         } else {
           setTimeout(makeOpponentMove, 500);
         }
-        return true;
+
       } else {
-        game.undo();
-        showStatus("Wrong move", "wrong");
+        // --- WRONG! ---
+        // Your move was legal, but it was NOT the correct solution for the puzzle.
+        showStatus("Wrong move, try again.", "wrong");
         playSound("{% static 'sound/puzzle-wrong.mp3' %}");
+
+        if (!wrongCounted) {
+          wrongCounted = true;
+          const puzzleId = $buttons.eq(currentPuzzleIndex).data('puzzle-id');
+          $.ajax({
+            url: `/puzzles/mark_wrong/${puzzleId}/`,
+            method: 'POST',
+            headers: { 'X-CSRFToken': '{{ csrf_token }}' },
+          });
+        }
+
+        // The piece returns to its original spot.
         return 'snapback';
       }
     }
+
+
 
     function makeOpponentMove() {
       if (currentMoveIndex >= currentSolutionMoves.length) return;

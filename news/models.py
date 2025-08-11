@@ -150,12 +150,14 @@ class PuzzleSolve(models.Model):
     solved_at = models.DateTimeField(auto_now_add=True)
     time_taken = models.IntegerField(null=True, blank=True)
     made_mistake = models.BooleanField(default=False)
-    
+    wrong_attempts = models.IntegerField(default=0)  # ✅ New field
+
     class Meta:
         unique_together = ('user', 'solve_puzzle')
 
     def __str__(self):
         return f"{self.user.username} solved {self.solve_puzzle.title}"
+
 
     
 class Quote(models.Model):

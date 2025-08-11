@@ -150,12 +150,14 @@ def mark_puzzle_solved(request, puzzle_id):
                 solve_puzzle=puzzle,
                 defaults={'time_taken': time_taken}
             )
-
+            solve.wrong_attempts += 1
+            solve.made_mistake = True
+            solve.save()
             if not created and time_taken is not None:
                 solve.time_taken = time_taken
                 solve.save()
 
-            return JsonResponse({'status': 'ok', 'time_taken': time_taken})
+            return JsonResponse({'status': 'ok', 'time_taken': time_taken, 'wrong_attempts': solve.wrong_attempts})
         except Exception as e:
             return JsonResponse({'error': str(e)}, status=400)
 

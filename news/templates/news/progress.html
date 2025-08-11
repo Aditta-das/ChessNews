@@ -4,17 +4,134 @@
 {% block title %}Your Chess Progress{% endblock %}
 
 {% block content %}
-<div class="container py-2">
-    <div class="text-center mb-2">
-        <h2 class="fw-bold text-white">Your Puzzle Solving Progress</h2>
-        <p class="text-white">Track how you're improving over time!</p>
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.5/font/bootstrap-icons.css">
+
+<style>
+    /* Glassmorphism Card Style */
+    .card-glass {
+        background: rgba(40, 40, 40, 0.45);
+        /* Dark semi-transparent background */
+        backdrop-filter: blur(10px) saturate(180%);
+        -webkit-backdrop-filter: blur(10px) saturate(180%);
+        border-radius: 12px;
+        border: 1px solid rgba(255, 255, 255, 0.125);
+    }
+
+    /* Stat card specific styles */
+    .stat-card {
+        transition: transform 0.3s ease, box-shadow 0.3s ease;
+    }
+
+    .stat-card:hover {
+        transform: translateY(-5px);
+        box-shadow: 0 8px 24px rgba(0, 0, 0, 0.4);
+    }
+
+    .stat-icon {
+        font-size: 2.5rem;
+        opacity: 0.8;
+    }
+</style>
+
+<div class="container py-5">
+    <div class="text-center mb-5">
+        <h1 class="fw-bolder text-white display-5">Your Puzzle Progress</h1>
+        <p class="lead text-white-50">Track how your puzzle-solving skills are improving over time.</p>
     </div>
 
-    <div class="card graph p-4 shadow-sm mb-5">
-        <h5 class="mb-3 text-white">Time Taken per Puzzle</h5>
-        <canvas id="progressChart" height="250"></canvas>
+    <div class="row">
+        <div class="col-lg-8 mb-4">
+            <div class="card card-glass p-4 h-100 shadow">
+                <h5 class="mb-3 text-white fw-bold">Time Taken per Puzzle</h5>
+                <div class="chart-container" style="position: relative; height:350px;">
+                    <canvas id="progressChart"></canvas>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-lg-4 mb-4">
+            <h5 class="text-white fw-bold mb-3">Stats at a Glance</h5>
+
+            <div class="card card-glass stat-card p-3 mb-3">
+                <div class="d-flex align-items-center">
+                    <div class="me-3 text-white">
+                        <i class="bi bi-clock-history stat-icon"></i>
+                    </div>
+                    <div>
+                        <h6 class="text-white-50 mb-0">Average Time</h6>
+                        <h4 class="fw-bold text-white mb-0">{{ average_time|default:"34.5s" }}</h4>
+                    </div>
+                </div>
+            </div>
+
+            <div class="card card-glass stat-card p-3 mb-3">
+                <div class="d-flex align-items-center">
+                    <div class="me-3 text-white">
+                        <i class="bi bi-check2-square stat-icon"></i>
+                    </div>
+                    <div>
+                        <h6 class="text-white-50 mb-0">Puzzles Solved</h6>
+                        <h4 class="fw-bold text-white mb-0">{{ puzzles_solved|default:"128" }}</h4>
+                    </div>
+                </div>
+            </div>
+
+            <div class="card card-glass stat-card p-3">
+                <div class="d-flex align-items-center">
+                    <div class="me-3 text-white">
+                        <i class="bi bi-graph-up-arrow stat-icon"></i>
+                    </div>
+                    <div>
+                        <h6 class="text-white-50 mb-0">Success Rate</h6>
+                        <h4 class="fw-bold text-white mb-0">{{ success_rate|default:"89%" }}</h4>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="row g-4">
+        <div class="col-lg-4 col-md-6">
+            <div class="card card-glass stat-card p-3 mb-3">
+                <div class="d-flex align-items-center">
+                    <div class="me-3">
+                        <img src="{% static 'progress/puzzle.png' %}" alt="Puzzle Icon" class="stat-icon img-fluid" style="width: 50px; height: 50px;">
+                    </div>
+                    <div>
+                        <h6 class="text-white-50 mb-0">Puzzle Beginner</h6>
+                        <p class="fw-bold text-white mb-0">You correctly solved 10 Puzzles!</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="col-lg-4 col-md-6">
+            <div class="card card-glass stat-card p-3 mb-3">
+                <div class="d-flex align-items-center">
+                    <div class="me-3 text-white">
+                        <i class="bi bi-clock-history stat-icon"></i>
+                    </div>
+                    <div>
+                        <h6 class="text-white-50 mb-0">Average Time</h6>
+                        <h4 class="fw-bold text-white mb-0">{{ average_time|default:"34.5s" }}</h4>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="col-lg-4 col-md-6">
+            <div class="card card-glass stat-card p-3 mb-3">
+                <div class="d-flex align-items-center">
+                    <div class="me-3 text-white">
+                        <i class="bi bi-clock-history stat-icon"></i>
+                    </div>
+                    <div>
+                        <h6 class="text-white-50 mb-0">Average Time</h6>
+                        <h4 class="fw-bold text-white mb-0">{{ average_time|default:"34.5s" }}</h4>
+                    </div>
+                </div>
+            </div>
+        </div>
     </div>
 </div>
+
 
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 <script>
@@ -24,10 +141,14 @@
         datasets: [{
             label: 'Time Taken (seconds)',
             data: {{ data| safe }},
-            fill: false,
+    fill: true, // Set to true to create a filled area under the line
+        backgroundColor: 'rgba(255, 255, 255, 0.1)', // Subtle fill color
             borderColor: '#fff',
-            backgroundColor: '#fff',
-            tension: 0.1
+                pointBackgroundColor: '#fff', // Color of the data points
+                    pointBorderColor: '#fff',
+                        pointHoverBackgroundColor: '#fff',
+                            pointHoverBorderColor: '#fff',
+                                tension: 0.4 // Smoother curve
         }]
     };
 
@@ -36,10 +157,10 @@
         data: data,
         options: {
             responsive: true,
+            maintainAspectRatio: false, // Important for custom container size
             plugins: {
                 legend: {
-                    display: true,
-                    position: 'top',
+                    display: false // Legend is redundant with the chart title
                 }
             },
             scales: {
@@ -48,32 +169,36 @@
                     title: {
                         display: true,
                         text: 'Time Taken (seconds)',
-                        color: 'white',
+                        color: 'rgba(255, 255, 255, 0.7)',
                         font: {
-                            size: 16,
+                            size: 14,
                             weight: 'bold'
                         }
                     },
                     ticks: {
-                        // Changed the y-axis tick color to white
-                        color: 'white'
+                        color: 'rgba(255, 255, 255, 0.7)'
+                    },
+                    grid: {
+                        color: 'rgba(255, 255, 255, 0.15)' // Lighter grid lines
                     }
                 },
                 x: {
                     title: {
                         display: true,
                         text: 'Puzzle Number',
-                        color: 'white',
+                        color: 'rgba(255, 255, 255, 0.7)',
                         font: {
-                            size: 16,
+                            size: 14,
                             weight: 'bold'
                         }
                     },
                     ticks: {
-                        maxRotation: 90,
-                        autoSkip: false,
-                        // Changed the x-axis tick color to white
-                        color: 'white'
+                        maxRotation: 45,
+                        autoSkip: true, // Allow chart.js to intelligently skip labels if too crowded
+                        color: 'rgba(255, 255, 255, 0.7)'
+                    },
+                    grid: {
+                        display: false // Hide vertical grid lines for a cleaner look
                     }
                 }
             }
