@@ -157,7 +157,11 @@ def mark_puzzle_solved(request, puzzle_id):
                 solve.time_taken = time_taken
                 solve.save()
 
-            return JsonResponse({'status': 'ok', 'time_taken': time_taken, 'wrong_attempts': solve.wrong_attempts})
+            return JsonResponse({
+                'status': 'ok', 
+                'time_taken': time_taken, 
+                'wrong_attempts': solve.wrong_attempts,
+            })
         except Exception as e:
             return JsonResponse({'error': str(e)}, status=400)
 
@@ -178,10 +182,12 @@ def progress_profile(request):
 
     # Y-axis: Time taken for each puzzle
     times = [solve.time_taken for solve in solves]
-
+    puzzles_solved = PuzzleSolve.objects.filter(user=request.user).count()
     context = {
         'labels': json.dumps(labels),
         'data': json.dumps(times),
+        'puzzles_solved': puzzles_solved,
+        'average_time': sum(times) / len(times) if times else 0,
     }
 
     return render(request, 'news/progress.html', context)
