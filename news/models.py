@@ -189,18 +189,27 @@ class UserProfile(models.Model):
     user = models.OneToOneField(User, on_delete=models.CASCADE)
     is_premium = models.BooleanField(default=False)
     
-    # New fields for storing payment info
+    # Payment info
     phone = models.CharField(max_length=20, blank=True, null=True)
     trx_id = models.CharField("Transaction ID", max_length=100, blank=True, null=True)
     payment_requested_at = models.DateTimeField(blank=True, null=True)
 
+    # ✅ Profile Image
+    image = models.ImageField(upload_to="profile_images/", default="profile_images/default.png", blank=True, null=True)
+    bio = models.CharField(max_length=200, blank=True, null=True, default="Add Description Here")
+    
     def __str__(self):
         return f"{self.user} - Premium: {self.is_premium}"
+    
+    def save(self, *args, **kwargs):
+        if not self.image:
+            self.image = 'profile_images/default.png'
+        super().save(*args, **kwargs)
+
 
 @receiver(post_save, sender=User)
 def create_or_update_user_profile(sender, instance, created, **kwargs):
     if created:
         UserProfile.objects.create(user=instance)
     else:
-        # Try to get or create the UserProfile
         UserProfile.objects.get_or_create(user=instance)

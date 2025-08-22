@@ -1,0 +1,84 @@
+{% extends "news/base.html" %}
+{% load static %}
+
+{% block title %}Edit Profile{% endblock %}
+
+{% block content %}
+<div class="container mt-5">
+  <div class="card shadow-lg border-0 p-4 p-md-5" style="border-radius: 20px; background: rgba(255,255,255,0.05); backdrop-filter: blur(15px);">
+    <h3 class="text-center text-white mb-4">Edit Profile</h3>
+
+    <form method="POST" enctype="multipart/form-data">
+      {% csrf_token %}
+
+      <!-- Profile Image Preview -->
+      <div class="text-center mb-4">
+        {% if request.user.userprofile.image %}
+          <img id="profilePreview" src="{{ request.user.userprofile.image.url }}" 
+               alt="Profile Image" 
+               class="rounded-circle border border-2 border-white shadow-sm" 
+               style="width: 120px; height: 120px; object-fit: cover;">
+        {% else %}
+          <img id="profilePreview" src="{% static 'profile_images/default.png' %}" 
+               alt="Profile Image" 
+               class="rounded-circle border border-2 border-white shadow-sm" 
+               style="width: 120px; height: 120px; object-fit: cover;">
+        {% endif %}
+      </div>
+
+      <!-- Form Fields -->
+      <div class="mb-3">
+        <label class="form-label text-white">First Name</label>
+        <div class="input-group">
+          <span class="input-group-text bg-dark text-white"><i class="bi bi-person-fill"></i></span>
+          {{ form.first_name }}
+        </div>
+      </div>
+
+      <div class="mb-3">
+        <label class="form-label text-white">Last Name</label>
+        <div class="input-group">
+          <span class="input-group-text bg-dark text-white"><i class="bi bi-person-fill"></i></span>
+          {{ form.last_name }}
+        </div>
+      </div>
+
+      <div class="mb-3">
+        <label class="form-label text-white">Email</label>
+        <div class="input-group">
+          <span class="input-group-text bg-dark text-white"><i class="bi bi-envelope-fill"></i></span>
+          {{ form.email }}
+        </div>
+      </div>
+
+      <div class="mb-3">
+        <label class="form-label text-white">Bio</label>
+        <div class="input-group">
+          <span class="input-group-text bg-dark text-white"><i class="bi bi-envelope-fill"></i></span>
+          {{ form.bio }}
+        </div>
+      </div>
+
+      <div class="mb-4">
+        <label class="form-label text-white">Profile Image</label>
+        {{ form.image }}
+      </div>
+
+      <button type="submit" class="btn btn-primary w-100 py-2 fw-bold">Save Changes</button>
+    </form>
+  </div>
+</div>
+
+<!-- Live image preview -->
+<script>
+  const imageInput = document.getElementById("id_image");
+  const profilePreview = document.getElementById("profilePreview");
+
+  if (imageInput) {
+    imageInput.addEventListener("change", (e) => {
+      const [file] = e.target.files;
+      if (file) profilePreview.src = URL.createObjectURL(file);
+    });
+  }
+</script>
+{% endblock %}

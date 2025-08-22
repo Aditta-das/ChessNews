@@ -1,0 +1,126 @@
+{% extends "news/base.html" %}
+{% block content %}
+{{ form.media }} <!-- CKEditor -->
+
+<style>
+    .editor-container {
+        background: #fff;
+        border-radius: 12px;
+        padding: 25px;
+        box-shadow: 0 4px 15px rgba(0, 0, 0, 0.08);
+    }
+
+    .editor-header {
+        font-size: 1.4rem;
+        font-weight: bold;
+        margin-bottom: 20px;
+        color: #ffffff;
+        text-align: left;
+    }
+
+    .form-label {
+        font-weight: 600;
+    }
+
+    .form-control,
+    .form-select {
+        border-radius: 6px;
+        padding: 0.75rem 1rem;
+    }
+
+    .ck-editor__editable {
+        min-height: 350px;
+        border-radius: 6px;
+    }
+
+    .btn-success {
+        background: linear-gradient(45deg, #16a085, #27ae60);
+        border: none;
+    }
+
+    .btn-success:hover {
+        background: linear-gradient(45deg, #138d75, #229954);
+    }
+
+    /* Sidebar */
+    .sidebar {
+        background: #f8f9fa;
+        border-radius: 10px;
+        padding: 15px;
+        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+    }
+
+    .sidebar h5 {
+        font-size: 1.1rem;
+        margin-bottom: 15px;
+        font-weight: 600;
+        color: #2d3436;
+    }
+
+    .sidebar a {
+        display: block;
+        border-radius: 6px;
+        margin-bottom: 4px;
+        text-decoration: none;
+        color: #2c3e50;
+        font-weight: 600;
+        font-size: 1rem;
+    }
+
+    .sidebar a:hover {
+        background: #dfe6e9;
+    }
+</style>
+
+<div class="container my-4">
+    <div class="editor-header">
+        Edit & Create Blog
+    </div>
+    <div class="row g-4">
+        <!-- Left side: Editor -->
+        <div class="col-lg-9 col-md-8">
+            <div class="editor-container">
+                <form method="post" enctype="multipart/form-data">
+                    {% csrf_token %}
+                    <div class="mb-3">
+                        <label for="{{ form.title.id_for_label }}" class="form-label">
+                            <i class="bi bi-type me-1"></i> Title
+                        </label>
+                        {{ form.title }}
+                    </div>
+                    <div class="mb-3">
+                        <label for="{{ form.image.id_for_label }}" class="form-label">
+                            <i class="bi bi-image me-1"></i> Cover Image
+                        </label>
+                        {{ form.image }}
+                        <small class="text-muted d-block mt-1">
+                            Recommended: 16:9 (1600x900), under 5MB
+                        </small>
+                    </div>
+                    <div class="mb-3">
+                        <label for="{{ form.content.id_for_label }}" class="form-label">
+                            <i class="bi bi-text-paragraph me-1"></i> Content
+                        </label>
+                        {{ form.content }}
+                    </div>
+                    <button type="submit" class="btn btn-success btn-lg w-100 rounded-1 fw-medium">
+                        <i class="bi bi-cloud-upload-fill me-2"></i> Publish Article
+                    </button>
+                </form>
+            </div>
+        </div>
+
+        <!-- Right side: Sidebar -->
+        <div class="col-lg-3 col-md-4">
+    <div class="sidebar">
+        <h5><i class="bi bi-journal-text me-1"></i>{{ request.user.username }}'s Blog</h5>
+        <a href="#" class="blog"><i class="bi bi-person-lines-fill me-2"></i> My Blogs</a>
+        <a href="#" class="blog"><i class="bi bi-collection me-2"></i> All Blogs</a>
+        <!-- <a href="#"><i class="bi bi-bookmark-heart me-2"></i> Saved Drafts</a> -->
+        <!-- <a href="#"><i class="bi bi-gear me-2"></i> Settings</a> -->
+    </div>
+</div>
+
+    </div>
+</div>
+{% endblock %}

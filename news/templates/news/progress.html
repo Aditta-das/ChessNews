@@ -7,7 +7,81 @@
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.5/font/bootstrap-icons.css">
 
 <style>
-    /* Glassmorphism Card Style */
+    .profile-header {
+        background: rgba(40, 40, 40, 0.7);
+        backdrop-filter: blur(8px);
+        border-radius: 12px;
+        padding: 20px;
+        position: relative;
+    }
+
+    .profile-img {
+        width: 90px;
+        height: 90px;
+        object-fit: cover;
+        border-radius: 8px;
+        border: 2px solid rgba(255, 255, 255, 0.2);
+    }
+
+    .edit-btn {
+        position: absolute;
+        top: 15px;
+        right: 15px;
+        background: rgba(255, 255, 255, 0.1);
+        border: none;
+        color: #fff;
+        font-size: 0.9rem;
+        padding: 6px 12px;
+        border-radius: 6px;
+        transition: 0.3s;
+    }
+
+    .edit-btn:hover {
+        background: rgba(255, 255, 255, 0.3);
+    }
+
+    .profile-name {
+        font-weight: 700;
+        font-size: 1.2rem;
+        color: #fff;
+    }
+
+    .profile-sub {
+        color: #aaa;
+        font-size: 0.95rem;
+    }
+
+    .profile-bio {
+        color: #f8f8f8;
+        margin-top: 5px;
+        font-size: 0.9rem;
+    }
+
+    .profile-stats {
+        font-size: 0.85rem;
+        color: #aaa;
+        margin-top: 10px;
+    }
+
+    .profile-stats span {
+        margin-right: 15px;
+    }
+
+    @media (max-width: 576px) {
+        .profile-header {
+            text-align: center;
+        }
+
+        .edit-btn {
+            position: static;
+            margin-top: 10px;
+        }
+
+        .profile-img {
+            margin-bottom: 10px;
+        }
+    }
+
     .card-glass {
         background: rgba(40, 40, 40, 0.45);
         /* Dark semi-transparent background */
@@ -33,10 +107,41 @@
     }
 </style>
 
-<div class="container py-5">
-    <div class="text-center mb-5">
-        <h1 class="fw-bolder text-white display-5">Your Puzzle Progress</h1>
-        <p class="lead text-white-50">Track how your puzzle-solving skills are improving over time.</p>
+<div class="container py-2">
+    <div class="profile-header shadow mb-4">
+        <div class="d-flex flex-wrap align-items-center">
+            <img src="{% if request.user.userprofile.image %}{{ request.user.userprofile.image.url }}{% else %}{% static 'profile_images/user.png' %}{% endif %}"
+                alt="Profile Photo" class="profile-img me-3">
+
+            <div class="flex-grow-1">
+                <div class="d-flex align-items-center flex-wrap">
+                    <span class="profile-name me-2">{{ user.username|default:"Guest Player" }}</span>
+                    <span class="fi fi-bd"></span>
+                </div>
+                <div class="profile-sub">
+                    <!-- {{ user.first_name }} {{ user.last_name }} -->
+                    <i class="bi bi-geo-alt"></i> Feni
+                </div>
+                <div class="profile-bio">
+                    {{ request.user.userprofile.bio|default:"Add Description Here" }}
+                </div>
+                <div class="profile-stats">
+                    <span><b>{{ user.date_joined.date }}</b> Joined</span>
+                    <!-- <span>41 Friends</span> -->
+                    <!-- <span>44 Views</span> -->
+                    <!-- <span class="text-success">Online now</span> -->
+                </div>
+            </div>
+            <div>
+                <a href="{% url 'edit_profile' %}" class="text-decoration-none">
+                    <button class="edit-btn">Edit Profile</button>
+                </a>
+            </div>
+        </div>
+    </div>
+
+    <div class="text-center mb-4">
+        <h3 class="mb-4 text-white fw-bold display-8">Your Puzzle Progress</h3>
     </div>
 
     <div class="row">

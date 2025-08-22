@@ -7,102 +7,6 @@
 <link rel="stylesheet" href="{% static 'chessboardjs-1.0.0/css/chessboard-1.0.0.min.css' %}">
 <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600&display=swap" rel="stylesheet">
 <style>
-  .trainer-container {
-    padding: 20px;
-    background-color: #ffffff;
-    border-radius: 12px;
-    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
-    max-width: 1000px;
-    margin: 20px auto;
-  }
-
-  .trainer-title {
-    text-align: center;
-    color: #333;
-    font-weight: 600;
-    margin-bottom: 20px;
-  }
-
-  .target-box {
-    background-color: #6c757d;
-    color: #fff;
-    border-radius: 8px;
-    font-weight: 600;
-    font-size: 1.2rem;
-  }
-
-  .stat-item {
-    font-size: 1.1rem;
-    font-weight: 400;
-  }
-
-  .timer-box {
-    background-color: #e9ecef;
-    border-radius: 8px;
-    color: #333;
-    font-weight: 600;
-    font-size: 1.2rem;
-  }
-
-  .leaderboard {
-    margin-top: 40px;
-  }
-
-  .custom-leaderboard th,
-  .custom-leaderboard td {
-    border-top: none;
-    padding: 12px;
-  }
-
-  .custom-leaderboard tbody tr:nth-child(odd) {
-    background-color: #f8f9fa;
-  }
-
-  .btn-success {
-    background-color: #28a745;
-    border-color: #28a745;
-  }
-
-  .btn-success:hover {
-    background-color: #218838;
-    border-color: #1e7e34;
-  }
-
-  #feedback {
-    min-height: 25px;
-  }
-
-  .highlight {
-    background-color: #ffc107 !important;
-  }
-
-  .square-55d63.highlight {
-    box-shadow: inset 0 0 0 4px #ffc107;
-  }
-
-  .alert-success {
-    background-color: #d4edda;
-    border-color: #c3e6cb;
-    color: #155724;
-    padding: 8px;
-    border-radius: 5px;
-  }
-
-  .alert-danger {
-    background-color: #f8d7da;
-    border-color: #f5c6cb;
-    color: #721c24;
-    padding: 8px;
-    border-radius: 5px;
-  }
-
-  #puzzle-title-large {
-    font-weight: 600;
-    color: var(--chess-light);
-    font-size: 1.3rem;
-    text-align: center;
-  }
-
   /* Responsive styles for small screens */
   @media (max-width: 767px) {
     #main-layout {
@@ -265,7 +169,7 @@
     </div>
     <div id="puzzle-status" class="text-center mt-3 d-none"></div>
     <div class="row g-2 align-items-center">
-      <div id="quote-box" class="col-12 col-lg-6 card text-center mb-3 quote-none">
+      <div id="quote-box" class="col-lg-12 card text-center mb-3 quote-none">
         <div class="card-body">
           <h5 id="quote-author" class="card-title"></h5>
           <p id="quote-text" class="card-text"></p>

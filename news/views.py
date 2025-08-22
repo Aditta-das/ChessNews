@@ -5,7 +5,7 @@ from .models import Article, TopPlayerImg, \
 from django.contrib.auth.models import User
 from django.contrib.auth import logout
 import requests, random, json
-from .forms import EmailLoginForm
+from .forms import EmailLoginForm, ProfileEditForm, ArticleForm
 from django.core.mail import send_mail
 from django.contrib import messages
 from django.contrib.auth import login, authenticate
@@ -53,6 +53,19 @@ def home(request):
         'banner': banner,
         'top_bd_players': top_bd_players
     })
+    
+def create_article(request):
+    if request.method == "POST":
+        form = ArticleForm(request.POST, request.FILES)
+        if form.is_valid():
+            article = form.save(commit=False)
+            article.author = request.user  # logged-in user
+            article.save()
+            return redirect('article_detail', slug=article.slug)
+    else:
+        form = ArticleForm()
+
+    return render(request, "news/create_article.html", {"form": form})
 
 def article_detail(request, slug):
     article = get_object_or_404(Article, slug=slug)
@@ -187,7 +200,7 @@ def progress_profile(request):
         'labels': json.dumps(labels),
         'data': json.dumps(times),
         'puzzles_solved': puzzles_solved,
-        'average_time': sum(times) / len(times) if times else 0,
+        'average_time': round(sum(times) / len(times), 2) if times else 0,
     }
 
     return render(request, 'news/progress.html', context)
@@ -251,6 +264,30 @@ def login_view(request):
         'show_otp': show_otp,
         'email_sent': email_sent
     })
+
+@login_required
+@csrf_exempt
+def edit_profile(request):
+    profile, _ = UserProfile.objects.get_or_create(user=request.user)
+    if request.method == 'POST':
+        form = ProfileEditForm(request.POST, request.FILES, instance=profile, user=request.user)
+        if form.is_valid():
+            profile = form.save(commit=False)
+            if 'image-clear' in request.POST:
+                profile.image = None
+            elif 'image' in request.FILES:
+                profile.image = request.FILES['image']            
+            profile.save()
+            user = profile.user
+            user.first_name = form.cleaned_data.get('first_name', user.first_name)
+            user.last_name = form.cleaned_data.get('last_name', user.last_name)
+            user.email = form.cleaned_data.get('email', user.email)
+            user.save()
+            return redirect('progress')
+    else:
+        form = ProfileEditForm(instance=profile, user=request.user)
+
+    return render(request, 'news/edit_profile.html', {'form': form})
 
     
 def logout_view(request):

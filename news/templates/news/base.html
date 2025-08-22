@@ -13,6 +13,8 @@
         href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;600;700&family=Playfair+Display:wght@700&display=swap"
         rel="stylesheet">
 
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/lipis/flag-icons@7.3.2/css/flag-icons.min.css" />
+
     <link rel="icon" type="image/png" href="/static/knight.png">
 
 
@@ -154,8 +156,12 @@
 
         .username {
             color: var(--chess-light);
-            font-weight: 600;
             margin-bottom: 10px;
+            font-size: 1.2rem;
+            font-weight: 800;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
         }
 
         .ticker-container {
@@ -450,6 +456,13 @@
         #puzzle-title {
             font-size: 1.3rem;
             color: var(--chess-primary);
+            text-align: center;
+        }
+
+        #puzzle-title-large {
+            font-weight: 600;
+            color: var(--chess-light);
+            font-size: 1.3rem;
             text-align: center;
         }
 
@@ -828,7 +841,7 @@
                         <a class="nav-link position-relative px-3" href="https://forms.gle/sAHhdspNvG9p1YRU7"
                             target="_blank">
                             <i class="fas fa-pen-fancy me-1"></i>
-                            Become a Reporter
+                            Reporter
                             <span class="nav-link-underline"></span>
                         </a>
                     </li>
@@ -861,8 +874,16 @@
                             <i class="fas fa-user me-1"></i> {{ user.username }}
                         </a>
                         <ul class="dropdown-menu dropdown-menu-end" aria-labelledby="userDropdown">
-                            <li><a class="dropdown-item" href="{% url 'progress' %}"><i
-                                        class="bi bi-graph-up me-2"></i>Progress</a></li>
+                            <li>
+                                <a class="dropdown-item" href="{% url 'progress' %}">
+                                    <i class="bi bi-graph-up me-2"></i>Profile
+                                </a>
+                            </li>
+                            <li>
+                                <a class="dropdown-item" href="{% url 'write_article' %}">
+                                    <i class="bi bi-graph-up me-2"></i>Create a post
+                                </a>
+                            </li>
                             <li>
                                 <form action="{% url 'logout' %}" method="post">
                                     {% csrf_token %}

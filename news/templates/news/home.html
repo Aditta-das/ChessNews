@@ -8,7 +8,20 @@
 {% load static %}
 <!-- Headline Ticker -->
 {% if user.is_authenticated %}
-<h3 class="username">Hello, <b>{{ user.username }}</b></h3>
+<div class="row align-items-center mb-3">
+  <div class="col-auto">
+    {% if user.userprofile.image %}
+    <img src="{{ user.userprofile.image.url }}" alt="{{ user.username }}" 
+      style="width: 55px; height: 55px; border-radius: 10px;">
+    {% else %}
+    <img src="{% static 'profile_images/user.png' %}" alt="Default Profile" 
+    style="width: 55px; height: 55px; border-radius: 10px;">
+    {% endif %}
+  </div>
+  <div class="col-auto">
+    <span class="text-white fw-bold username">{{ user.username }}</span>
+  </div>
+</div>
 {% endif %}
 <div class="ticker-container mb-4">
   <div class="ticker-text">
@@ -117,23 +130,6 @@
         </div>
       </div>
     </div>
-
-    <!-- Best Reporter -->
-    <!-- <div class="card border-0 shadow-sm">
-      <div class="card-header bg-success text-white py-3">
-        <h3 class="h5 mb-0 fw-bold"><i class="bi bi-award-fill me-2"></i> Best Reporter</h3>
-      </div>
-      <div class="card-body text-center">
-        <h4 class="h5 mb-1">{{ best_reporter.username }}</h4>
-        <p class="text-muted small mb-3">Senior Chess Correspondent</p>
-        <div class="d-flex justify-content-center mb-3">
-          <div class="px-3 text-center">
-            <div class="h4 mb-0">{{ best_reporter.article_set.count }}</div>
-            <small class="text-muted">Articles</small>
-          </div>
-        </div>
-      </div>
-    </div> -->
   </div>
 </div>
 

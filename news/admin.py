@@ -26,7 +26,7 @@ admin.site.register(EmailOTP)
 
 @admin.register(UserProfile)
 class UserProfileAdmin(admin.ModelAdmin):
-    list_display = ('user', 'is_premium', 'phone', 'trx_id', 'payment_requested_at')
+    list_display = ('user', 'is_premium', 'phone', 'trx_id', 'payment_requested_at', 'image')
     list_filter = ('is_premium',)
     search_fields = ('user__username', 'phone', 'trx_id')
     
