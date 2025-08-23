@@ -122,8 +122,9 @@ DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 MEDIA_URL = '/media/'
 MEDIA_ROOT = os.path.join(BASE_DIR, 'media')
 
-CKEDITOR_5_FILE_STORAGE = "django.core.files.storage.FileSystemStorage"
+LOGIN_URL = '/login/'
 
+CKEDITOR_5_FILE_STORAGE = "django.core.files.storage.FileSystemStorage"
 customColorPalette = [
         {
             'color': 'hsl(4, 90%, 58%)',
@@ -185,7 +186,17 @@ CKEDITOR_5_CONFIGS = {
         'toolbar': {
             'items': ['heading', '|', 'bold', 'italic', 'link',
                       'bulletedList', 'numberedList', 'blockQuote', 'imageUpload', ],
-                    }
+                    },
+        'editor_config': {
+            'contentStyle': """
+                body {
+                    background-color: #373737;
+                    color: #f9f9f9;
+                }
+                p { color: #f9f9f9; }
+                a { color: #4ea1ff; }
+            """
+        }
 
     },
     'extends': {

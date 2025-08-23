@@ -1,0 +1,54 @@
+{% extends "news/base.html" %}
+{% load nw_filter %}
+{% block content %}
+
+<div class="container my-4">
+    <div class="row g-4">
+        
+        <!-- Left side: All Blogs -->
+        <div class="col-lg-9 col-md-8">
+            <div class="row g-4">
+                {% for blog in blogs %}
+                <div class="col-lg-6 col-md-6 col-sm-12">
+                    <div class="card bg-dark text-white h-100 border-0 shadow-sm">
+                        {% if blog.image %}
+                            <img src="{{ blog.image.url }}" class="card-img-top" alt="{{ blog.title }}" style="height:220px; object-fit:cover;">
+                        {% endif %}
+                        <div class="card-body">
+                            <h5 class="card-title fw-bold">{{ blog.title }}</h5>
+                            <div class="d-flex flex-wrap text-muted small mb-2">
+                                <span class="me-3"><i class="bi bi-person-fill"></i> {{ blog.author.username }}</span>
+                                <span class="me-3"><i class="bi bi-calendar-event"></i> {{ blog.created_at|date:"M d, Y" }}</span>
+                                <span class="me-3"><i class="bi bi-eye"></i> {{ blog.views }}</span>
+                                <span><i class="bi bi-chat-dots"></i> {{ blog.comments.count }}</span>
+                            </div>
+                            <p class="card-text">{{ blog.content|remove_img_tags|truncatewords:25|safe }}</p>
+                        </div>
+                    </div>
+                </div>
+                {% empty %}
+                <p>No blogs available yet.</p>
+                {% endfor %}
+            </div>
+        </div>
+
+        <!-- Right side: Sidebar -->
+         {% if request.user.is_authenticated %}
+        <div class="col-lg-3 col-md-4">
+            <div class="sidebar bg-dark p-3 rounded shadow-sm">
+                <h5 class="mb-3"><i class="bi bi-journal-text me-1"></i>{{ request.user.username }}'s Blog</h5>
+                <a href="#" class="d-block mb-2 blog"><i class="bi bi-person-lines-fill me-2"></i> My Blogs</a>
+                <a href="{% url 'all_blogs' %}" class="d-block mb-2 blog"><i class="bi bi-collection me-2"></i> All Blogs</a>
+                <a href="{% url 'write_article' %}" class="btn btn-primary btn-sm mt-3" style="width: 100%; font-size: 1rem;">Create a post</a>
+            </div>
+        </div>
+        {% else %}
+        <div class="col-lg-3 col-md-4">
+            <div class="sidebar bg-dark p-3 rounded shadow-sm">
+                <a href="{% url 'write_article' %}" class="btn btn-primary btn-sm" style="width: 100%; font-size: 1rem;">Signup</a>
+            </div>
+        {% endif %}
+    </div>
+</div>
+
+{% endblock %}

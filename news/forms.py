@@ -82,9 +82,14 @@ class ProfileEditForm(forms.ModelForm):
 class ArticleForm(forms.ModelForm):
     class Meta:
         model = Article
-        fields = ['title', 'content', 'image', 'is_big_news']
+        fields = ['title', 'content', 'image']
         widgets = {
-            'title': forms.TextInput(attrs={'class': 'form-control form-control-lg'}),
-            'image': forms.ClearableFileInput(attrs={'class': 'form-control'}),
-            'is_big_news': forms.CheckboxInput(attrs={'class': 'form-check-input'}),
+            'title': forms.TextInput(attrs={
+                'class': 'form-control form-control-lg',
+                'style': 'color: #f9f9f9; background-color: #373633; border: none !important;'
+            }),
+            'image': forms.ClearableFileInput(attrs={
+                'class': 'd-none',  # hide default input
+                'id': 'uploadBtn'   # give unique ID
+            }),
         }

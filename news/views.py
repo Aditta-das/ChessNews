@@ -53,7 +53,8 @@ def home(request):
         'banner': banner,
         'top_bd_players': top_bd_players
     })
-    
+
+@login_required
 def create_article(request):
     if request.method == "POST":
         form = ArticleForm(request.POST, request.FILES)
@@ -66,6 +67,12 @@ def create_article(request):
         form = ArticleForm()
 
     return render(request, "news/create_article.html", {"form": form})
+
+
+def all_blogs(request):
+    blogs = Article.objects.all().order_by('-published_at')  # newest first
+    return render(request, 'news/article_list.html', {'blogs': blogs})
+
 
 def article_detail(request, slug):
     article = get_object_or_404(Article, slug=slug)

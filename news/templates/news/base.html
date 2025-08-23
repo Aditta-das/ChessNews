@@ -85,7 +85,6 @@
         }
 
         .navbar-brand .logo-sub {
-            font-family: 'Montserrat', sans-serif;
             font-size: 0.8rem;
             font-weight: 600;
             letter-spacing: 1px;
@@ -244,10 +243,17 @@
             background-color: var(--card-color);
         }
 
-        .card-body,
-        .card-title,
-        .card-text {
+        .card-title {
             color: var(--chess-light);
+            font-weight: 800;
+        }
+        
+        .card-text {
+            color: var(--chess-secondary);
+        }
+
+        .card-body {
+            color: var(--chess-secondary);
         }
 
         .author-name {
@@ -307,7 +313,6 @@
             left: 50%;
             transform: translateX(-50%);
             font-size: 20px;
-            font-family: 'Playfair Display', serif;
             text-shadow: 2px 2px 5px rgba(0, 0, 0, 0.8);
             text-align: center;
             font-weight: 600;
@@ -384,15 +389,6 @@
         .btn-primary:hover {
             background-color: #67804a;
             border-color: #67804a;
-        }
-
-        h1,
-        h2,
-        h3,
-        h4,
-        h5,
-        h6 {
-            font-family: 'Playfair Display', serif;
         }
 
         .book-cover {
@@ -812,6 +808,74 @@
                 /* This was in your original code, keeping it */
             }
         }
+
+        /* article section create_article.html */
+        .editor-container {
+            border-radius: 12px;
+            padding: 25px;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.08);
+        }
+
+        .editor-header {
+            font-size: 1.4rem;
+            font-weight: bold;
+            margin-bottom: 20px;
+            color: #ffffff;
+            text-align: left;
+        }
+
+        .form-label {
+            font-weight: 600;
+        }
+
+        .form-control,
+        .form-select {
+            border-radius: 6px;
+            padding: 0.75rem 1rem;
+        }
+
+        .ck-editor__editable {
+            min-height: 350px;
+            border-radius: 6px;
+        }
+
+        .btn-success {
+            background: linear-gradient(45deg, #16a085, #27ae60);
+            border: none;
+        }
+
+        .btn-success:hover {
+            background: linear-gradient(45deg, #138d75, #229954);
+        }
+
+        /* Sidebar */
+        .sidebar {
+            background: var(--chess-dark);
+            border-radius: 10px;
+            padding: 15px;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+        }
+
+        .sidebar h5 {
+            font-size: 1.1rem;
+            margin-bottom: 15px;
+            font-weight: 600;
+            color: var(--chess-secondary);
+        }
+
+        .sidebar a {
+            display: block;
+            border-radius: 6px;
+            margin-bottom: 4px;
+            text-decoration: none;
+            color: var(--chess-secondary);
+            font-weight: 600;
+            font-size: 1rem;
+        }
+
+        .sidebar a:hover {
+            color: var(--chess-light);
+        }
     </style>
 </head>
 
@@ -838,10 +902,9 @@
                         </a>
                     </li>
                     <li class="nav-item mx-1">
-                        <a class="nav-link position-relative px-3" href="https://forms.gle/sAHhdspNvG9p1YRU7"
-                            target="_blank">
+                        <a class="nav-link position-relative px-3" href="{% url 'all_blogs' %}">
                             <i class="fas fa-pen-fancy me-1"></i>
-                            Reporter
+                            Blogs
                             <span class="nav-link-underline"></span>
                         </a>
                     </li>
@@ -881,7 +944,7 @@
                             </li>
                             <li>
                                 <a class="dropdown-item" href="{% url 'write_article' %}">
-                                    <i class="bi bi-graph-up me-2"></i>Create a post
+                                    <i class="bi bi-plus-circle me-2"></i>Create a post
                                 </a>
                             </li>
                             <li>

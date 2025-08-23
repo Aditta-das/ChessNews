@@ -1,77 +1,82 @@
 {% extends "news/base.html" %}
 {% block content %}
 {{ form.media }} <!-- CKEditor -->
-
 <style>
-    .editor-container {
-        background: #fff;
-        border-radius: 12px;
-        padding: 25px;
-        box-shadow: 0 4px 15px rgba(0, 0, 0, 0.08);
-    }
-
-    .editor-header {
-        font-size: 1.4rem;
+    .btn-dark {
+        background-color: #373633 !important;
+        border: none !important;
+        color: #f9f9f9 !important;
         font-weight: bold;
-        margin-bottom: 20px;
-        color: #ffffff;
-        text-align: left;
     }
-
-    .form-label {
-        font-weight: 600;
+    .ck.ck-editor__main>.ck-editor__editable {
+        background: #373737;
     }
-
-    .form-control,
-    .form-select {
-        border-radius: 6px;
-        padding: 0.75rem 1rem;
+    .ck.ck-toolbar__items {
+        background-color: #373737;
+        border: none !important;
     }
-
-    .ck-editor__editable {
-        min-height: 350px;
-        border-radius: 6px;
+    .ck.ck-button.ck-on {
+        background-color: #4a4a4a !important;
+        color: #f9f9f9 !important;
     }
-
-    .btn-success {
-        background: linear-gradient(45deg, #16a085, #27ae60);
-        border: none;
+    .ck.ck-button.ck-on:hover {
+        background-color: #5a5a5a !important;
+        color: #f9f9f9 !important;
     }
-
-    .btn-success:hover {
-        background: linear-gradient(45deg, #138d75, #229954);
+    .ck.ck-button:hover {
+        background-color: #4a4a4a !important;
+        color: #f9f9f9 !important;  
     }
-
-    /* Sidebar */
-    .sidebar {
-        background: #f8f9fa;
-        border-radius: 10px;
-        padding: 15px;
-        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+    .ck.ck-button:active {
+        background-color: #5a5a5a !important;
+        color: #f9f9f9 !important;  
     }
-
-    .sidebar h5 {
-        font-size: 1.1rem;
-        margin-bottom: 15px;
-        font-weight: 600;
-        color: #2d3436;
+    .ck.ck-button {
+        color: #f9f9f9 !important;
     }
-
-    .sidebar a {
-        display: block;
-        border-radius: 6px;
-        margin-bottom: 4px;
-        text-decoration: none;
-        color: #2c3e50;
-        font-weight: 600;
-        font-size: 1rem;
+    .ck.ck-dropdown__panel {
+        background-color: #373737;
+        color: #f9f9f9 !important;
     }
-
-    .sidebar a:hover {
-        background: #dfe6e9;
+    .ck.ck-dropdown__panel .ck-list .ck-list__item {
+        color: #f9f9f9 !important;
+    }
+    .ck.ck-dropdown__panel .ck-list .ck-list__item:hover {
+        background-color: #4a4a4a !important;
+        color: #f9f9f9 !important;
+    }
+    .ck.ck-dropdown__panel .ck-list .ck-list__item:active {
+        background-color: #5a5a5a !important;
+        color: #f9f9f9 !important;
+    }
+    .ck.ck-dropdown__panel .ck-list .ck-list__item.ck-list__item_selected {
+        background-color: #4a4a4a !important;
+        color: #f9f9f9 !important;
+    }
+    .ck.ck-dropdown__panel .ck-list .ck-list__item.ck-list__item_selected:hover {
+        background-color: #5a5a5a !important;
+        color: #f9f9f9 !important;
+    }
+    .ck.ck-dropdown__panel .ck-list .ck-list__item.ck-list__item_selected:active {
+        background-color: #6a6a6a !important;       
+        color: #f9f9f9 !important;
+    }
+    .ck.ck-editor__editable.ck-editor__editable_inline {
+        min-height: 300px;
+    }
+    .editor-header {
+        font-size: 1.5rem;
+        font-weight: bold;
+        margin-bottom: 1rem;
+        color: #f9f9f9;
+    }
+    .editor-container {
+        padding: 1.5rem;
+        border-radius: 0.5rem;
+        box-shadow: 0 4px 6px rgba(0, 0,    0, 0.1);
+        border: 1px solid #444;
     }
 </style>
-
 <div class="container my-4">
     <div class="editor-header">
         Edit & Create Blog
@@ -79,7 +84,7 @@
     <div class="row g-4">
         <!-- Left side: Editor -->
         <div class="col-lg-9 col-md-8">
-            <div class="editor-container">
+            <div class="editor-container bg-dark text-white">
                 <form method="post" enctype="multipart/form-data">
                     {% csrf_token %}
                     <div class="mb-3">
@@ -89,19 +94,28 @@
                         {{ form.title }}
                     </div>
                     <div class="mb-3">
-                        <label for="{{ form.image.id_for_label }}" class="form-label">
-                            <i class="bi bi-image me-1"></i> Cover Image
+                        <label for="{{ form.image.id_for_label }}" class="btn btn-dark mb-2">
+                            <i class="bi bi-upload me-1"></i> Upload
                         </label>
                         {{ form.image }}
-                        <small class="text-muted d-block mt-1">
-                            Recommended: 16:9 (1600x900), under 5MB
-                        </small>
+
+                        <!-- Image Preview -->
+                        <div id="preview-container" class="mt-2 text-center d-none">
+                            <img id="preview" src="#" alt="Selected image" class="img-fluid rounded"
+                                style="max-height: 200px;" />
+                        </div>
                     </div>
+
                     <div class="mb-3">
                         <label for="{{ form.content.id_for_label }}" class="form-label">
                             <i class="bi bi-text-paragraph me-1"></i> Content
                         </label>
-                        {{ form.content }}
+                        <div class="form-text text-muted mb-2">
+                            Use the editor below to write your blog post.
+                        </div>
+                        <!-- CKEditor will replace this textarea -->
+                        {{ form.content|safe }}
+                        <!-- This is where CKEditor will initialize -->
                     </div>
                     <button type="submit" class="btn btn-success btn-lg w-100 rounded-1 fw-medium">
                         <i class="bi bi-cloud-upload-fill me-2"></i> Publish Article
@@ -112,15 +126,36 @@
 
         <!-- Right side: Sidebar -->
         <div class="col-lg-3 col-md-4">
-    <div class="sidebar">
-        <h5><i class="bi bi-journal-text me-1"></i>{{ request.user.username }}'s Blog</h5>
-        <a href="#" class="blog"><i class="bi bi-person-lines-fill me-2"></i> My Blogs</a>
-        <a href="#" class="blog"><i class="bi bi-collection me-2"></i> All Blogs</a>
-        <!-- <a href="#"><i class="bi bi-bookmark-heart me-2"></i> Saved Drafts</a> -->
-        <!-- <a href="#"><i class="bi bi-gear me-2"></i> Settings</a> -->
-    </div>
-</div>
+            <div class="sidebar bg-dark p-3 rounded shadow-sm">
+                <h5><i class="bi bi-journal-text me-1"></i>{{ request.user.username }}'s Blog</h5>
+                <a href="#" class="blog"><i class="bi bi-person-lines-fill me-2"></i> My Blogs</a>
+                <a href="#" class="blog"><i class="bi bi-collection me-2"></i> All Blogs</a>
+                <!-- <a href="#"><i class="bi bi-bookmark-heart me-2"></i> Saved Drafts</a> -->
+                <!-- <a href="#"><i class="bi bi-gear me-2"></i> Settings</a> -->
+            </div>
+        </div>
 
     </div>
 </div>
+
+<script>
+    document.addEventListener("DOMContentLoaded", function () {
+        const fileInput = document.getElementById("{{ form.image.id_for_label }}"); // Django renders id
+        const previewContainer = document.getElementById("preview-container");
+        const preview = document.getElementById("preview");
+
+        fileInput.addEventListener("change", function (event) {
+            const file = event.target.files[0];
+            if (file) {
+                const reader = new FileReader();
+                reader.onload = function (e) {
+                    preview.src = e.target.result;
+                    previewContainer.classList.remove("d-none");
+                }
+                reader.readAsDataURL(file);
+            }
+        });
+    });
+</script>
+
 {% endblock %}
