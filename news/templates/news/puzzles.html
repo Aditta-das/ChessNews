@@ -122,27 +122,59 @@
 </audio>
 
 <div id="main-layout" class="d-flex justify-content-center gap-4 flex-wrap">
-  <div id="puzzle-list" class="d-none d-lg-block" style="width: 273px; max-height: 80vh; overflow-y: auto;">
-    {% for puzzle in puzzles %}
-    {% if puzzle.id in solved_ids and request.user.is_authenticated %}
-    <button class="puzzle-btn btn solved-puzzle mb-2 w-100" data-fen="{{ puzzle.fen }}"
-      data-solution="{{ puzzle.solution }}" data-title="{{ puzzle.title }}" data-turn="{{ puzzle.turn }}"
-      data-index="{{ forloop.counter0 }}" data-puzzle-id="{{ puzzle.id }}" {% if puzzle.quote %}
-      data-quote-name="{{ puzzle.quote.name }}" data-quote-text="{{ puzzle.quote.Quote }}" {% endif %}>
-      <strong class="text-white">{{ puzzle.title }}</strong><br>
-    </button>
-    {% else %}
-    <button class="puzzle-btn btn unsolved-puzzle mb-2 w-100" data-fen="{{ puzzle.fen }}"
-      data-solution="{{ puzzle.solution }}" data-title="{{ puzzle.title }}" data-turn="{{ puzzle.turn }}"
-      data-index="{{ forloop.counter0 }}" data-puzzle-id="{{ puzzle.id }}" {% if puzzle.quote %}
-      data-quote-name="{{ puzzle.quote.name }}" data-quote-text="{{ puzzle.quote.Quote }}" {% endif %}>
-      <strong class="text-white">{{ puzzle.title }}</strong><br>
-    </button>
-    {% endif %}
-    {% empty %}
-    <div class="alert alert-info">No puzzles available yet.</div>
-    {% endfor %}
+  <div id="puzzle-list" class="d-none d-lg-block"
+    style="width: 272px; max-height: 90vh; overflow-y: auto; overflow-x: hidden;">
+
+    <!-- Tabs -->
+    <ul class="nav nav-tabs flex-wrap text-center w-100" id="puzzleTabs" role="tablist">
+      <li class="nav-item flex-fill" role="presentation">
+        <button class="nav-link active bg-success w-100" id="easy-tab" data-bs-toggle="tab" data-bs-target="#puzzle-tab"
+          type="button" role="tab" data-category="easy">
+          Easy
+        </button>
+      </li>
+      <li class="nav-item flex-fill" role="presentation">
+        <button class="nav-link bg-warning w-100" id="medium-tab" data-bs-toggle="tab" data-bs-target="#puzzle-tab"
+          type="button" role="tab" data-category="medium">
+          Medium
+        </button>
+      </li>
+      <li class="nav-item flex-fill" role="presentation">
+        <button class="nav-link bg-danger w-100" id="hard-tab" data-bs-toggle="tab" data-bs-target="#puzzle-tab"
+          type="button" role="tab" data-category="hard">
+          Hard
+        </button>
+      </li>
+    </ul>
+
+    <!-- Tab Content -->
+    <div class="tab-content bg-dark text-white p-2 rounded-bottom w-100" id="puzzleTabsContent"
+      style="max-height: 70vh; overflow-y: auto; overflow-x: hidden;">
+      <div class="tab-pane fade show active" id="puzzle-tab" role="tabpanel">
+
+        <!-- Render all puzzles but hide non-selected category -->
+        {% for puzzle in puzzles %}
+        <button class="puzzle-btn btn mb-2 w-100 puzzle-item
+          {% if puzzle.id in solved_ids %}solved-puzzle{% else %}unsolved-puzzle{% endif %}"
+          data-category="{{ puzzle.difficulty }}" data-fen="{{ puzzle.fen }}" data-solution="{{ puzzle.solution }}"
+          data-title="{{ puzzle.title }}" data-turn="{{ puzzle.turn }}" data-index="{{ forloop.counter0 }}"
+          data-puzzle-id="{{ puzzle.id }}" style="{% if puzzle.difficulty != 'easy' %}display:none;{% endif %}">
+          <strong class="text-white">{{ puzzle.title }}</strong><br>
+          <small class="badge 
+          {% if puzzle.difficulty == 'easy' %}bg-success
+          {% elif puzzle.difficulty == 'medium' %}bg-warning
+          {% else %}bg-danger{% endif %}">
+            {{ puzzle.difficulty|title }}
+          </small>
+        </button>
+        {% empty %}
+        <div class="alert alert-info">No puzzles available.</div>
+        {% endfor %}
+
+      </div>
+    </div>
   </div>
+
 
   <div id="board-container" style="width: 500px;">
     <div class="puzzle-info mb-3 text-center">
@@ -237,6 +269,27 @@
 <script src="{% static 'chessboardjs-1.0.0/js/chessboard-1.0.0.min.js' %}"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/chess.js/0.10.2/chess.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.bundle.min.js"></script>
+
+<script>
+  document.addEventListener("DOMContentLoaded", function () {
+    const tabs = document.querySelectorAll("#puzzleTabs button");
+    const items = document.querySelectorAll(".puzzle-item");
+
+    tabs.forEach(tab => {
+      tab.addEventListener("click", function () {
+        const category = this.dataset.category;
+
+        items.forEach(item => {
+          if (item.dataset.category === category) {
+            item.style.display = "block";
+          } else {
+            item.style.display = "none";
+          }
+        });
+      });
+    });
+  });
+</script>
 
 <script>
   $(document).ready(function () {
