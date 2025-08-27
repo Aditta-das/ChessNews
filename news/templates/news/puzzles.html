@@ -121,62 +121,59 @@
   <source src="{% static 'sound/move-check.mp3' %}" type="audio/mpeg">
 </audio>
 
-<div id="main-layout" class="d-flex justify-content-center gap-4 flex-wrap">
-  <div id="puzzle-list" class="d-none d-lg-block"
-    style="width: 272px; max-height: 90vh; overflow-y: auto; overflow-x: hidden;">
+<!-- Audio -->
+<audio id="correctSound" src="{% static 'sound/puzzle-correct.mp3' %}"></audio>
+<audio id="wrongSound" src="{% static 'sound/puzzle-wrong.mp3' %}"></audio>
+<audio id="moveSound">
+  <source src="{% static 'sound/move-self.mp3' %}" type="audio/mpeg">
+</audio>
+<audio id="captureSound">
+  <source src="{% static 'sound/capture.mp3' %}" type="audio/mpeg">
+</audio>
+<audio id="checkSound">
+  <source src="{% static 'sound/move-check.mp3' %}" type="audio/mpeg">
+</audio>
 
+<div id="main-layout">
+  <!-- Puzzle List (desktop only) -->
+  <div id="puzzle-list" class="d-none d-lg-block">
     <!-- Tabs -->
     <ul class="nav nav-tabs flex-wrap text-center w-100" id="puzzleTabs" role="tablist">
-      <li class="nav-item flex-fill" role="presentation">
-        <button class="nav-link active bg-success w-100" id="easy-tab" data-bs-toggle="tab" data-bs-target="#puzzle-tab"
-          type="button" role="tab" data-category="easy">
-          Easy
-        </button>
+      <li class="nav-item flex-fill"><button class="nav-link active bg-success w-100" id="easy-tab" data-bs-toggle="tab"
+          data-bs-target="#puzzle-tab" data-category="easy">Easy</button>
       </li>
-      <li class="nav-item flex-fill" role="presentation">
-        <button class="nav-link bg-warning w-100" id="medium-tab" data-bs-toggle="tab" data-bs-target="#puzzle-tab"
-          type="button" role="tab" data-category="medium">
-          Medium
-        </button>
+      <li class="nav-item flex-fill"><button class="nav-link bg-warning w-100" id="medium-tab" data-bs-toggle="tab"
+          data-bs-target="#puzzle-tab" data-category="medium">Medium</button>
       </li>
-      <li class="nav-item flex-fill" role="presentation">
-        <button class="nav-link bg-danger w-100" id="hard-tab" data-bs-toggle="tab" data-bs-target="#puzzle-tab"
-          type="button" role="tab" data-category="hard">
-          Hard
-        </button>
+      <li class="nav-item flex-fill"><button class="nav-link bg-danger w-100" id="hard-tab" data-bs-toggle="tab"
+          data-bs-target="#puzzle-tab" data-category="hard">Hard</button>
       </li>
     </ul>
 
     <!-- Tab Content -->
-    <div class="tab-content bg-dark text-white p-2 rounded-bottom w-100" id="puzzleTabsContent"
-      style="max-height: 70vh; overflow-y: auto; overflow-x: hidden;">
-      <div class="tab-pane fade show active" id="puzzle-tab" role="tabpanel">
-
-        <!-- Render all puzzles but hide non-selected category -->
+    <div class="tab-content bg-dark text-white p-2 rounded-bottom w-100" id="puzzleTabsContent">
+      <div class="tab-pane fade show active" id="puzzle-tab">
         {% for puzzle in puzzles %}
-        <button class="puzzle-btn btn mb-2 w-100 puzzle-item
-          {% if puzzle.id in solved_ids %}solved-puzzle{% else %}unsolved-puzzle{% endif %}"
+        <button
+          class="puzzle-btn btn mb-2 w-100 puzzle-item {% if puzzle.id in solved_ids %}solved-puzzle{% else %}unsolved-puzzle{% endif %}"
           data-category="{{ puzzle.difficulty }}" data-fen="{{ puzzle.fen }}" data-solution="{{ puzzle.solution }}"
           data-title="{{ puzzle.title }}" data-turn="{{ puzzle.turn }}" data-index="{{ forloop.counter0 }}"
           data-puzzle-id="{{ puzzle.id }}" style="{% if puzzle.difficulty != 'easy' %}display:none;{% endif %}">
-          <strong class="text-white">{{ puzzle.title }}</strong><br>
-          <small class="badge 
-          {% if puzzle.difficulty == 'easy' %}bg-success
-          {% elif puzzle.difficulty == 'medium' %}bg-warning
-          {% else %}bg-danger{% endif %}">
+          <strong>{{ puzzle.title }}</strong><br>
+          <small
+            class="badge {% if puzzle.difficulty == 'easy' %}bg-success{% elif puzzle.difficulty == 'medium' %}bg-warning{% else %}bg-danger{% endif %}">
             {{ puzzle.difficulty|title }}
           </small>
         </button>
         {% empty %}
         <div class="alert alert-info">No puzzles available.</div>
         {% endfor %}
-
       </div>
     </div>
   </div>
 
-
-  <div id="board-container" style="width: 500px;">
+  <!-- Board -->
+  <div id="board-container">
     <div class="puzzle-info mb-3 text-center">
       <div class="d-flex justify-content-center mb-3 d-lg-none">
         <button id="puzzle-title-small" class="btn btn-primary w-100" data-bs-toggle="modal"
@@ -185,18 +182,17 @@
       <p id="puzzle-instruction" class="text-muted"></p>
       <code id="fen-display" class="d-none"></code>
     </div>
-
     <div id="board" class="mx-auto"></div>
-
   </div>
 
-  <div id="controls-container" style="width: 295px;">
+  <!-- Controls -->
+  <div id="controls-container">
     <p class="puzzle-timer text-center">⏱️ Time: <span id="timer">0</span> sec</p>
-    <div id="notation-box" class="mb-3 p-2" style="max-height: 50vh; overflow-y: auto;">
+    <div id="notation-box" class="mb-3">
       <h4 id="puzzle-title-large" class="d-none d-lg-block">Select a puzzle</h4>
       <p id="puzzle-turn"></p>
       <hr>
-      <h5 class="move-notation-text text-center text-white">Move Notation</h5>
+      <h5 class="text-center text-white">Move Notation</h5>
       <div id="move-history"></div>
     </div>
     <div id="puzzle-status" class="text-center mt-3 d-none"></div>
@@ -227,35 +223,24 @@
   </div>
 </div>
 
-<!-- Modal for mobile puzzle list -->
-<div class="modal fade" id="mobile-puzzle-modal" tabindex="-1" aria-labelledby="mobile-puzzle-modal-label"
-  aria-hidden="true">
+<!-- Mobile Puzzle Modal -->
+<div class="modal fade" id="mobile-puzzle-modal" tabindex="-1">
   <div class="modal-dialog modal-dialog-centered modal-dialog-scrollable">
     <div class="modal-content">
       <div class="modal-header">
-        <h5 class="modal-title" id="mobile-puzzle-modal-label">Puzzles</h5>
-        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+        <h5 class="modal-title">Puzzles</h5><button type="button" class="btn-close" data-bs-dismiss="modal"></button>
       </div>
       <div class="modal-body">
         <div id="mobile-puzzle-list">
           {% for puzzle in puzzles %}
-          {% if puzzle.id in solved_ids and request.user.is_authenticated %}
-          <button class="puzzle-btn btn solved-puzzle mb-2 w-100" data-fen="{{ puzzle.fen }}"
-            data-solution="{{ puzzle.solution }}" data-title="{{ puzzle.title }}" data-turn="{{ puzzle.turn }}"
-            data-index="{{ forloop.counter0 }}" data-puzzle-id="{{ puzzle.id }}" data-bs-dismiss="modal" {% if
-            puzzle.quote %} data-quote-name="{{ puzzle.quote.name }}" data-quote-text="{{ puzzle.quote.Quote }}" {%
-            endif %}>
-            <strong class="text-white">{{ puzzle.title }}</strong><br>
+          <button
+            class="puzzle-btn btn {% if puzzle.id in solved_ids %}solved-puzzle{% else %}unsolved-puzzle{% endif %} mb-2 w-100"
+            data-fen="{{ puzzle.fen }}" data-solution="{{ puzzle.solution }}" data-title="{{ puzzle.title }}"
+            data-turn="{{ puzzle.turn }}" data-index="{{ forloop.counter0 }}" data-puzzle-id="{{ puzzle.id }}"
+            data-bs-dismiss="modal" {% if puzzle.quote %} data-quote-name="{{ puzzle.quote.name }}"
+            data-quote-text="{{ puzzle.quote.Quote }}" {% endif %}>
+            <strong>{{ puzzle.title }}</strong>
           </button>
-          {% else %}
-          <button class="puzzle-btn btn unsolved-puzzle mb-2 w-100" data-fen="{{ puzzle.fen }}"
-            data-solution="{{ puzzle.solution }}" data-title="{{ puzzle.title }}" data-turn="{{ puzzle.turn }}"
-            data-index="{{ forloop.counter0 }}" data-puzzle-id="{{ puzzle.id }}" data-bs-dismiss="modal" {% if
-            puzzle.quote %} data-quote-name="{{ puzzle.quote.name }}" data-quote-text="{{ puzzle.quote.Quote }}" {%
-            endif %}>
-            <strong class="text-white">{{ puzzle.title }}</strong><br>
-          </button>
-          {% endif %}
           {% empty %}
           <div class="alert alert-info">No puzzles available yet.</div>
           {% endfor %}

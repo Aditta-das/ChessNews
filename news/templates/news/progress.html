@@ -24,9 +24,6 @@
     }
 
     .edit-btn {
-        position: absolute;
-        top: 15px;
-        right: 15px;
         background: rgba(255, 255, 255, 0.1);
         border: none;
         color: #fff;
@@ -67,31 +64,14 @@
         margin-right: 15px;
     }
 
-    @media (max-width: 576px) {
-        .profile-header {
-            text-align: center;
-        }
-
-        .edit-btn {
-            position: static;
-            margin-top: 10px;
-        }
-
-        .profile-img {
-            margin-bottom: 10px;
-        }
-    }
-
     .card-glass {
         background: rgba(40, 40, 40, 0.45);
-        /* Dark semi-transparent background */
         backdrop-filter: blur(10px) saturate(180%);
         -webkit-backdrop-filter: blur(10px) saturate(180%);
         border-radius: 12px;
         border: 1px solid rgba(255, 255, 255, 0.125);
     }
 
-    /* Stat card specific styles */
     .stat-card {
         transition: transform 0.3s ease, box-shadow 0.3s ease;
     }
@@ -107,32 +87,31 @@
     }
 </style>
 
-<div class="container py-2">
-    <div class="profile-header shadow mb-4">
-        <div class="d-flex flex-wrap align-items-center">
-            <img src="{% if request.user.userprofile.image %}{{ request.user.userprofile.image.url }}{% else %}{% static 'profile_images/user.png' %}{% endif %}"
-                alt="Profile Photo" class="profile-img me-3">
+<div class="container py-3">
 
-            <div class="flex-grow-1">
-                <div class="d-flex align-items-center flex-wrap">
-                    <span class="profile-name me-2">{{ user.username|default:"Guest Player" }}</span>
-                    <span class="fi fi-bd"></span>
-                </div>
-                <div class="profile-sub">
-                    <!-- {{ user.first_name }} {{ user.last_name }} -->
-                    <i class="bi bi-geo-alt"></i> Feni
-                </div>
-                <div class="profile-bio">
-                    {{ request.user.userprofile.bio|default:"Add Description Here" }}
-                </div>
-                <div class="profile-stats">
-                    <span><b>{{ user.date_joined.date }}</b> Joined</span>
-                    <!-- <span>41 Friends</span> -->
-                    <!-- <span>44 Views</span> -->
-                    <!-- <span class="text-success">Online now</span> -->
+    <!-- Profile Header -->
+    <div class="profile-header shadow mb-4">
+        <div class="d-flex flex-wrap align-items-center justify-content-between">
+            <div class="d-flex align-items-center flex-wrap">
+                <img src="{% if request.user.userprofile.image %}{{ request.user.userprofile.image.url }}{% else %}{% static 'profile_images/user.png' %}{% endif %}"
+                    alt="Profile Photo" class="profile-img me-3 mb-2 mb-sm-0">
+                <div>
+                    <div class="d-flex align-items-center flex-nowrap justify-content-start">
+                        <span class="profile-name me-2">{{ user.username|default:"Guest Player" }}</span>
+                        <span class="fi fi-bd"></span>
+                    </div>
+                    <div class="profile-sub">
+                        <i class="bi bi-geo-alt"></i> Feni
+                    </div>
+                    <div class="profile-bio">
+                        {{ request.user.userprofile.bio|default:"Add Description Here" }}
+                    </div>
+                    <div class="profile-stats">
+                        <span><b>{{ user.date_joined.date }}</b> Joined</span>
+                    </div>
                 </div>
             </div>
-            <div>
+            <div class="ms-2 mt-2 mt-sm-0">
                 <a href="{% url 'edit_profile' %}" class="text-decoration-none">
                     <button class="edit-btn">Edit Profile</button>
                 </a>
@@ -140,12 +119,15 @@
         </div>
     </div>
 
+    <!-- Title -->
     <div class="text-center mb-4">
-        <h3 class="mb-4 text-white fw-bold display-8">Your Puzzle Progress</h3>
+        <h3 class="mb-4 text-white fw-bold">Your Puzzle Progress</h3>
     </div>
 
-    <div class="row">
-        <div class="col-lg-8 mb-4">
+    <!-- Charts and Stats -->
+    <div class="row g-4">
+        <!-- Chart -->
+        <div class="col-lg-8 col-md-12">
             <div class="card card-glass p-4 h-100 shadow">
                 <h5 class="mb-3 text-white fw-bold">Time Taken per Puzzle</h5>
                 <div class="chart-container" style="position: relative; height:350px;">
@@ -154,7 +136,8 @@
             </div>
         </div>
 
-        <div class="col-lg-4 mb-4">
+        <!-- Stats -->
+        <div class="col-lg-4 col-md-12">
             <h5 class="text-white fw-bold mb-3">Stats at a Glance</h5>
 
             <div class="card card-glass stat-card p-3 mb-3">
@@ -194,13 +177,16 @@
             </div>
         </div>
     </div>
-    <div class="row g-4">
-        <div class="col-lg-12 mb-4">
+
+    <!-- Achievements -->
+    <div class="row g-4 mt-3">
+        <div class="col-12">
             <h3 class="mb-1 text-white fw-bold">Achievements</h3>
         </div>
+
         {% if puzzles_solved >= 4 %}
-        <div class="col-lg-4 col-md-6">
-            <div class="card card-glass stat-card p-3 mb-3">
+        <div class="col-lg-4 col-md-6 col-sm-12">
+            <div class="card card-glass stat-card p-3 h-100 d-flex align-items-center">
                 <div class="d-flex align-items-center">
                     <div class="me-3">
                         <img src="{% static 'progress/puzzle.png' %}" alt="Puzzle Icon" class="stat-icon img-fluid"
@@ -214,17 +200,16 @@
             </div>
         </div>
         {% else %}
-        <div class="col-lg-4 col-md-6">
-            <div class="card card-glass stat-card p-3 mb-3 d-flex justify-content-center align-items-center"
-                style="height: 100px;">
+        <div class="col-lg-4 col-md-6 col-sm-12">
+            <div class="card card-glass stat-card p-3 h-100 d-flex justify-content-center align-items-center">
                 <img src="{% static 'progress/lock.png' %}" alt="Locked Icon" class="stat-icon img-fluid"
                     style="width: 50px; height: 50px;">
             </div>
         </div>
         {% endif %}
     </div>
-</div>
 
+</div>
 
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 <script>
@@ -234,14 +219,14 @@
         datasets: [{
             label: 'Time Taken (seconds)',
             data: {{ data| safe }},
-    fill: true, // Set to true to create a filled area under the line
-        backgroundColor: 'rgba(255, 255, 255, 0.1)', // Subtle fill color
+    fill: true,
+        backgroundColor: 'rgba(255, 255, 255, 0.1)',
             borderColor: '#fff',
-                pointBackgroundColor: '#fff', // Color of the data points
+                pointBackgroundColor: '#fff',
                     pointBorderColor: '#fff',
                         pointHoverBackgroundColor: '#fff',
                             pointHoverBorderColor: '#fff',
-                                tension: 0.4 // Smoother curve
+                                tension: 0.4
         }]
     };
 
@@ -250,12 +235,8 @@
         data: data,
         options: {
             responsive: true,
-            maintainAspectRatio: false, // Important for custom container size
-            plugins: {
-                legend: {
-                    display: false // Legend is redundant with the chart title
-                }
-            },
+            maintainAspectRatio: false,
+            plugins: { legend: { display: false } },
             scales: {
                 y: {
                     beginAtZero: true,
@@ -263,44 +244,25 @@
                         display: true,
                         text: 'Time Taken (seconds)',
                         color: 'rgba(255, 255, 255, 0.7)',
-                        font: {
-                            size: 14,
-                            weight: 'bold'
-                        }
+                        font: { size: 14, weight: 'bold' }
                     },
-                    ticks: {
-                        color: 'rgba(255, 255, 255, 0.7)'
-                    },
-                    grid: {
-                        color: 'rgba(255, 255, 255, 0.15)' // Lighter grid lines
-                    }
+                    ticks: { color: 'rgba(255, 255, 255, 0.7)' },
+                    grid: { color: 'rgba(255, 255, 255, 0.15)' }
                 },
                 x: {
                     title: {
                         display: true,
                         text: 'Puzzle Number',
                         color: 'rgba(255, 255, 255, 0.7)',
-                        font: {
-                            size: 14,
-                            weight: 'bold'
-                        }
+                        font: { size: 14, weight: 'bold' }
                     },
-                    ticks: {
-                        maxRotation: 45,
-                        autoSkip: true, // Allow chart.js to intelligently skip labels if too crowded
-                        color: 'rgba(255, 255, 255, 0.7)'
-                    },
-                    grid: {
-                        display: false // Hide vertical grid lines for a cleaner look
-                    }
+                    ticks: { maxRotation: 45, autoSkip: true, color: 'rgba(255, 255, 255, 0.7)' },
+                    grid: { display: false }
                 }
             }
         }
     };
 
-    new Chart(
-        document.getElementById('progressChart'),
-        config
-    );
+    new Chart(document.getElementById('progressChart'), config);
 </script>
 {% endblock %}

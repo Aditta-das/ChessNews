@@ -6,6 +6,7 @@
 
 {% load nw_filter %}
 {% load static %}
+<style></style>
 <!-- Headline Ticker -->
 {% if user.is_authenticated %}
 <div class="row align-items-center mb-3">
@@ -140,7 +141,7 @@
       <i class="bi bi-chess-pawn text-white me-2"></i> Top Players
     </h2>
 
-    <div class="d-flex justify-content-center flex-wrap gap-4">
+    <div class="d-flex justify-content-start flex-wrap gap-4">
       {% for player in players %}
       <div style="width: 190px;">
         <div class="player-card hover-scale text-center mx-auto">
@@ -149,12 +150,10 @@
           <div class="image-overlay"></div>
           <div class="player-rank bg-primary">#{{ player.rank }}</div>
 
-          <!-- Flag on top -->
           <div class="player-country mb-1">
             <img src="https://flagcdn.com/w20/{{ player.country|lower|slice:" 2" }}.png" alt="{{ player.country }}">
           </div>
 
-          <!-- Name below flag -->
           <div class="player-name">{{ player.name }}</div>
 
           <div class="rating-container bg-dark mt-2">
@@ -178,7 +177,7 @@
       <i class="bi bi-chess-pawn me-2 text-white"></i> Top Bangladeshi Players
     </h2>
 
-    <div class="d-flex justify-content-center flex-wrap gap-4">
+    <div class="d-flex justify-content-start flex-wrap gap-4">
       {% for bd_player in top_bd_players %}
       <div style="width: 190px;">
         <div class="player-card hover-scale text-center mx-auto">
