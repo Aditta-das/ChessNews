@@ -6,8 +6,92 @@
 {% block content %}
 <link rel="stylesheet" href="{% static 'chessboardjs-1.0.0/css/chessboard-1.0.0.min.css' %}">
 <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600&display=swap" rel="stylesheet">
+
 <style>
-  /* Responsive styles for small screens */
+  body {
+    font-family: 'Poppins', sans-serif;
+  }
+
+  .trainer-container {
+    padding: 1rem;
+  }
+
+  /* Responsive Chessboard */
+  #board-container {
+    position: relative;
+    width: 100%;
+    max-width: 500px;
+    aspect-ratio: 1 / 1;
+  }
+
+  #board {
+    width: 100% !important;
+    height: 100% !important;
+  }
+
+  /* Floating target overlay */
+  #target-overlay {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    background: rgba(0,0,0,0.75);
+    color: #fff;
+    font-weight: 600;
+    font-size: 2rem;
+    padding: 0.5rem 1rem;
+    border-radius: 8px;
+    display: none;
+    z-index: 999;
+    pointer-events: none;
+  }
+
+  .stats-panel {
+    flex: 1;
+    min-width: 250px;
+    max-width: 400px;
+  }
+
+  .stat-item {
+    font-size: 1rem;
+    padding: 0.3rem;
+    border-radius: 0.4rem;
+  }
+
+  .timer-box {
+    margin-top: 0.5rem;
+    font-size: 1.1rem;
+  }
+
+  .leaderboard {
+    overflow-x: auto;
+  }
+
+  .custom-leaderboard th, 
+  .custom-leaderboard td {
+    white-space: nowrap;
+    font-size: 0.9rem;
+  }
+
+  /* Mobile adjustments */
+  @media (max-width: 768px) {
+    #board-container {
+      max-width: 100%;
+    }
+
+    .stats-panel {
+      max-width: 100%;
+      margin-top: 1rem;
+    }
+
+    .stat-item {
+      font-size: 0.9rem;
+    }
+  }
+
+  /* Square highlights */
+  .highlight-correct { background-color: #d4edda !important; }
+  .highlight-wrong { background-color: #f8d7da !important; }
 </style>
 
 <audio id="correctSound" src="{% static 'sound/puzzle-correct.mp3' %}"></audio>
@@ -15,61 +99,69 @@
 
 <div class="trainer-container">
   {% if not request.user.is_authenticated %}
-  <div class="alert alert-warning text-center">You must <a href="{% url 'login' %}">log in</a> to save results.</div>
+  <div class="alert alert-warning text-center">
+    You must <a href="{% url 'login' %}">log in</a> to save results.
+  </div>
   {% endif %}
 
-  <div class="d-flex justify-content-center gap-3 flex-wrap align-items-start">
-
-    <div id="board-container" style="width: 500px;">
+  <div class="d-flex justify-content-center flex-wrap gap-3 align-items-start">
+    <!-- Board -->
+    <div id="board-container" class="flex-shrink-0">
+      <div id="target-overlay"></div>
       <div id="board" class="mx-auto"></div>
     </div>
 
-    <div class="stats-panel d-flex flex-column align-items-center gap-1">
-      <div id="target-square" class="w-100 text-center">Click Start to begin!</div>
-
-      <div class="d-flex w-100 flex-column flex-md-row gap-1">
-        <div class="stat-item text-success flex-fill"><strong>Correct:</strong> <span id="correct-count">0</span></div>
-        <div class="stat-item text-danger flex-fill"><strong>Wrong:</strong> <span id="wrong-count">0</span></div>
+    <!-- Stats -->
+    <div class="stats-panel d-flex flex-column align-items-center gap-2">
+      <div class="d-flex w-100 flex-column flex-md-row gap-2">
+        <div class="stat-item bg-light text-success flex-fill text-center">
+          <strong>Correct:</strong> <span id="correct-count">0</span>
+        </div>
+        <div class="stat-item bg-light text-danger flex-fill text-center">
+          <strong>Wrong:</strong> <span id="wrong-count">0</span>
+        </div>
       </div>
 
-
-      <div class="timer-box w-100">
+      <div class="timer-box w-100 text-center">
         <strong>⏱ Time:</strong> <span id="timer" class="text-primary">2:00</span>
       </div>
 
-      <div id="feedback" class="text-center"></div>
+      <div id="feedback" class="text-center w-100"></div>
 
       <div class="text-center w-100 mt-auto">
-        <button id="start-btn" class="btn btn-success">Start Training</button>
+        <button id="start-btn" class="btn btn-success w-100">Start Training</button>
       </div>
     </div>
   </div>
 </div>
 
+<!-- Leaderboard -->
 <div class="leaderboard mt-5">
   <h4 class="text-center text-primary">🏆 Top Players</h4>
-  <table class="table custom-leaderboard text-center mt-3">
-    <thead>
-      <tr>
-        <th>Rank</th>
-        <th>Username</th>
-        <th>✓ Correct</th>
-        <th>✗ Wrong</th>
-        <th>Score</th>
-      </tr>
-    </thead>
-    <tbody>
-      {% for player in top_players %}
-      <tr>
-        <td data-label="Rank" class="counter">{{ forloop.counter }}</td>
-        <td data-label="Username" class="name">{{ player.user__username }}</td>
-        <td data-label="Correct" class="correct">{{ player.total_correct }}</td>
-        <td data-label="Wrong" class="wrong">{{ player.total_wrong }}</td>
-        <td data-label="Score" class="score">{{ player.score }}</td>
-      </tr>
-      {% endfor %}
-    </tbody>
-  </table>
+  <div class="table-responsive">
+    <table class="table table-striped custom-leaderboard text-center mt-3">
+      <thead class="table-primary">
+        <tr>
+          <th>Rank</th>
+          <th>Username</th>
+          <th>✓ Correct</th>
+          <th>✗ Wrong</th>
+          <th>Score</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for player in top_players %}
+        <tr>
+          <td>{{ forloop.counter }}</td>
+          <td>{{ player.user__username }}</td>
+          <td>{{ player.total_correct }}</td>
+          <td>{{ player.total_wrong }}</td>
+          <td>{{ player.score }}</td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
 </div>
 
 <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
@@ -77,12 +169,12 @@
 
 <script>
   $(document).ready(function () {
-    const $targetSquare = $('#target-square');
     const $feedback = $('#feedback');
     const $correct = $('#correct-count');
     const $wrong = $('#wrong-count');
     const $timer = $('#timer');
     const $startBtn = $('#start-btn');
+    const $overlay = $('#target-overlay');
 
     const correctSound = document.getElementById('correctSound');
     const wrongSound = document.getElementById('wrongSound');
@@ -92,6 +184,12 @@
       draggable: false,
       pieceTheme: '',
     });
+
+    // ✅ Auto resize board on window resize
+    $(window).on('resize', function () {
+      board.resize();
+    });
+    setTimeout(() => board.resize(), 200);
 
     let correctCount = 0;
     let wrongCount = 0;
@@ -109,8 +207,15 @@
       const orientation = Math.random() < 0.5 ? 'white' : 'black';
       board.orientation(orientation);
       targetSquare = getRandomSquare();
-      $targetSquare.text('Find: ' + targetSquare).addClass('highlight');
-      setTimeout(() => $targetSquare.removeClass('highlight'), 300);
+
+      // Show floating overlay inside board
+      $overlay
+        .stop(true, true)
+        .text(targetSquare.toUpperCase())
+        .fadeIn(200)
+        .delay(1000)
+        .fadeOut(500);
+
       $feedback.text('').removeClass('alert-success alert-danger');
     }
 
@@ -125,24 +230,18 @@
 
     function endGame() {
       clearInterval(timerInterval);
-      $targetSquare.text('Training complete!');
+      $overlay.hide();
       $startBtn.text('Play Again').show();
-      $('#timer').removeClass('text-danger'); // Stop pulsing animation
+      $('#timer').removeClass('text-danger');
 
       $.ajax({
         type: 'POST',
-        url: '', // same URL
+        url: '',
         headers: { 'X-Requested-With': 'XMLHttpRequest' },
         data: {
           csrfmiddlewaretoken: '{{ csrf_token }}',
           correct: correctCount,
           wrong: wrongCount
-        },
-        success: function (response) {
-          console.log('Result saved:', response);
-        },
-        error: function () {
-          console.error('Result not saved.');
         }
       });
     }
@@ -157,7 +256,6 @@
       $timer.text('2:00').removeClass('text-danger').addClass('text-primary');
       newTargetSquare();
       $startBtn.hide();
-      $feedback.removeClass('alert-info');
 
       timerInterval = setInterval(() => {
         timeRemaining--;
@@ -168,7 +266,7 @@
 
     function playSound(audio) {
       audio.currentTime = 0;
-      audio.play().catch(e => console.log('Audio error:', e));
+      audio.play().catch(() => {});
     }
 
     $(document).on('click', '.square-55d63', function () {
@@ -182,14 +280,14 @@
         $correct.text(correctCount);
         $feedback.text('Correct!').addClass('alert alert-success');
         playSound(correctSound);
-        $square.addClass('highlight-correct'); // Use a custom class for correct
+        $square.addClass('highlight-correct');
         setTimeout(() => $square.removeClass('highlight-correct'), 500);
       } else {
         wrongCount++;
         $wrong.text(wrongCount);
         $feedback.text('Wrong!').addClass('alert alert-danger');
         playSound(wrongSound);
-        $square.addClass('highlight-wrong'); // Use a custom class for wrong
+        $square.addClass('highlight-wrong');
         setTimeout(() => $square.removeClass('highlight-wrong'), 500);
       }
 
@@ -197,9 +295,6 @@
     });
 
     $startBtn.on('click', startGame);
-
-    // Add styles for square highlights to avoid inline styles
-    $('head').append('<style>.highlight-correct { background-color: #d4edda !important; } .highlight-wrong { background-color: #f8d7da !important; }</style>');
   });
 </script>
 {% endblock %}

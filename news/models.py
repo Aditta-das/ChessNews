@@ -27,7 +27,7 @@ class Article(models.Model):
             Article.objects.filter(is_big_news=True).exclude(pk=self.pk).update(is_big_news=False)
 
         if not self.slug:
-            base_slug = slugify(self.title)
+            base_slug = slugify(self.title, allow_unicode=True)
             slug = base_slug
             counter = 1
             while Article.objects.filter(slug=slug).exists():

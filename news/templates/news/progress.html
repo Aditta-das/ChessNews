@@ -147,7 +147,7 @@
                     </div>
                     <div>
                         <h6 class="text-white-50 mb-0">Average Time</h6>
-                        <h4 class="fw-bold text-white mb-0">{{ average_time|default:"34.5s" }}</h4>
+                        <h4 class="fw-bold text-white mb-0">{{ average_time|default:"0s" }}</h4>
                     </div>
                 </div>
             </div>
@@ -159,7 +159,7 @@
                     </div>
                     <div>
                         <h6 class="text-white-50 mb-0">Puzzles Solved</h6>
-                        <h4 class="fw-bold text-white mb-0">{{ puzzles_solved|default:"128" }}</h4>
+                        <h4 class="fw-bold text-white mb-0">{{ puzzles_solved|default:"0" }}</h4>
                     </div>
                 </div>
             </div>
@@ -171,7 +171,7 @@
                     </div>
                     <div>
                         <h6 class="text-white-50 mb-0">Success Rate</h6>
-                        <h4 class="fw-bold text-white mb-0">{{ success_rate|default:"89%" }}</h4>
+                        <h4 class="fw-bold text-white mb-0">{{ success_rate|default:"0%" }}</h4>
                     </div>
                 </div>
             </div>
@@ -184,7 +184,7 @@
             <h3 class="mb-1 text-white fw-bold">Achievements</h3>
         </div>
 
-        {% if puzzles_solved >= 4 %}
+        {% if puzzles_solved >= 5 %}
         <div class="col-lg-4 col-md-6 col-sm-12">
             <div class="card card-glass stat-card p-3 h-100 d-flex align-items-center">
                 <div class="d-flex align-items-center">
@@ -194,7 +194,7 @@
                     </div>
                     <div>
                         <h6 class="text-white-50 mb-0">Puzzle Beginner</h6>
-                        <p class="fw-bold text-white mb-0">You correctly solved 10 Puzzles!</p>
+                        <p class="fw-bold text-white mb-0">You correctly solved 5 Puzzles!</p>
                     </div>
                 </div>
             </div>

@@ -1,11 +1,11 @@
-from django.urls import path
+from django.urls import path, re_path
 from . import views
 
 urlpatterns = [
     path('', views.home, name='home'),
     path('blogs/', views.all_blogs, name='all_blogs'),
     path('write-article/', views.create_article, name='write_article'),
-    path('article/<slug:slug>/', views.article_detail, name='article_detail'),
+    re_path(r"^article/(?P<slug>[-\w\u0980-\u09FF]+)/$", views.article_detail, name="article_detail"),
     path('books/', views.book_list, name='book_list'),
     path('puzzles/', views.puzzle_list, name='puzzle_list'),
     path('buy-premium/', views.buy_premium, name='buy_premium'),

@@ -158,7 +158,9 @@
           class="puzzle-btn btn mb-2 w-100 puzzle-item {% if puzzle.id in solved_ids %}solved-puzzle{% else %}unsolved-puzzle{% endif %}"
           data-category="{{ puzzle.difficulty }}" data-fen="{{ puzzle.fen }}" data-solution="{{ puzzle.solution }}"
           data-title="{{ puzzle.title }}" data-turn="{{ puzzle.turn }}" data-index="{{ forloop.counter0 }}"
-          data-puzzle-id="{{ puzzle.id }}" style="{% if puzzle.difficulty != 'easy' %}display:none;{% endif %}">
+          data-puzzle-id="{{ puzzle.id }}" {% if puzzle.quote %} data-quote-name="{{ puzzle.quote.name }}"
+          data-quote-text="{{ puzzle.quote.Quote }}" {% endif %}
+          style="{% if puzzle.difficulty != 'easy' %}display:none;{% endif %}">
           <strong>{{ puzzle.title }}</strong><br>
           <small
             class="badge {% if puzzle.difficulty == 'easy' %}bg-success{% elif puzzle.difficulty == 'medium' %}bg-warning{% else %}bg-danger{% endif %}">
@@ -197,13 +199,13 @@
     </div>
     <div id="puzzle-status" class="text-center mt-3 d-none"></div>
     <div class="row g-2 align-items-center">
-      <div id="quote-box" class="col-lg-12 card text-center mb-3 quote-none">
+      <div id="quote-box" class="col-lg-12 card text-center mt-3 quote-none">
         <div class="card-body">
           <h5 id="quote-author" class="card-title"></h5>
           <p id="quote-text" class="card-text"></p>
         </div>
       </div>
-      <div class="col-12 col-lg-6 d-flex flex-row justify-content-between gap-1.6">
+      <div class="col-12 col-lg-6 d-flex flex-row justify-content-between mt-3">
         <button id="reset-btn" class="btn btn-secondary btn-md flex-grow-1">
           <span class="btn-icon"><img src="{% static 'buttons/reset.png' %}" class="notation-btn-img"
               alt="Reset"></span>
@@ -491,7 +493,7 @@
           $('#quote-box').fadeOut(500, function () {
             $(this).addClass('quote-none').show();
           });
-        }, 5000);
+        }, 10000);
       } else {
         $('#quote-box').addClass('quote-none');
         $('#quote-author').text('');
