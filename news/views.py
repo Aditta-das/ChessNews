@@ -221,13 +221,13 @@ def generate_otp():
 
 def login_view(request):
     form = EmailLoginForm(request.POST or None)
-    show_otp = False
-    email_sent = False
+    # show_otp = False
+    # email_sent = False
 
     if request.method == 'POST':
         email = request.POST.get('email')
         password = request.POST.get('password')
-        otp_input = request.POST.get('otp')
+        # otp_input = request.POST.get('otp')
         username_from_email = email.split('@')[0]
 
         try:
@@ -239,38 +239,39 @@ def login_view(request):
             else:
                 form.add_error('password', 'Invalid password')
         except User.DoesNotExist:
-            show_otp = True
-            otp_obj, created = EmailOTP.objects.get_or_create(email=email)
+            # show_otp = True
+            # otp_obj, created = EmailOTP.objects.get_or_create(email=email)
 
-            if created or otp_input == "":
-                otp = generate_otp()
-                otp_obj.otp = otp
-                otp_obj.save()
-                send_mail(
-                    subject='Your OTP Code',
-                    message=f'Your OTP is: {otp}',
-                    from_email='adittadas00@gmail.com',
-                    recipient_list=[email],
-                    fail_silently=False,
-                )
-                email_sent = True
+            # if created or otp_input == "":
+            #     otp = generate_otp()
+            #     otp_obj.otp = otp
+            #     otp_obj.save()
+            #     send_mail(
+            #         subject='Your OTP Code',
+            #         message=f'Your OTP is: {otp}',
+            #         from_email='adittadas00@gmail.com',
+            #         recipient_list=[email],
+            #         fail_silently=False,
+            #     )
+            #     email_sent = True
 
-            elif otp_input and otp_input == str(otp_obj.otp):
-                if User.objects.filter(username=username_from_email).exists():
-                    form.add_error('email', 'Email is already linked to an account. Try logging in.')
-                else:
-                    user = User.objects.create_user(username=username_from_email, email=email, password=password)
-                    otp_obj.delete()
-                    login(request, user)
-                    return redirect('home')
+            # elif otp_input and otp_input == str(otp_obj.otp):
+            if User.objects.filter(username=username_from_email).exists():
+                form.add_error('email', 'Email is already linked to an account. Try logging in.')
             else:
-                form.add_error('otp', 'Invalid OTP')
+                user = User.objects.create_user(username=username_from_email, email=email, password=password)
+                # otp_obj.delete()
+                login(request, user)
+                return redirect('home')
+            # else:
+            #     form.add_error('otp', 'Invalid OTP')
 
     return render(request, 'news/login.html', {
         'form': form,
-        'show_otp': show_otp,
-        'email_sent': email_sent
+        # 'show_otp': show_otp,
+        # 'email_sent': email_sent
     })
+
 
 @login_required
 @csrf_exempt
