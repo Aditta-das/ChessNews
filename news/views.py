@@ -249,7 +249,7 @@ def login_view(request):
                 send_mail(
                     subject='Your OTP Code',
                     message=f'Your OTP is: {otp}',
-                    from_email='adi@gmail.com',
+                    from_email='adittadas00@gmail.com',
                     recipient_list=[email],
                     fail_silently=False,
                 )
