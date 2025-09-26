@@ -7,7 +7,7 @@ django.setup()
 
 from news.models import Puzzle  # Uncomment and adjust based on your Django app
 
-fen_file = "easy_puzzles.txt"  # Adjust path if needed
+fen_file = "medium_remain.txt"  # Adjust path if needed
 
 with open(fen_file, "r", encoding="utf-8") as f:
     lines = f.readlines()
@@ -40,7 +40,7 @@ for line in lines:
             fen=fen,
             turn=turn,
             solution="",
-            difficulty="easy"  # change if needed
+            difficulty="medium"  # change if needed
         )
 
         print(f"{title} - {puzzle_name} - {fen}")
