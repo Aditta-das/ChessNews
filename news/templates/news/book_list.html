@@ -1,45 +1,39 @@
 {% extends "news/base.html" %}
 {% block content %}
-<div class="container py-2">
+<div class="container py-3">
     <div class="text-center mb-4">
-        <h2 class="display-7 fw-bold text-primary mb-2"><i class="bi bi-book me-2"></i> Chess Book Collection</h2>
-        <p class="lead text-muted"><i class="bi bi-info-circle me-1"></i>Master the game with these carefully selected chess books</p>
+        <h3 class="display-7 fw-bold mb-2"
+            style="background: linear-gradient(90deg, #779556, #b58863, #d76a6a); -webkit-background-clip: text; color: transparent;">
+            <i class="bi bi-book me-2"></i> Chess Book Collection
+        </h3>
     </div>
-    
+
     <div class="row g-4">
         {% for book in books %}
         <div class="col-lg-4 col-md-6">
-            <div class="card h-100 border-0 shadow-sm hover-lift">
-                {% if book.cover_image %}
-                <div class="position-relative overflow-hidden" style="height: 300px;">
-                    <img src="{{ book.cover_image.url }}" class="img-fluid w-100 h-100 object-fit-cover" alt="{{ book.title }}">
-                    <!-- Price Tag -->
-                    <div class="position-absolute top-0 end-0 bg-primary text-white px-3 py-1 fw-bold d-flex align-items-center">
-                        <i class="bi bi-tag-fill me-1"></i>
-                        <span>BDT {{ book.price }}</span>
-                    </div>
-                    <!-- Book Info Overlay -->
-                    <div class="book-info-overlay">
-                        <div class="book-info-content">
-                            <h5 class="book-title"><i class="bi bi-book-half me-2"></i>{{ book.title }}</h5>
-                            <p class="book-author">
-                                <i class="bi bi-person-vcard me-1"></i>{{ book.author_name }}
-                            </p>
-                        </div>
+            <div class="card h-100 border-0 shadow-sm book-card">
+                <div class="position-relative overflow-hidden book-cover-container">
+                    {% if book.cover_image %}
+                    <img src="{{ book.cover_image.url }}" class="img-fluid w-100 h-100 book-cover"
+                        alt="{{ book.title }}">
+                    {% endif %}
+
+                    <!-- Overlay with Title + Price -->
+                    <div class="book-info-overlay d-flex justify-content-between align-items-center px-3">
+                        <h5 class="book-title mb-0">{{ book.title }}</h5>
+                        <span class="badge price-badge">BDT {{ book.price }}</span>
                     </div>
                 </div>
-                {% endif %}
-                <div class="card-body d-flex flex-column">
+
+                <div class="card-body d-flex flex-column bg-chess-secondary p-3">
                     {% if book.description %}
                     <p class="card-text text-dark mt-2">
                         <i class="bi bi-card-text me-2"></i>{{ book.description|truncatewords:20 }}
                     </p>
                     {% endif %}
-                    <button class="btn btn-primary mt-auto align-self-stretch py-2 rounded-1 fw-medium" 
-                            data-bs-toggle="modal" 
-                            data-bs-target="#orderModal"
-                            data-book-title="{{ book.title }}"
-                            data-book-price="{{ book.price }}">
+                    <button class="btn btn-chess-primary mt-auto align-self-stretch py-2 fw-semibold rounded-1"
+                        data-bs-toggle="modal" data-bs-target="#orderModal" data-book-title="{{ book.title }}"
+                        data-book-price="{{ book.price }}">
                         <i class="bi bi-telephone-plus-fill me-2"></i>Order Now
                     </button>
                 </div>
@@ -61,49 +55,45 @@
 <div class="modal fade" id="orderModal" tabindex="-1" aria-labelledby="orderModalLabel" aria-hidden="true">
     <div class="modal-dialog modal-dialog-centered">
         <div class="modal-content border-0 shadow-lg">
-            <div class="modal-header bg-primary text-white">
-                <h5 class="modal-title" id="orderModalLabel"><i class="bi bi-cart-check-fill me-2"></i>Order Chess Book</h5>
-                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+            <div class="modal-header bg-chess-primary text-white">
+                <h5 class="modal-title" style="color: #779556" id="orderModalLabel"><i class="bi bi-cart-check-fill me-2"></i>Order Chess Book
+                </h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"
+                    aria-label="Close"></button>
             </div>
             <div class="modal-body p-4">
                 <form id="orderForm">
-                    <div class="mb-4">
-                        <label for="bookName" class="form-label fw-medium"><i class="bi bi-book-fill me-1"></i>Book Title</label>
-                        <div class="input-group">
-                            <span class="input-group-text bg-light"><i class="bi bi-book text-primary"></i></span>
-                            <input type="text" class="form-control py-2" id="bookName" name="bookName" readonly>
-                        </div>
+                    <div class="mb-3">
+                        <label for="bookName" class="form-label fw-medium"><i class="bi bi-book-fill me-1"></i>Book
+                            Title</label>
+                        <input type="text" class="form-control py-2 bg-chess-light border-0 rounded" id="bookName"
+                            name="bookName" readonly>
                     </div>
-                    <div class="mb-4">
-                        <label for="bookPrice" class="form-label fw-medium"><i class="bi bi-currency-exchange me-1"></i>Price</label>
-                        <div class="input-group">
-                            <span class="input-group-text bg-light"><i class="bi bi-tag-fill text-primary"></i></span>
-                            <input type="text" class="form-control py-2" id="bookPrice" name="bookPrice" readonly>
-                        </div>
+                    <div class="mb-3">
+                        <label for="bookPrice" class="form-label fw-medium"><i
+                                class="bi bi-currency-exchange me-1"></i>Price</label>
+                        <input type="text" class="form-control py-2 bg-chess-light border-0 rounded" id="bookPrice"
+                            name="bookPrice" readonly>
                     </div>
-                    <div class="mb-4">
-                        <label for="customerName" class="form-label fw-medium"><i class="bi bi-person-fill me-1"></i>Your Name</label>
-                        <div class="input-group">
-                            <span class="input-group-text bg-light"><i class="bi bi-person text-primary"></i></span>
-                            <input type="text" class="form-control py-2" id="customerName" required>
-                        </div>
+                    <div class="mb-3">
+                        <label for="customerName" class="form-label fw-medium"><i
+                                class="bi bi-person-fill me-1"></i>Your Name</label>
+                        <input type="text" class="form-control py-2 bg-chess-light border-0 rounded" id="customerName"
+                            required>
                     </div>
-                    <div class="mb-4">
-                        <label for="address" class="form-label fw-medium"><i class="bi bi-house-door-fill me-1"></i>Delivery Address</label>
-                        <div class="input-group">
-                            <span class="input-group-text bg-light"><i class="bi bi-geo-alt text-primary"></i></span>
-                            <textarea class="form-control py-2" id="address" rows="3" required></textarea>
-                        </div>
+                    <div class="mb-3">
+                        <label for="address" class="form-label fw-medium"><i
+                                class="bi bi-house-door-fill me-1"></i>Delivery Address</label>
+                        <textarea class="form-control py-2 bg-chess-light border-0 rounded" id="address" rows="3"
+                            required></textarea>
                     </div>
-                    <div class="mb-4">
-                        <label for="phone" class="form-label fw-medium"><i class="bi bi-telephone-fill me-1"></i>Phone Number</label>
-                        <div class="input-group">
-                            <span class="input-group-text bg-light"><i class="bi bi-phone text-primary"></i></span>
-                            <input type="tel" class="form-control py-2" id="phone" required>
-                        </div>
+                    <div class="mb-3">
+                        <label for="phone" class="form-label fw-medium"><i class="bi bi-telephone-fill me-1"></i>Phone
+                            Number</label>
+                        <input type="tel" class="form-control py-2 bg-chess-light border-0 rounded" id="phone" required>
                     </div>
                     <div class="d-grid mt-4">
-                        <button type="submit" class="btn btn-primary py-2 rounded-1 fw-medium">
+                        <button type="submit" class="btn btn-chess-accent py-2 rounded fw-semibold">
                             <i class="bi bi-check-circle-fill me-2"></i>Confirm Order
                         </button>
                     </div>
@@ -114,71 +104,117 @@
 </div>
 
 <style>
-    .book-cover {
-        height: 300px;
-        object-fit: cover;
-        border-top-left-radius: 10px;
-        border-top-right-radius: 10px;
+    /* Card layout */
+    .book-card {
+        display: flex;
+        flex-direction: column;
+        height: 100%;
+        border-radius: 10px;
+        overflow: hidden;
+        background-color: #ebecd0;
+        /* chess-secondary */
     }
-    
+
+    /* Cover Image */
+    .book-cover-container {
+        position: relative;
+        height: 300px;
+        overflow: hidden;
+    }
+
+    .book-cover {
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+    }
+
+    /* Overlay Title + Price */
     .book-info-overlay {
         position: absolute;
         bottom: 0;
         left: 0;
         right: 0;
-        padding: 1.5rem;
-        background: linear-gradient(to top, rgba(0,0,0,0.8) 0%, rgba(0,0,0,0.5) 50%, transparent 100%);
+        padding: 0.5rem 1rem;
+        background: linear-gradient(to top, rgba(0, 0, 0, 0.8), transparent);
         color: white;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
     }
-    
+
     .book-title {
-        font-family: 'Playfair Display', serif;
         font-weight: 700;
-        font-size: 1.4rem;
-        margin-bottom: 0.3rem;
-        text-shadow: 1px 1px 3px rgba(0,0,0,0.8);
+        font-size: 1rem;
     }
-    
-    .book-author {
-        font-size: 0.95rem;
-        opacity: 0.9;
-        margin-bottom: 0;
-        text-shadow: 1px 1px 2px rgba(0,0,0,0.8);
+
+    .price-badge {
+        background-color: #b58863;
+        /* chess-accent */
+        color: white;
+        font-weight: 600;
+        padding: 0.25rem 0.5rem;
+        border-radius: 0.25rem;
+        font-size: 0.85rem;
     }
-    
-    .object-fit-cover {
-        object-fit: cover;
+
+    /* Card body */
+    .card-body {
+        display: flex;
+        flex-direction: column;
+        background-color: #ebecd0;
+        /* chess-secondary */
     }
-    
-    .hover-lift {
+
+    /* Buttons */
+    .btn-chess-primary {
+        background-color: #779556;
+        /* chess-primary */
+        color: white;
+        font-weight: 600;
         transition: all 0.3s ease;
     }
-    
-    .hover-lift:hover {
-        transform: translateY(-5px);
-        box-shadow: 0 10px 20px rgba(0,0,0,0.1) !important;
+
+    .btn-chess-primary:hover {
+        background-color: #b58863;
+        /* chess-accent */
     }
-    
-    /* Icon adjustments */
-    .bi {
-        font-size: 1.1em;
-        vertical-align: middle;
+
+    .btn-chess-accent {
+        background-color: #b58863;
+        /* chess-accent */
+        color: white;
+        font-weight: 600;
+    }
+
+    .btn-chess-accent:hover {
+        background-color: #779556;
+        /* chess-primary */
+    }
+
+    /* Hover lift effect */
+    .hover-zoom {
+        transition: transform 0.3s ease, box-shadow 0.3s ease;
+    }
+
+    .hover-zoom:hover {
+        transform: translateY(-5px);
+        box-shadow: 0 10px 20px rgba(0, 0, 0, 0.2);
     }
 </style>
 
+
 <script>
-    document.addEventListener('DOMContentLoaded', function() {
+    document.addEventListener('DOMContentLoaded', function () {
         var orderModal = document.getElementById('orderModal');
-        orderModal.addEventListener('show.bs.modal', function(event) {
+        orderModal.addEventListener('show.bs.modal', function (event) {
             var button = event.relatedTarget;
             var bookTitle = button.getAttribute('data-book-title');
             var bookPrice = button.getAttribute('data-book-price');
-            
             document.getElementById('bookName').value = bookTitle;
             document.getElementById('bookPrice').value = 'BDT ' + bookPrice;
         });
 
-        document.getElementById('orderForm').addEventListener('submit', function(e) {
+        document.getElementById('orderForm').addEventListener('submit', function (e) {
             e.preventDefault();
             alert('Order submitted for: ' + document.getElementById('bookName').value);
             var modal = bootstrap.Modal.getInstance(orderModal);

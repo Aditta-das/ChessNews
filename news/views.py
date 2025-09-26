@@ -1,7 +1,7 @@
 from django.shortcuts import render, get_object_or_404, redirect
 from .models import Article, TopPlayerImg, \
     TournamentBanner, BangladeshiTopPlayer, Book, \
-        Puzzle, EmailOTP, PuzzleSolve, UserProfile, BoardVision
+        Puzzle, EmailOTP, PuzzleSolve, UserProfile, BoardVision, Tournament
 from django.contrib.auth.models import User
 from django.contrib.auth import logout
 import requests, random, json
@@ -13,6 +13,7 @@ from django.conf import settings
 from django.views.decorators.csrf import csrf_exempt
 from django.http import JsonResponse
 from django.contrib.auth.decorators import login_required
+from .decorators import premium_required
 from django.utils import timezone
 from django.db.models import Sum, F, ExpressionWrapper, IntegerField
 
@@ -29,21 +30,24 @@ def home(request):
         response = requests.get('https://fide-api.vercel.app/top_players/?limit=5&history=false')
         players = response.json()
     except Exception:
-        players = []  # fallback empty list if API fails
+        players = []
 
-    # Attach images from TopPlayerImg model to players if available
+    # Attach images
     for player in players:
         try:
             img_obj = TopPlayerImg.objects.get(fide_id=player['fide_id'])
-            if img_obj.image:
-                player['image_url'] = img_obj.image.url
-            else:
-                player['image_url'] = None
+            player['image_url'] = img_obj.image.url if img_obj.image else None
         except TopPlayerImg.DoesNotExist:
             player['image_url'] = None
 
-    # Get the active tournament banner
+    # Tournament banner
     banner = TournamentBanner.objects.filter(show_banner=True).order_by('-created_at').first()
+    tournaments = Tournament.objects.all()
+
+    # ✅ Get user profile if logged in
+    profile = None
+    if request.user.is_authenticated and hasattr(request.user, 'userprofile'):
+        profile = request.user.userprofile
 
     return render(request, 'news/home.html', {
         'big_news': big_news,
@@ -51,8 +55,11 @@ def home(request):
         'best_reporter': best_reporter,
         'players': players,
         'banner': banner,
-        'top_bd_players': top_bd_players
+        'top_bd_players': top_bd_players,
+        'tournaments': tournaments,
+        'profile': profile,  
     })
+
 
 @login_required
 def create_article(request):
@@ -83,13 +90,27 @@ def book_list(request):
     books = Book.objects.filter(is_available=True)
     return render(request, 'news/book_list.html', {'books': books})
 
+@login_required
 def puzzle_list(request):
-    if not request.user.is_authenticated:
-        return redirect('login')
+    profile = request.user.userprofile  # directly use userprofile
 
-    if not hasattr(request.user, 'userprofile') or not request.user.userprofile.is_premium:
-        return redirect('buy_premium')  # Name of your premium purchase view or page
+    # If profile doesn't exist (just in case), create with free trial
+    if not profile.free_premium_start:
+        profile.free_premium_start = timezone.now()
+        profile.save()
 
+    # Check for active premium or free trial
+    if profile.has_active_premium():
+        if not profile.is_premium:
+            # User is on free trial
+            remaining_days = 7 - (timezone.now() - profile.free_premium_start).days
+            messages.info(request, f"You are using your 7-day free trial! {remaining_days} day(s) left.")
+    else:
+        # Trial expired and not premium
+        messages.warning(request, "Your free trial has expired. Buy premium to continue!")
+        return redirect('buy_premium')
+
+    # Fetch puzzles and solved puzzle IDs
     puzzles = Puzzle.objects.order_by('id')
     solved_ids = PuzzleSolve.objects.filter(user=request.user).values_list('solve_puzzle_id', flat=True)
 
@@ -157,6 +178,7 @@ def submit_premium_request(request):
 
 @login_required
 @csrf_exempt
+@premium_required
 def mark_puzzle_solved(request, puzzle_id):
     if request.method == 'POST':
         try:

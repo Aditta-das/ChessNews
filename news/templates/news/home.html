@@ -12,11 +12,11 @@
 <div class="row align-items-center mb-3">
   <div class="col-auto">
     {% if user.userprofile.image %}
-    <img src="{{ user.userprofile.image.url }}" alt="{{ user.username }}" 
+    <img src="{{ user.userprofile.image.url }}" alt="{{ user.username }}"
       style="width: 55px; height: 55px; border-radius: 10px;">
     {% else %}
-    <img src="{% static 'profile_images/user.png' %}" alt="Default Profile" 
-    style="width: 55px; height: 55px; border-radius: 10px;">
+    <img src="{% static 'profile_images/user.png' %}" alt="Default Profile"
+      style="width: 55px; height: 55px; border-radius: 10px;">
     {% endif %}
   </div>
   <div class="col-auto">
@@ -72,36 +72,55 @@
   </div>
 
   <!-- Sidebar -->
+
   <div class="col-lg-4">
+    <div class="card border-0 shadow-sm mb-3">
+      <div class="card-header bg-dark text-white py-3 d-flex justify-content-between align-items-center">
+        <h3 class="h6 mb-0 fw-bold">
+          <i class="bi bi-gem me-2"></i>Status
+        </h3>
+
+        {% if profile and profile.is_premium %}
+        <span class="badge bg-success px-3 py-1">Premium</span>
+
+        {% elif profile and profile.free_premium_start %}
+        {% with days_passed=now|date:"U"|add:"-{{ profile.free_premium_start|date:'U' }}" %}
+        {% if days_passed < 604800 %} <span class="badge bg-info text-dark px-3 py-1">
+          Trial</span>
+          {% else %}
+          <span class="badge bg-warning text-dark px-3 py-1">Freemium</span>
+          <a href="{% url 'buy_premium' %}" class="btn btn-sm btn-success fw-bold ms-2">Buy Package</a>
+          {% endif %}
+          {% endwith %}
+
+          {% else %}
+          <span class="badge bg-secondary px-3 py-1">Guest</span>
+          {% endif %}
+      </div>
+    </div>
+
     <!-- Live Tournaments -->
     <div class="card border-0 shadow-sm mb-2 overflow-hidden">
       <div class="card-header bg-danger text-white py-3">
-        <div class="d-flex justify-content-between align-items-center">
-          <h3 class="h5 mb-0 fw-bold">
-            <i class="bi bi-trophy-fill me-2"></i> Live Tournaments
-          </h3>
-          <span class="badge bg-white text-danger">LIVE</span>
-        </div>
+        <h3 class="h5 mb-0 fw-bold">
+          <i class="bi bi-trophy-fill me-2"></i> Tournaments
+        </h3>
       </div>
       <div class="card-body">
-
-        <!-- Tournament 1 -->
+        {% for tournament in tournaments %}
         <div class="mb-3">
-          <h5 class="fw-bold mb-1">Polish Team Championship Ekstraliga 2025</h5>
-          <p class="small mb-2 author-name">
-            <i class="bi bi-calendar-event me-1"></i> Jun 2 – Jun 11, 2025
+          <h5 class="fw-bold mb-1">{{ tournament.title }}</h5>
+          <p class="small mb-2">
+            <i class="bi bi-calendar-event me-1"></i>
+            {{ tournament.start_date|date:"M d" }} – {{ tournament.end_date|date:"M d, Y" }}
           </p>
         </div>
-
-        <!-- Tournament 2 -->
-        <div>
-          <h5 class="fw-bold mb-1">17th BPB Limburg Open 2025</h5>
-          <p class="small mb-2 author-name">
-            <i class="bi bi-calendar-event me-1"></i> Jun 6 – Jun 10, 2025
-          </p>
-        </div>
+        {% empty %}
+        <p>No tournaments available at the moment.</p>
+        {% endfor %}
       </div>
     </div>
+
 
     <!-- Rising Talent -->
     <div class="card mb-3" style="max-width: 500px; border-radius: 0;">

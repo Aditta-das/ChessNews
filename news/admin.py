@@ -1,7 +1,7 @@
 from django.contrib import admin
 from .models import Article, \
     Category, TopPlayerImg, TournamentBanner, BangladeshiTopPlayer, \
-    Book, Puzzle, EmailOTP, Quote, PuzzleSolve, UserProfile, BoardVision
+    Book, Puzzle, EmailOTP, Quote, PuzzleSolve, UserProfile, BoardVision, Tournament
 
 admin.site.site_header = "ChessBD AdminPanel"
 admin.site.site_title = "ChessBD"
@@ -31,3 +31,9 @@ class UserProfileAdmin(admin.ModelAdmin):
     search_fields = ('user__username', 'phone', 'trx_id')
     
 admin.site.register(BoardVision)
+
+@admin.register(Tournament)
+class TournamentAdmin(admin.ModelAdmin):
+    list_display = ('title', 'start_date', 'end_date')
+    list_filter = ('start_date',)
+    search_fields = ('title',)

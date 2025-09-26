@@ -221,6 +221,43 @@
           <span class="btn-text">Next</span>
         </button>
       </div>
+
+      {% if messages %}
+      <div class="position-fixed bottom-0 end-1 p-3" style="z-index: 2000;">
+        {% for message in messages %}
+        <div
+          class="toast fade show border-0 shadow-lg mb-2 
+              {% if message.tags == 'info' %}bg-success text-white{% elif message.tags == 'warning' %}bg-danger text-white{% else %}bg-dark text-white{% endif %}"
+          role="alert" aria-live="assertive" aria-atomic="true" style="min-width: 360px; border-radius: 14px;">
+
+          <div class="d-flex align-items-center">
+            <div class="toast-body fs-6">
+              {% if "days left" in message.message %}
+              {{ message|safe }}
+              <a href="{% url 'buy_premium' %}" class="btn btn-light btn-sm fw-bold ms-2 shadow-sm">
+                🔑 Buy Premium
+              </a>
+              {% else %}
+              {{ message|safe }}
+              {% endif %}
+            </div>
+            <button type="button" class="btn-close btn-close-white me-3 m-auto" data-bs-dismiss="toast"
+              aria-label="Close"></button>
+          </div>
+        </div>
+        {% endfor %}
+      </div>
+
+      <script>
+        document.addEventListener('DOMContentLoaded', function () {
+          var toastElList = [].slice.call(document.querySelectorAll('.toast'))
+          toastElList.map(function (toastEl) {
+            return new bootstrap.Toast(toastEl, { delay: 8000, autohide: true }).show();
+          });
+        });
+      </script>
+      {% endif %}
+
     </div>
   </div>
 </div>

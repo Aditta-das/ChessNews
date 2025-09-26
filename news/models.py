@@ -5,6 +5,9 @@ from django_ckeditor_5.fields import CKEditor5Field
 from django.core.validators import RegexValidator
 from django.db.models.signals import post_save
 from django.dispatch import receiver
+from django.utils import timezone
+from datetime import timedelta
+
 
 class Category(models.Model):
     name = models.CharField(max_length=100)
@@ -47,7 +50,17 @@ class TopPlayerImg(models.Model):
     def __str__(self):
         return self.name
 
+class Tournament(models.Model):
+    title = models.CharField(max_length=255)
+    start_date = models.DateField()
+    end_date = models.DateField()
 
+    class Meta:
+        ordering = ['start_date']
+
+    def __str__(self):
+        return self.title
+    
 class TournamentBanner(models.Model):
     title = models.CharField(max_length=200)
     description = models.TextField(null=True, blank=True)
@@ -187,16 +200,26 @@ class EmailOTP(models.Model):
 
 class UserProfile(models.Model):
     user = models.OneToOneField(User, on_delete=models.CASCADE)
-    is_premium = models.BooleanField(default=False)
-    
+    is_premium = models.BooleanField(default=False)  # Paid premium
+
+    # Free trial start date
+    free_premium_start = models.DateTimeField(blank=True, null=True)
+
     # Payment info
     phone = models.CharField(max_length=20, blank=True, null=True)
-    trx_id = models.CharField("Transaction ID", max_length=100, blank=True, null=True)
+    trx_id = models.CharField(max_length=100, blank=True, null=True)
     payment_requested_at = models.DateTimeField(blank=True, null=True)
 
-    # ✅ Profile Image
     image = models.ImageField(upload_to="profile_images/", default="profile_images/default.png", blank=True, null=True)
     bio = models.CharField(max_length=200, blank=True, null=True, default="Add Description Here")
+
+    def has_active_premium(self):
+        """True if free trial is active or paid premium"""
+        if self.is_premium:
+            return True
+        if self.free_premium_start:
+            return timezone.now() <= self.free_premium_start + timedelta(days=7)
+        return False
     
     def __str__(self):
         return f"{self.user} - Premium: {self.is_premium}"
@@ -210,6 +233,11 @@ class UserProfile(models.Model):
 @receiver(post_save, sender=User)
 def create_or_update_user_profile(sender, instance, created, **kwargs):
     if created:
-        UserProfile.objects.create(user=instance)
+        # Create profile with free trial start
+        UserProfile.objects.create(
+            user=instance,
+            free_premium_start=timezone.now()
+        )
     else:
+        # Ensure profile exists for existing users
         UserProfile.objects.get_or_create(user=instance)
