@@ -50,8 +50,17 @@ class TopPlayerImg(models.Model):
     def __str__(self):
         return self.name
 
+from django.db import models
+from django.contrib.auth.models import User
+
+from django.db import models
+from django.contrib.auth.models import User
+import uuid
+
+
 class Tournament(models.Model):
     title = models.CharField(max_length=255)
+    link = models.URLField(max_length=500)
     start_date = models.DateField()
     end_date = models.DateField()
 
@@ -60,6 +69,53 @@ class Tournament(models.Model):
 
     def __str__(self):
         return self.title
+
+
+class Ticket(models.Model):
+    TOURNAMENT_TICKET_TYPES = [
+        ('Participant', 'Participant'),
+        ('VIP', 'VIP'),
+        ('ONLINE', 'Online Viewer'),
+    ]
+
+    PAYMENT_STATUS = [
+        ('PENDING', 'Pending'),
+        ('PAID', 'Paid'),
+        ('CANCELLED', 'Cancelled'),
+    ]
+
+    tournament = models.ForeignKey(
+        Tournament, on_delete=models.CASCADE, related_name='tickets'
+    )
+    user = models.ForeignKey(
+        User, on_delete=models.CASCADE, related_name='tournament_tickets'
+    )
+    ticket_type = models.CharField(
+        max_length=20, choices=TOURNAMENT_TICKET_TYPES, default='REGULAR'
+    )
+    price = models.DecimalField(max_digits=8, decimal_places=2)
+    purchase_date = models.DateTimeField(auto_now_add=True)
+    payment_status = models.CharField(
+        max_length=20, choices=PAYMENT_STATUS, default='PENDING'
+    )
+    ticket_code = models.CharField(
+        max_length=12, unique=True, editable=False
+    )
+    is_checked_in = models.BooleanField(default=False)
+
+    class Meta:
+        unique_together = ('user', 'tournament', 'ticket_type')
+        ordering = ['-purchase_date']
+
+    def __str__(self):
+        return f"{self.user.username} - {self.tournament.title} ({self.ticket_type})"
+
+    def save(self, *args, **kwargs):
+        if not self.ticket_code:
+            self.ticket_code = str(uuid.uuid4()).split('-')[0].upper()
+        super().save(*args, **kwargs)
+
+
     
 class TournamentBanner(models.Model):
     title = models.CharField(max_length=200)

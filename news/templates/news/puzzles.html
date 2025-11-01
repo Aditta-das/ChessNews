@@ -416,35 +416,55 @@
     // Add this variable at the top of your puzzle JS file
     let wrongCounted = false;
 
-    function onDrop(source, target) {
+    function onDrop(source, target, piece) {
+      // Helper to handle pawn promotion
+      function getPromotionPiece(source, target, piece) {
+        // Only pawns can promote
+        if (!piece.toLowerCase().startsWith('p')) return null;
+
+        const rank = target[1];
+        // White pawn reaches rank 8 or black pawn reaches rank 1
+        if ((piece.startsWith('w') && rank === '8') ||
+          (piece.startsWith('b') && rank === '1')) {
+          const choice = prompt("Promote to (q, r, b, n):", "q");
+          if (choice && ['q', 'r', 'b', 'n'].includes(choice.toLowerCase())) {
+            return choice.toLowerCase();
+          }
+          return 'q'; // Default to queen if invalid input
+        }
+        return null;
+      }
+
+      const promotion = getPromotionPiece(source, target, piece) || 'q';
+
       const tempGame = new Chess(game.fen());
       const move = tempGame.move({
         from: source,
         to: target,
-        promotion: 'q' // Use queen as default for pawn promotions
+        promotion: promotion
       });
 
       if (move === null) {
-        showStatus("Illegal move", "wrong"); // Show feedback
-        return 'snapback'; // Piece returns to its original spot.
+        showStatus("Illegal move", "wrong");
+        return 'snapback';
       }
 
-      // --- STEP 2: The move was legal. Now, check if it's the CORRECT puzzle solution. ---
       const userMoveSAN = normalizeSAN(move.san);
       const expectedMoveSAN = normalizeSAN(currentSolutionMoves[currentMoveIndex]);
 
       if (userMoveSAN === expectedMoveSAN) {
-        // --- CORRECT! ---
-        // Your move was legal AND correct. We now apply it to the real board.
-        const realMove = game.move({ from: source, to: target, promotion: 'q' });
+        const realMove = game.move({
+          from: source,
+          to: target,
+          promotion: promotion
+        });
 
         playSoundForMove(realMove);
         addToMoveHistory(realMove);
         currentMoveIndex++;
-        board.position(game.fen(), false); // Update the visual board
+        board.position(game.fen(), false);
         showStatus("Correct!", "correct");
 
-        // ... the rest of the logic for when you get a move right ...
         if (currentMoveIndex >= currentSolutionMoves.length) {
           showStatus("Puzzle solved!", "solved");
           playSound("{% static 'sound/puzzle-correct.mp3' %}");
@@ -467,10 +487,7 @@
         } else {
           setTimeout(makeOpponentMove, 500);
         }
-
       } else {
-        // --- WRONG! ---
-        // Your move was legal, but it was NOT the correct solution for the puzzle.
         showStatus("Wrong move, try again.", "wrong");
         playSound("{% static 'sound/puzzle-wrong.mp3' %}");
 
@@ -484,12 +501,9 @@
           });
         }
 
-        // The piece returns to its original spot.
         return 'snapback';
       }
     }
-
-
 
     function makeOpponentMove() {
       if (currentMoveIndex >= currentSolutionMoves.length) return;
