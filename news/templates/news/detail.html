@@ -3,25 +3,58 @@
 {% block title %}{{ article.title }} - ChessNews{% endblock %}
 
 {% block content %}
-<div class="row justify-content-center">
-  <div class="col-lg-10">
-    <div class="card shadow-sm p-4 mb-4 bg-white rounded">
-      <h1 class="mb-3 text-primary">{{ article.title }}</h1>
+<div class="container py-6">
+  <div class="row justify-content-center">
+    <div class="col-12 col-md-12 col-lg-10">
+      <div class="card shadow-sm p-3 p-md-4 mb-4 bg-white rounded-4">
+        <h1 class="mb-3 text-primary text-center text-md-start" style="word-wrap: break-word;">
+          {{ article.title }}
+        </h1>
 
-      <p class="text-muted mb-1">
-        <strong>Category:</strong> {{ article.category }}
-      </p>
-      <p class="text-muted">
-        <strong>By:</strong> {{ article.author.username }}
-      </p>
-
-      <div class="mt-3" style="font-size: 1.1rem; line-height: 1.6;">
-        {{ article.content|safe }}
+        <div class="d-flex flex-column flex-md-row justify-content-between text-muted mb-3">
+          <p class="mb-1 mb-md-0">
+            <strong>Category:</strong> {{ article.category }}
+          </p>
+          <p>
+            <strong>By:</strong> {{ article.author.username }}
+          </p>
+        </div>
+        <div class="mt-3 article-content" style="font-size: 1.05rem; line-height: 1.8; word-break: break-word;">
+          {{ article.content|safe }}
+        </div>
+        <div class="text-center text-md-start">
+          <a href="{% url 'home' %}" class="btn btn-outline-primary mt-4">
+            ← Back to Home
+          </a>
+        </div>
       </div>
-
-      <a href="{% url 'home' %}" class="btn btn-outline-primary mt-4">← Back to Home</a>
     </div>
   </div>
 </div>
-{% endblock %}
 
+
+<style>
+  .article-content img {
+    max-width: 100%;
+    height: auto;
+    border-radius: 2px;
+    margin: 10px 0;
+  }
+
+  .article-content iframe {
+    width: 100%;
+    height: auto;
+    aspect-ratio: 16 / 9;
+  }
+
+  @media (max-width: 576px) {
+    h1 {
+      font-size: 1.6rem;
+    }
+    .article-content {
+      font-size: 1rem;
+      line-height: 1.7;
+    }
+  }
+</style>
+{% endblock %}
