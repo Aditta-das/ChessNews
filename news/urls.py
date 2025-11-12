@@ -4,6 +4,7 @@ from . import views
 urlpatterns = [
     path('', views.home, name='home'),
     path('blogs/', views.all_blogs, name='all_blogs'),
+    path('blogs/user/<str:username>/', views.user_blogs, name='user_blogs'),
     path('write-article/', views.create_article, name='write_article'),
     re_path(r"^article/(?P<slug>[-\w\u0980-\u09FF]+)/$", views.article_detail, name="article_detail"),
     path('books/', views.book_list, name='book_list'),

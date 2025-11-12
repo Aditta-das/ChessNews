@@ -3,27 +3,52 @@
 {% block title %}{{ article.title }} - ChessNews{% endblock %}
 
 {% block content %}
-<div class="container py-6">
+<div class="container py-3">
   <div class="row justify-content-center">
-    <div class="col-12 col-md-12 col-lg-10">
-      <div class="card shadow-sm p-3 p-md-4 mb-4 bg-white rounded-4">
+    <div class="col-12 col-md-12 col-lg-12">
+      <div class="card shadow-sm p-3 p-md-4 mb-4 bg-white rounded-4 border-0">
+        <!-- Title -->
         <h1 class="mb-3 text-primary text-center text-md-start" style="word-wrap: break-word;">
           {{ article.title }}
         </h1>
 
-        <div class="d-flex flex-column flex-md-row justify-content-between text-muted mb-3">
-          <p class="mb-1 mb-md-0">
-            <strong>Category:</strong> {{ article.category }}
-          </p>
-          <p>
-            <strong>By:</strong> {{ article.author.username }}
-          </p>
+        <!-- Author, Category & Actions -->
+        <div class="d-flex align-items-center flex-wrap gap-4 text-muted mb-4">
+          <div class="d-flex align-items-center">
+            <div class="author-avatar border rounded-circle d-flex align-items-center justify-content-center me-3 bg-light" style="width:48px; height:48px;">
+              <i class="bi bi-person-fill fs-4 text-secondary"></i>
+            </div>
+            <div>
+              <div class="fw-semibold text-dark">By {{ article.author.username }}</div>
+              <small class="text-muted">Chess Journalist</small>
+            </div>
+          </div>
+
+          <div class="vr d-none d-md-block"></div>
+
+          <div class="d-flex gap-3">
+            <button class="btn btn-outline-dark btn-sm rounded-pill px-3 like-btn">
+              <i class="bi bi-heart me-1"></i> Like
+            </button>
+            <button class="btn btn-outline-dark btn-sm rounded-pill px-3 share-btn">
+              <i class="bi bi-share me-1"></i> Share
+            </button>
+          </div>
         </div>
+
+        <!-- Category -->
+        <p class="text-muted mb-3">
+          <strong>Category:</strong> {{ article.category }}
+        </p>
+
+        <!-- Article Content -->
         <div class="mt-3 article-content" style="font-size: 1.05rem; line-height: 1.8; word-break: break-word;">
           {{ article.content|safe }}
         </div>
+
+        <!-- Back Button -->
         <div class="text-center text-md-start">
-          <a href="{% url 'home' %}" class="btn btn-outline-primary mt-4">
+          <a href="{% url 'home' %}" class="btn btn-outline-primary mt-4 px-4 py-2 rounded-pill shadow-sm">
             ← Back to Home
           </a>
         </div>
@@ -32,28 +57,53 @@
   </div>
 </div>
 
-
 <style>
   .article-content img {
     max-width: 100%;
     height: auto;
-    border-radius: 2px;
-    margin: 10px 0;
+    border-radius: 6px;
+    margin: 12px 0;
   }
 
   .article-content iframe {
     width: 100%;
-    height: auto;
     aspect-ratio: 16 / 9;
+    border-radius: 8px;
+  }
+
+  .like-btn:hover, .share-btn:hover {
+    background-color: #0d6efd;
+    color: white;
+    border-color: #0d6efd;
+    transition: all 0.3s ease;
+  }
+
+  .btn-outline-primary:hover {
+    background-color: #0d6efd;
+    color: #fff;
+  }
+
+  .author-avatar {
+    transition: transform 0.3s ease, box-shadow 0.3s ease;
+  }
+
+  .author-avatar:hover {
+    transform: scale(1.05);
+    box-shadow: 0 0 8px rgba(0,0,0,0.1);
   }
 
   @media (max-width: 576px) {
     h1 {
       font-size: 1.6rem;
+      text-align: center;
     }
     .article-content {
       font-size: 1rem;
       line-height: 1.7;
+    }
+    .d-flex.gap-3 {
+      justify-content: center;
+      width: 100%;
     }
   }
 </style>

@@ -20,7 +20,7 @@ from django.db.models import Sum, F, ExpressionWrapper, IntegerField
 def home(request):
     # Big news
     big_news = Article.objects.filter(is_big_news=True).first()
-    small_news = Article.objects.exclude(id=big_news.id if big_news else None)[:6]
+    small_news = Article.objects.order_by('-published_at').exclude(id=big_news.id if big_news else None)[:6]
     best_reporter = User.objects.order_by('-article__id').first()
     
     top_bd_players = BangladeshiTopPlayer.objects.order_by('rank')
@@ -80,10 +80,14 @@ def all_blogs(request):
     blogs = Article.objects.all().order_by('-published_at')  # newest first
     return render(request, 'news/article_list.html', {'blogs': blogs})
 
-
 def article_detail(request, slug):
     article = get_object_or_404(Article, slug=slug)
     return render(request, 'news/detail.html', {'article': article})
+
+def user_blogs(request, username):
+    user = get_object_or_404(User, username=username)
+    blogs = Article.objects.filter(author=user).order_by('-published_at')
+    return render(request, 'news/user_article.html', {'blogs': blogs, 'filtered_user': user})
 
 
 def book_list(request):
