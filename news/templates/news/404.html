@@ -1,0 +1,100 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <title>404 - Page Not Found</title>
+    <style>
+      * {
+        margin: 0;
+        padding: 0;
+        box-sizing: border-box;
+      }
+
+      body {
+        font-family: "Poppins", sans-serif;
+        background-color: oklch(14.5% 0 0);
+        color: #f8f1e5;
+        height: 100vh;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+      }
+
+      .container {
+        text-align: center;
+        max-width: 500px;
+        padding: 2rem;
+      }
+
+      .gif img {
+        width: 100%;
+        max-width: 300px;
+        margin: 0 auto;
+        display: block;
+      }
+
+      .content {
+        margin-top: 2rem;
+      }
+
+      .content .main-heading {
+        font-size: 2.5rem;
+        font-weight: 700;
+        margin-bottom: 1rem;
+      }
+
+      .content p {
+        font-size: 1.2rem;
+        margin-bottom: 2rem;
+      }
+
+      button {
+        padding: 0.8rem 1.5rem;
+        border-radius: 12px;
+        outline: none;
+        border: none;
+        background: #0046d4;
+        color: #fff;
+        font-size: 1.1rem;
+        cursor: pointer;
+        transition: all 0.3s ease;
+      }
+
+      button:hover {
+        background: #0033a1;
+      }
+
+      a {
+        text-decoration: none;
+      }
+
+      @media (max-width: 576px) {
+        .content .main-heading {
+          font-size: 2rem;
+        }
+
+        .content p {
+          font-size: 1rem;
+        }
+
+        button {
+          font-size: 1rem;
+          padding: 0.7rem 1.2rem;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <div class="container">
+      <div class="gif">
+        <img src="{% static '404.gif' %}" alt="404 GIF" />
+      </div>
+      <div class="content">
+        <h1 class="main-heading">Page Not Found</h1>
+        <a href="{% url 'home' %}" class="btn btn-primary btn-lg px-4">
+          <button>Back to home <i class="bi bi-arrow-right ms-2"></i></button>
+        </a>
+      </div>
+    </div>
+  </body>
+</html>

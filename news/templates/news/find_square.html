@@ -20,7 +20,6 @@
   #board-container {
     position: relative;
     width: 100%;
-    max-width: 500px;
     aspect-ratio: 1 / 1;
   }
 
@@ -35,7 +34,7 @@
     top: 50%;
     left: 50%;
     transform: translate(-50%, -50%);
-    background: rgba(0,0,0,0.75);
+    background: rgba(0, 0, 0, 0.75);
     color: #fff;
     font-weight: 600;
     font-size: 2rem;
@@ -61,13 +60,14 @@
   .timer-box {
     margin-top: 0.5rem;
     font-size: 1.1rem;
+    
   }
 
   .leaderboard {
     overflow-x: auto;
   }
 
-  .custom-leaderboard th, 
+  .custom-leaderboard th,
   .custom-leaderboard td {
     white-space: nowrap;
     font-size: 0.9rem;
@@ -75,10 +75,6 @@
 
   /* Mobile adjustments */
   @media (max-width: 768px) {
-    #board-container {
-      max-width: 100%;
-    }
-
     .stats-panel {
       max-width: 100%;
       margin-top: 1rem;
@@ -90,8 +86,13 @@
   }
 
   /* Square highlights */
-  .highlight-correct { background-color: #d4edda !important; }
-  .highlight-wrong { background-color: #f8d7da !important; }
+  .highlight-correct {
+    background-color: #d4edda !important;
+  }
+
+  .highlight-wrong {
+    background-color: #f8d7da !important;
+  }
 </style>
 
 <audio id="correctSound" src="{% static 'sound/puzzle-correct.mp3' %}"></audio>
@@ -122,8 +123,8 @@
         </div>
       </div>
 
-      <div class="timer-box w-100 text-center">
-        <strong>⏱ Time:</strong> <span id="timer" class="text-primary">2:00</span>
+      <div class="timer-box w-100 text-center justify-content-center">
+        <strong>⏱ Time:</strong> <span id="timer" class="text-primary mx-1">2:00</span>
       </div>
 
       <div id="feedback" class="text-center w-100"></div>
@@ -131,44 +132,40 @@
       <div class="text-center w-100 mt-auto">
         <button id="start-btn" class="btn btn-success w-100">Start Training</button>
       </div>
+      <!-- Leaderboard -->
+      <div class="leaderboard mt-5 w-100">
+        <div class="table-responsive">
+          <table class="table table-striped custom-leaderboard text-center mt-3">
+            <thead class="table-primary">
+              <tr>
+                <th>Rank</th>
+                <th>Username</th>
+                <th>Score</th>
+              </tr>
+            </thead>
+            <tbody>
+              {% for player in top_players %}
+              <tr>
+                <td>{{ forloop.counter }}</td>
+                <td>{{ player.user__username }}</td>
+                <td>{{ player.score }}</td>
+              </tr>
+              {% endfor %}
+            </tbody>
+          </table>
+        </div>
+      </div>
     </div>
   </div>
 </div>
 
-<!-- Leaderboard -->
-<div class="leaderboard mt-5">
-  <h4 class="text-center text-primary">🏆 Top Players</h4>
-  <div class="table-responsive">
-    <table class="table table-striped custom-leaderboard text-center mt-3">
-      <thead class="table-primary">
-        <tr>
-          <th>Rank</th>
-          <th>Username</th>
-          <th>✓ Correct</th>
-          <th>✗ Wrong</th>
-          <th>Score</th>
-        </tr>
-      </thead>
-      <tbody>
-        {% for player in top_players %}
-        <tr>
-          <td>{{ forloop.counter }}</td>
-          <td>{{ player.user__username }}</td>
-          <td>{{ player.total_correct }}</td>
-          <td>{{ player.total_wrong }}</td>
-          <td>{{ player.score }}</td>
-        </tr>
-        {% endfor %}
-      </tbody>
-    </table>
-  </div>
-</div>
+
 
 <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
 <script src="{% static 'chessboardjs-1.0.0/js/chessboard-1.0.0.min.js' %}"></script>
 
 <script>
-  $(document).ready(function () {
+$(document).ready(function () {
     const $feedback = $('#feedback');
     const $correct = $('#correct-count');
     const $wrong = $('#wrong-count');
@@ -179,18 +176,37 @@
     const correctSound = document.getElementById('correctSound');
     const wrongSound = document.getElementById('wrongSound');
 
+    // Initialize board
     let board = Chessboard('board', {
-      position: 'empty',
-      draggable: false,
-      pieceTheme: '',
+        position: 'empty',
+        draggable: false,
+        pieceTheme: '',
     });
 
-    // ✅ Auto resize board on window resize
-    $(window).on('resize', function () {
-      board.resize();
-    });
-    setTimeout(() => board.resize(), 200);
+    // Function to dynamically resize the board based on screen width
+    function autoResizeBoard() {
+        const container = $('#board-container');
+        const screenWidth = window.innerWidth;
+        let boardSize;
 
+        if (screenWidth >= 1920) boardSize = 650;
+        else if (screenWidth >= 1600) boardSize = 600;
+        else if (screenWidth >= 1370) boardSize = 600; // large laptops / desktops
+        else if (screenWidth >= 1200) boardSize = 488;
+        else if (screenWidth >= 992) boardSize = 450;
+        else if (screenWidth >= 768) boardSize = 400;
+        else boardSize = Math.min(screenWidth * 0.95, 330); // mobile
+
+        container.css('max-width', boardSize + 'px');
+
+        if (board) board.resize(); // update Chessboard size
+    }
+
+    // Initial board resize and on window resize
+    autoResizeBoard();
+    $(window).on('resize', autoResizeBoard);
+
+    // Game variables
     let correctCount = 0;
     let wrongCount = 0;
     let targetSquare = '';
@@ -198,103 +214,104 @@
     let timeRemaining = 120;
 
     function getRandomSquare() {
-      const files = ['a', 'b', 'c', 'd', 'e', 'f', 'g', 'h'];
-      const ranks = ['1', '2', '3', '4', '5', '6', '7', '8'];
-      return files[Math.floor(Math.random() * 8)] + ranks[Math.floor(Math.random() * 8)];
+        const files = ['a', 'b', 'c', 'd', 'e', 'f', 'g', 'h'];
+        const ranks = ['1', '2', '3', '4', '5', '6', '7', '8'];
+        return files[Math.floor(Math.random() * 8)] + ranks[Math.floor(Math.random() * 8)];
     }
 
     function newTargetSquare() {
-      const orientation = Math.random() < 0.5 ? 'white' : 'black';
-      board.orientation(orientation);
-      targetSquare = getRandomSquare();
+        const orientation = Math.random() < 0.5 ? 'white' : 'black';
+        board.orientation(orientation);
+        targetSquare = getRandomSquare();
 
-      // Show floating overlay inside board
-      $overlay
-        .stop(true, true)
-        .text(targetSquare.toUpperCase())
-        .fadeIn(200)
-        .delay(1000)
-        .fadeOut(500);
+        // Show floating overlay inside board
+        $overlay
+            .stop(true, true)
+            .text(targetSquare.toUpperCase())
+            .fadeIn(200)
+            .delay(1000)
+            .fadeOut(500);
 
-      $feedback.text('').removeClass('alert-success alert-danger');
+        $feedback.text('').removeClass('alert-success alert-danger');
     }
 
     function updateTimerDisplay() {
-      const mins = Math.floor(timeRemaining / 60);
-      const secs = timeRemaining % 60;
-      $timer.text(`${mins}:${secs < 10 ? '0' : ''}${secs}`);
-      if (timeRemaining <= 30 && !$timer.hasClass('text-danger')) {
-        $timer.addClass('text-danger').removeClass('text-primary');
-      }
+        const mins = Math.floor(timeRemaining / 60);
+        const secs = timeRemaining % 60;
+        $timer.text(`${mins}:${secs < 10 ? '0' : ''}${secs}`);
+        if (timeRemaining <= 30 && !$timer.hasClass('text-danger')) {
+            $timer.addClass('text-danger').removeClass('text-primary');
+        }
     }
 
     function endGame() {
-      clearInterval(timerInterval);
-      $overlay.hide();
-      $startBtn.text('Play Again').show();
-      $('#timer').removeClass('text-danger');
+        clearInterval(timerInterval);
+        $overlay.hide();
+        $startBtn.text('Play Again').show();
+        $('#timer').removeClass('text-danger');
 
-      $.ajax({
-        type: 'POST',
-        url: '',
-        headers: { 'X-Requested-With': 'XMLHttpRequest' },
-        data: {
-          csrfmiddlewaretoken: '{{ csrf_token }}',
-          correct: correctCount,
-          wrong: wrongCount
-        }
-      });
+        $.ajax({
+            type: 'POST',
+            url: '',
+            headers: { 'X-Requested-With': 'XMLHttpRequest' },
+            data: {
+                csrfmiddlewaretoken: '{{ csrf_token }}',
+                correct: correctCount,
+                wrong: wrongCount
+            }
+        });
     }
 
     function startGame() {
-      correctCount = 0;
-      wrongCount = 0;
-      timeRemaining = 120;
+        correctCount = 0;
+        wrongCount = 0;
+        timeRemaining = 120;
 
-      $correct.text(0);
-      $wrong.text(0);
-      $timer.text('2:00').removeClass('text-danger').addClass('text-primary');
-      newTargetSquare();
-      $startBtn.hide();
+        $correct.text(0);
+        $wrong.text(0);
+        $timer.text('2:00').removeClass('text-danger').addClass('text-primary');
+        newTargetSquare();
+        $startBtn.hide();
 
-      timerInterval = setInterval(() => {
-        timeRemaining--;
-        updateTimerDisplay();
-        if (timeRemaining <= 0) endGame();
-      }, 1000);
+        timerInterval = setInterval(() => {
+            timeRemaining--;
+            updateTimerDisplay();
+            if (timeRemaining <= 0) endGame();
+        }, 1000);
     }
 
     function playSound(audio) {
-      audio.currentTime = 0;
-      audio.play().catch(() => {});
+        audio.currentTime = 0;
+        audio.play().catch(() => {});
     }
 
     $(document).on('click', '.square-55d63', function () {
-      if (timeRemaining <= 0 || !targetSquare) return;
+        if (timeRemaining <= 0 || !targetSquare) return;
 
-      const clicked = $(this).attr('data-square');
-      const $square = $(this);
+        const clicked = $(this).attr('data-square');
+        const $square = $(this);
 
-      if (clicked === targetSquare) {
-        correctCount++;
-        $correct.text(correctCount);
-        $feedback.text('Correct!').addClass('alert alert-success');
-        playSound(correctSound);
-        $square.addClass('highlight-correct');
-        setTimeout(() => $square.removeClass('highlight-correct'), 500);
-      } else {
-        wrongCount++;
-        $wrong.text(wrongCount);
-        $feedback.text('Wrong!').addClass('alert alert-danger');
-        playSound(wrongSound);
-        $square.addClass('highlight-wrong');
-        setTimeout(() => $square.removeClass('highlight-wrong'), 500);
-      }
+        if (clicked === targetSquare) {
+            correctCount++;
+            $correct.text(correctCount);
+            $feedback.text('Correct!').addClass('alert alert-success');
+            playSound(correctSound);
+            $square.addClass('highlight-correct');
+            setTimeout(() => $square.removeClass('highlight-correct'), 500);
+        } else {
+            wrongCount++;
+            $wrong.text(wrongCount);
+            $feedback.text('Wrong!').addClass('alert alert-danger');
+            playSound(wrongSound);
+            $square.addClass('highlight-wrong');
+            setTimeout(() => $square.removeClass('highlight-wrong'), 500);
+        }
 
-      setTimeout(newTargetSquare, 800);
+        setTimeout(newTargetSquare, 800);
     });
 
     $startBtn.on('click', startGame);
-  });
+});
 </script>
+
 {% endblock %}

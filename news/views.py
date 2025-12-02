@@ -44,7 +44,6 @@ def home(request):
     banner = TournamentBanner.objects.filter(show_banner=True).order_by('-created_at').first()
     tournaments = Tournament.objects.all()
 
-    # ✅ Get user profile if logged in
     profile = None
     if request.user.is_authenticated and hasattr(request.user, 'userprofile'):
         profile = request.user.userprofile
@@ -327,3 +326,7 @@ def edit_profile(request):
 def logout_view(request):
     logout(request)
     return redirect('login') 
+
+
+def custom_404(request, exception):
+    return render(request, 'news/404.html', status=404)
