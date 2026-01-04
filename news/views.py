@@ -330,3 +330,93 @@ def logout_view(request):
 
 def custom_404(request, exception):
     return render(request, 'news/404.html', status=404)
+
+
+
+
+
+
+
+# trial section for game upload, dont push to github
+from .forms import *
+from .models import UploadedGame, GameComment
+
+@login_required
+def game_page(request):
+    if request.method == 'POST':
+        form = UploadedGameForm(request.POST, request.FILES)
+        if form.is_valid():
+            game = form.save(commit=False)
+            game.uploaded_by = request.user
+            game.save()
+            # Return saved PGN so JS can render moves
+            return JsonResponse({
+                'success': True,
+                'title': game.title,
+                'pgn': game.pgn,
+                'white_player': game.white_player,
+                'black_player': game.black_player,
+            })
+        else:
+            return JsonResponse({'success': False, 'errors': form.errors}, status=400)
+
+    else:
+        form = UploadedGameForm()
+
+    return render(request, 'news/game_page.html', {'game_form': form})
+
+
+def all_games(request):
+    games = UploadedGame.objects.all()
+    return render(request, 'news/all_games.html', {'games': games})
+
+from django.shortcuts import render, get_object_or_404
+from django.http import JsonResponse
+from django.views.decorators.csrf import csrf_exempt
+from .models import UploadedGame, GameComment
+from .forms import GameCommentForm
+
+def game_detail(request, slug):
+    game = get_object_or_404(UploadedGame, slug_link=slug)
+    # Prepare comments
+    comments = GameComment.objects.filter(game=game).values(
+        'id', 'user__username', 'move_number', 'comment',
+    )
+    # Initialize empty form for adding comments
+    form = GameCommentForm()
+    
+    return render(request, 'news/game_detail.html', {
+        'game': game,
+        'comments_json': list(comments),
+        'form': form
+    })
+
+@login_required
+@csrf_exempt
+def add_comment(request, slug):
+    if request.method == "POST":
+        user = request.user
+        game = get_object_or_404(UploadedGame, slug_link=slug)
+
+        form = GameCommentForm(request.POST)
+        if form.is_valid():
+            new_comment = form.save(commit=False)
+            new_comment.user = user
+            new_comment.game = game
+            new_comment.save()
+
+            return JsonResponse({
+                "status": "success",
+                "username": user.username,
+                "move_number": new_comment.move_number,
+                "comment": new_comment.comment,
+            })
+        else:
+            return JsonResponse({
+                "status": "error",
+                "errors": form.errors
+            }, status=400)
+
+    return JsonResponse({"status": "error"}, status=400)
+
+# End of trial section

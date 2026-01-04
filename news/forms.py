@@ -93,3 +93,41 @@ class ArticleForm(forms.ModelForm):
                 'id': 'uploadBtn'   # give unique ID
             }),
         }
+
+
+
+
+# Trials section for game upload form
+from .models import UploadedGame, GameComment
+
+class UploadedGameForm(forms.ModelForm):
+    class Meta:
+        model = UploadedGame
+        fields = ['title', 'pgn']
+        widgets = {
+            'title': forms.TextInput(attrs={
+                'class': 'form-control form-control-sm',
+                'placeholder': 'Game title'
+            }),
+            'pgn': forms.Textarea(attrs={
+                'rows': 6,
+                'class': 'form-control form-control-sm',
+                'placeholder': 'Enter PGN with comments like {Your comment here}'
+            }),
+        }
+        
+class GameCommentForm(forms.ModelForm):
+    class Meta:
+        model = GameComment
+        fields = ['move_number', 'comment']
+        widgets = {
+            'move_number': forms.NumberInput(attrs={
+                'class': 'form-control form-control-sm',
+                'placeholder': 'Move number'
+            }),
+            'comment': forms.Textarea(attrs={
+                'rows': 3,
+                'class': 'form-control form-control-sm',
+                'placeholder': 'Enter your comment'
+            }),
+        }

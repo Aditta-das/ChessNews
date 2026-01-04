@@ -1,0 +1,1030 @@
+{% extends 'news/base.html' %}
+{% load static %}
+{% block content %}
+
+<link rel="stylesheet" href="{% static 'chessboardjs-1.0.0/css/chessboard-1.0.0.min.css' %}">
+<script src="{% static 'jquery.min.js' %}"></script>
+<script src="{% static 'chessboardjs-1.0.0/js/chessboard-1.0.0.min.js' %}"></script>
+<script src="{% static 'chess.min.js' %}"></script>
+<audio id="correctSound" src="{% static 'sound/puzzle-correct.mp3' %}"></audio>
+<audio id="wrongSound" src="{% static 'sound/puzzle-wrong.mp3' %}"></audio>
+<audio id="moveSound">
+    <source src="{% static 'sound/move-self.mp3' %}" type="audio/mpeg">
+</audio>
+<audio id="captureSound">
+    <source src="{% static 'sound/capture.mp3' %}" type="audio/mpeg">
+</audio>
+<audio id="checkSound">
+    <source src="{% static 'sound/move-check.mp3' %}" type="audio/mpeg">
+</audio>
+
+<style>
+    #game-board {
+        outline: none;
+    }
+
+    #game-board .piece {
+        user-select: none;
+    }
+
+    #game-board .white-1e1d7 {
+        background-color: #eeeed2 !important;
+    }
+
+    #game-board .black-3c85d {
+        background-color: #769656 !important;
+    }
+
+    .move-highlight {
+        background-color: rgba(255, 255, 0, 0.2);
+        border-radius: 3px;
+        padding: 2px 5px;
+    }
+
+    .move-icon {
+        font-size: 1.2em;
+        margin-right: 3px;
+        vertical-align: middle;
+    }
+
+    .move-0 {
+        font-style: italic;
+        color: #aaa;
+    }
+
+    /* Notification Styles */
+    .notification-container {
+        position: fixed;
+        top: 20px;
+        right: 20px;
+        z-index: 1000;
+        max-width: 350px;
+    }
+
+    .notification {
+        position: relative;
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        color: white;
+        padding: 15px 20px;
+        border-radius: 10px;
+        box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
+        margin-bottom: 15px;
+        transform: translateX(150%);
+        transition: transform 0.5s ease;
+        opacity: 0;
+        border-left: 5px solid #4CAF50;
+    }
+
+    .notification.show {
+        transform: translateX(0);
+        opacity: 1;
+    }
+
+    .notification.hide {
+        transform: translateX(150%);
+        opacity: 0;
+    }
+
+    .notification.success {
+        border-left-color: #4CAF50;
+        background: linear-gradient(135deg, #4CAF50 0%, #2E7D32 100%);
+    }
+
+    .notification.error {
+        border-left-color: #f44336;
+        background: linear-gradient(135deg, #f44336 0%, #c62828 100%);
+    }
+
+    .notification.warning {
+        border-left-color: #ff9800;
+        background: linear-gradient(135deg, #ff9800 0%, #ef6c00 100%);
+    }
+
+    .notification.info {
+        border-left-color: #2196F3;
+        background: linear-gradient(135deg, #2196F3 0%, #0d47a1 100%);
+    }
+
+    .notification-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 8px;
+    }
+
+    .notification-title {
+        font-weight: bold;
+        font-size: 1.1em;
+    }
+
+    .notification-close {
+        background: none;
+        border: none;
+        color: white;
+        font-size: 1.2em;
+        cursor: pointer;
+        padding: 0;
+        width: 24px;
+        height: 24px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        border-radius: 50%;
+        transition: background-color 0.3s;
+    }
+
+    .notification-close:hover {
+        background-color: rgba(255, 255, 255, 0.2);
+    }
+
+    .notification-body {
+        font-size: 0.95em;
+        line-height: 1.4;
+    }
+
+    .notification-progress {
+        position: absolute;
+        bottom: 0;
+        left: 0;
+        height: 3px;
+        background-color: rgba(255, 255, 255, 0.7);
+        width: 100%;
+        border-radius: 0 0 10px 10px;
+        overflow: hidden;
+    }
+
+    .notification-progress-bar {
+        height: 100%;
+        background-color: white;
+        width: 100%;
+        transform: translateX(-100%);
+    }
+
+    .notification-progress-bar.animate {
+        animation: progressBar 5s linear forwards;
+    }
+
+    @keyframes progressBar {
+        from {
+            transform: translateX(-100%);
+        }
+
+        to {
+            transform: translateX(0);
+        }
+    }
+
+    .comment {
+        background-color: #1aa37b;
+    }
+
+    .comment_name {
+        color: rgb(255, 204, 0) !important;
+
+    }
+
+    /* Responsive adjustments - REMOVED fixed board sizes */
+    @media (max-width: 767.98px) {
+        .container {
+            padding-left: 15px;
+            padding-right: 15px;
+        }
+
+        .row {
+            flex-direction: column;
+        }
+
+        .col-md-6 {
+            width: 100%;
+            max-width: 100%;
+            padding: 0;
+        }
+
+        .btn-md {
+            padding: 0.5rem 1rem;
+            margin: 0 5px;
+        }
+
+        .h4.card-title {
+            font-size: 1.25rem;
+            margin-top: 1rem !important;
+        }
+    }
+
+    @media (max-width: 575.98px) {
+        .container {
+            padding-left: 10px;
+            padding-right: 10px;
+            padding-top: 1rem !important;
+            padding-bottom: 1.5rem !important;
+        }
+
+        .row {
+            flex-direction: column;
+            margin: 0;
+        }
+
+        .col-md-6 {
+            width: 100%;
+            max-width: 100%;
+            padding: 0;
+        }
+
+        #moves-list {
+            height: 120px !important;
+            font-size: 0.9rem;
+        }
+
+        #comments-list {
+            height: 180px !important;
+            font-size: 0.9rem;
+        }
+
+        .btn-md {
+            padding: 0.4rem 0.8rem;
+            margin: 0 3px;
+            font-size: 0.8rem;
+        }
+
+        .h4.card-title {
+            font-size: 1.1rem;
+            margin-top: 1rem !important;
+        }
+
+        .text-center.mb-3 .badge {
+            font-size: 0.8rem;
+            padding: 0.35em 0.65em;
+        }
+
+        .form-control-sm {
+            font-size: 0.875rem;
+        }
+
+        .notification-container {
+            right: 10px;
+            left: 10px;
+            max-width: calc(100% - 20px);
+        }
+
+        .notification {
+            padding: 12px 15px;
+            font-size: 0.9rem;
+        }
+
+        .move-icon {
+            font-size: 1rem;
+        }
+
+        .move-0 {
+            font-size: 0.9rem;
+        }
+    }
+
+    @media (max-width: 399.98px) {
+        #moves-list {
+            height: 100px !important;
+            font-size: 0.85rem;
+        }
+
+        #comments-list {
+            height: 150px !important;
+            font-size: 0.85rem;
+        }
+
+        .btn-md {
+            padding: 0.3rem 0.6rem;
+            margin: 0 2px;
+            font-size: 0.75rem;
+        }
+    }
+
+    /* Landscape orientation for mobile */
+    @media (max-width: 991.98px) and (orientation: landscape) {
+        .row {
+            flex-direction: row !important;
+        }
+
+        .col-md-6 {
+            width: 50%;
+            padding: 0 10px;
+        }
+
+        #moves-list {
+            height: 80px !important;
+        }
+
+        #comments-list {
+            height: 100px !important;
+        }
+
+        .h4.card-title {
+            font-size: 1rem;
+            margin-top: 0 !important;
+        }
+    }
+
+    /* High DPI screens */
+    @media (-webkit-min-device-pixel-ratio: 2),
+    (min-resolution: 192dpi) {
+        #game-board .piece {
+            background-size: cover !important;
+        }
+    }
+
+    #nextBtn:focus,
+    #prevBtn:focus,
+    #resetBtn:focus,
+    #flipBtn:focus {
+        outline: none !important;
+        box-shadow: none !important;
+    }
+
+    .move-label {
+        color: #fff;
+        font-weight: bold;
+        font-size: 0.9em;
+    }
+
+    /* Arrow styles */
+    .player {
+        font-weight: bold;
+        font-size: 1.1em;
+    }
+</style>
+
+<div class="container py-3 text-white">
+    <div class="row">
+        <!-- Left column: Chessboard -->
+        <div class="col-md-6">
+            <p id="black-player-name" class="text-left mb-2 player">{{ game.black_player }}</p>
+            <div class="board-wrapper mb-2">
+                <div id="game-board"></div>
+            </div>
+            <p id="white-player-name" class="text-left mb-2 player">{{ game.white_player }}</p>
+            <div class="mb-3 text-center">
+                <button class="btn btn-md btn-primary" id="prevBtn"><i class="bi bi-arrow-left"></i></button>
+                <button class="btn btn-md btn-success" id="nextBtn"><i class="bi bi-arrow-right"></i></button>
+                <button class="btn btn-md btn-danger" id="resetBtn"><i class="bi bi-x-lg"></i></button>
+                <button class="btn btn-md btn-warning" id="flipBtn"><i class="bi bi-shuffle"></i></button>
+            </div>
+
+            <!-- Comments under board -->
+            <div id="board-comments" class="text-left" style="max-width:430px;margin:auto;"></div>
+        </div>
+
+        <!-- Right column: Moves list + comment form -->
+        <div class="col-md-6">
+            <h4 class="mt-2 text-center card-title">{{ game.title }}</h4>
+
+            <!-- Display current move number -->
+            <div class="text-center mb-3">
+                <span class="badge bg-info">Current Move: <span id="current-move-number">0</span></span>
+                <span class="badge bg-secondary ms-2">Total Moves: <span id="total-moves">0</span></span>
+            </div>
+
+            <div id="moves-list" class="text-white mb-3 p-2 border rounded"
+                style="max-width:430px;margin:auto;height:150px;overflow-y:auto;"></div>
+
+            <div id="comments-list" class="text-left mb-3 p-2 border rounded"
+                style="max-width:430px;margin:auto;height:200px;overflow-y:auto;"></div>
+
+            <div class="text-center mt-3" style="max-width:430px; margin:auto;">
+                <form id="commentForm" method="post" action="{% url 'add_comment' game.slug_link %}">
+                    {% csrf_token %}
+                    <div class="mb-2">
+                        <label for="id_comment" class="form-label">Add Comment for Move <span
+                                id="comment-move-number">0</span>:</label>
+                        <textarea name="comment" id="id_comment" class="form-control form-control-sm" rows="2"
+                            placeholder="Enter your comment here..." required></textarea>
+                        <input type="hidden" name="move_number" id="hidden-move-number" value="0">
+                    </div>
+                    <button type="submit" class="btn btn-primary btn-sm mt-2 comment">Add Comment</button>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Notification Container -->
+<div class="notification-container" id="notification-container"></div>
+
+<script>
+    // Sound
+    const moveSound = document.getElementById('moveSound');
+    const captureSound = document.getElementById('captureSound');
+    const checkSound = document.getElementById('checkSound');
+    function safePlay(audioElement) {
+        audioElement.currentTime = 0;
+        const playPromise = audioElement.play();
+        if (playPromise !== undefined) {
+            playPromise.catch(error => {
+                console.warn("Audio play failed:", error);
+            });
+        }
+    }
+    function playSoundForMove(move) {
+        if (move.flags.includes('c')) {
+            safePlay(captureSound);
+        } else if (chess.in_check()) {
+            safePlay(checkSound);
+        } else {
+            safePlay(moveSound);
+        }
+    }
+
+    // Optimized initialization to avoid forced reflow
+    document.addEventListener('DOMContentLoaded', function () {
+        // Schedule heavy work on next tick
+        requestAnimationFrame(() => {
+            initGame();
+        });
+    });
+
+    // Initialize chess game
+    const chess = new Chess();
+
+    // Make sure PGN is properly loaded
+    const pgn = `{{ game.pgn|escapejs }}`;
+
+    try {
+        chess.load_pgn(pgn);
+    } catch (error) {
+        console.error("Error loading PGN:", error);
+    }
+
+    // Get verbose moves history for formatting
+    const movesHistoryVerbose = chess.history({ verbose: true });
+    const movesHistory = chess.history({ verbose: true });
+
+    console.log("Loaded moves history:", movesHistory);
+    let moveIndex = 0; // 0 means initial position
+    let orientation = "white";
+    let currentMoveNumber = 0; // Start with move 0 (initial position)
+
+    const movesListDiv = document.getElementById("moves-list");
+    const commentsListDiv = document.getElementById("comments-list");
+    const commentMoveNumberSpan = document.getElementById("comment-move-number");
+    const totalMovesSpan = document.getElementById("total-moves");
+    const hiddenMoveNumberInput = document.getElementById("hidden-move-number");
+    const currentMoveNumberSpan = document.getElementById("current-move-number");
+
+    // Load all comments from backend
+    const commentsData = {{ comments_json| safe }};
+
+    // Initialize chessboard with default size
+    let board;
+
+    // Throttle function for resize events
+    function throttle(func, limit) {
+        let inThrottle;
+        return function () {
+            const args = arguments;
+            const context = this;
+            if (!inThrottle) {
+                func.apply(context, args);
+                inThrottle = true;
+                setTimeout(() => inThrottle = false, limit);
+            }
+        };
+    }
+
+    // Auto resize board function - optimized
+    function autoResizeBoard() {
+        requestAnimationFrame(() => {
+            const screenWidth = window.innerWidth;
+            let boardSize;
+
+            if (screenWidth >= 1920) boardSize = 650;
+            else if (screenWidth >= 1600) boardSize = 600;
+            else if (screenWidth >= 1370) boardSize = 600;
+            else if (screenWidth >= 1200) boardSize = 488;
+            else if (screenWidth >= 992) boardSize = 450;
+            else if (screenWidth >= 768) boardSize = 400;
+            else boardSize = Math.min(screenWidth * 0.95, 330);
+
+            // Update board wrapper
+            const boardWrapper = document.querySelector('.board-wrapper');
+            if (boardWrapper) {
+                boardWrapper.style.maxWidth = boardSize + 'px';
+            }
+
+            // Update board size if it exists
+            if (board) {
+                board.resize(boardSize);
+            }
+        });
+    }
+
+    // Optimized resize handler
+    const throttledResize = throttle(autoResizeBoard, 100);
+    window.addEventListener('resize', throttledResize);
+
+    // Notification System - optimized
+    function showNotification(title, message, type = 'info', duration = 5000) {
+        const container = document.getElementById('notification-container');
+
+        // Create notification element
+        const notification = document.createElement('div');
+        notification.className = `notification ${type}`;
+        notification.innerHTML = `
+            <div class="notification-header">
+                <div class="notification-title">${title}</div>
+                <button class="notification-close" aria-label="Close notification">×</button>
+            </div>
+            <div class="notification-body">${message}</div>
+            <div class="notification-progress">
+                <div class="notification-progress-bar ${duration > 0 ? 'animate' : ''}"></div>
+            </div>
+        `;
+
+        // Add to container
+        container.appendChild(notification);
+
+        // Show animation on next frame
+        requestAnimationFrame(() => {
+            notification.classList.add('show');
+        });
+
+        // Close button event
+        const closeBtn = notification.querySelector('.notification-close');
+        closeBtn.addEventListener('click', () => {
+            hideNotification(notification);
+        });
+
+        // Auto-remove after duration
+        if (duration > 0) {
+            setTimeout(() => {
+                hideNotification(notification);
+            }, duration);
+        }
+
+        // Setup progress bar animation
+        if (duration > 0) {
+            const progressBar = notification.querySelector('.notification-progress-bar');
+            if (progressBar) {
+                progressBar.style.animationDuration = `${duration}ms`;
+            }
+        }
+
+        return notification;
+    }
+
+    function hideNotification(notification) {
+        notification.classList.remove('show');
+        notification.classList.add('hide');
+
+        // Remove from DOM after animation
+        setTimeout(() => {
+            if (notification.parentNode) {
+                notification.parentNode.removeChild(notification);
+            }
+        }, 500);
+    }
+
+    // Modified showMessage function
+    function showMessage(message, type = 'info') {
+        const titles = {
+            'success': 'Success!',
+            'error': 'Error!',
+            'warning': 'Warning!',
+            'info': 'Info'
+        };
+
+        showNotification(titles[type] || 'Notification', message, type, 2000);
+    }
+
+    // Function to format move with chess symbols
+    function formatMove(move) {
+        const blackSymbols = {
+            'p': '', 'n': '♘', 'b': '♗', 'r': '♖', 'q': '♕', 'k': '♔'
+        };
+        const whiteSymbols = {
+            'p': '', 'n': '♞', 'b': '♝', 'r': '♜', 'q': '♛', 'k': '♚'
+        };
+        const color = move.color || 'w';
+        const piece = move.piece || 'p';
+        const to = move.to || '';
+        const isCapture = move.flags && move.flags.includes('c');
+        const symbols = color === 'w' ? whiteSymbols : blackSymbols;
+        const icon = symbols[piece] || '';
+
+        if (piece === 'p') {
+            if (isCapture && move.san && move.san.length >= 4) {
+                return `${move.san[0]}x${to}`;
+            } else {
+                return to;
+            }
+        }
+        return `${icon}${isCapture ? 'x' : ''}${to}`;
+    }
+
+    // Render PGN moves - optimized with DocumentFragment
+    function renderMovesList() {
+        // Clear content efficiently
+        while (movesListDiv.firstChild) {
+            movesListDiv.removeChild(movesListDiv.firstChild);
+        }
+
+        totalMovesSpan.textContent = movesHistory.length;
+
+        // Use DocumentFragment for batch DOM insertion
+        const fragment = document.createDocumentFragment();
+
+        // Add initial position (move 0)
+        const initialMoveDiv = document.createElement("div");
+        initialMoveDiv.classList.add("d-flex", "mb-1", "align-items-center");
+
+        const initialMoveNumSpan = document.createElement("span");
+        initialMoveNumSpan.textContent = `0. `;
+        initialMoveNumSpan.classList.add("me-2", "text-muted", "fw-bold", "move-0");
+        initialMoveNumSpan.style.minWidth = "35px";
+        initialMoveDiv.appendChild(initialMoveNumSpan);
+
+        const initialPositionSpan = document.createElement("span");
+        initialPositionSpan.textContent = "Initial Position";
+        initialPositionSpan.classList.add("move-0");
+        initialPositionSpan.style.cursor = "pointer";
+        initialPositionSpan.dataset.moveIndex = "0";
+        initialPositionSpan.addEventListener("click", () => {
+            moveIndex = 0;
+            currentMoveNumber = 0;
+            requestAnimationFrame(() => {
+                updateBoard();
+                renderComments();
+            });
+        });
+        initialMoveDiv.appendChild(initialPositionSpan);
+        fragment.appendChild(initialMoveDiv);
+
+        let moveCounter = 1;
+
+        // Group moves in pairs for white/black
+        for (let i = 0; i < movesHistoryVerbose.length; i += 2) {
+            const movePairDiv = document.createElement("div");
+            movePairDiv.classList.add("d-flex", "mb-1", "align-items-center");
+
+            // Move number
+            const moveNumSpan = document.createElement("span");
+            moveNumSpan.textContent = `${moveCounter}. `;
+            moveNumSpan.classList.add("me-2", "text-muted", "fw-bold");
+            moveNumSpan.style.minWidth = "35px";
+            movePairDiv.appendChild(moveNumSpan);
+
+            // White move
+            const whiteMoveDiv = document.createElement("div");
+            whiteMoveDiv.classList.add("d-flex", "align-items-center", "me-3");
+
+            const whiteIconSpan = document.createElement("span");
+            whiteIconSpan.classList.add("move-icon");
+            whiteIconSpan.innerHTML = formatMove(movesHistoryVerbose[i]);
+            whiteIconSpan.style.cursor = "pointer";
+            whiteIconSpan.dataset.moveIndex = i + 1; // +1 because move 0 is initial
+
+            whiteIconSpan.addEventListener("click", () => {
+                moveIndex = i + 1;
+                currentMoveNumber = moveIndex;
+                requestAnimationFrame(() => {
+                    updateBoard();
+                    renderComments();
+                });
+            });
+
+            whiteMoveDiv.appendChild(whiteIconSpan);
+            movePairDiv.appendChild(whiteMoveDiv);
+
+            // Black move (if exists)
+            if (i + 1 < movesHistoryVerbose.length) {
+                const blackMoveDiv = document.createElement("div");
+                blackMoveDiv.classList.add("d-flex", "align-items-center");
+
+                const blackIconSpan = document.createElement("span");
+                blackIconSpan.classList.add("move-icon");
+                blackIconSpan.innerHTML = formatMove(movesHistoryVerbose[i + 1]);
+                blackIconSpan.style.cursor = "pointer";
+                blackIconSpan.dataset.moveIndex = i + 2; // +2 because move 0 is initial
+
+                blackIconSpan.addEventListener("click", () => {
+                    moveIndex = i + 2;
+                    currentMoveNumber = moveIndex;
+                    requestAnimationFrame(() => {
+                        updateBoard();
+                        renderComments();
+                    });
+                });
+
+                blackMoveDiv.appendChild(blackIconSpan);
+                movePairDiv.appendChild(blackMoveDiv);
+            }
+
+            fragment.appendChild(movePairDiv);
+            moveCounter++;
+        }
+
+        // Batch append
+        movesListDiv.appendChild(fragment);
+    }
+
+    // Update board position - optimized
+    function updateBoard() {
+        chess.reset();
+        for (let i = 0; i < moveIndex; i++) {
+            try {
+                chess.move(movesHistory[i]);
+            } catch (error) {
+                console.error("Error making move:", movesHistory[i], error);
+            }
+        }
+
+        // Update board position on next frame
+        requestAnimationFrame(() => {
+            board.position(chess.fen());
+            highlightMove();
+        });
+
+        // Update text content without causing reflow
+        currentMoveNumberSpan.textContent = currentMoveNumber;
+        commentMoveNumberSpan.textContent = currentMoveNumber;
+        hiddenMoveNumberInput.value = currentMoveNumber;
+    }
+
+    // Highlight current move in moves list - optimized
+    function highlightMove() {
+        const allSpans = movesListDiv.querySelectorAll("span[data-move-index]");
+        const currentSpan = movesListDiv.querySelector(`span[data-move-index="${moveIndex}"]`);
+
+        // Batch style updates
+        allSpans.forEach(s => {
+            s.style.cssText = 'font-weight: normal; color: white; background-color: transparent; padding: 0; border-radius: 0; opacity: 0.7;';
+            s.classList.remove("move-0");
+        });
+
+        if (currentSpan) {
+            currentSpan.style.cssText = 'font-weight: bold; color: #ffcc00; background-color: rgba(255, 204, 0, 0.2); padding: 3px 6px; border-radius: 5px; opacity: 1;';
+        }
+
+        // Special styling for move 0
+        if (moveIndex === 0) {
+            const move0Span = movesListDiv.querySelector('span[data-move-index="0"]');
+            if (move0Span) {
+                move0Span.classList.add("move-0");
+            }
+        }
+    }
+
+    // Render comments for current move - optimized
+    function renderComments() {
+        // Clear content efficiently
+        while (commentsListDiv.firstChild) {
+            commentsListDiv.removeChild(commentsListDiv.firstChild);
+        }
+
+        const filtered = commentsData.filter(c => c.move_number == currentMoveNumber);
+
+        if (filtered.length === 0) {
+            const emptyMessage = document.createElement('p');
+            emptyMessage.className = 'text-center text-white';
+            emptyMessage.textContent = currentMoveNumber === 0
+                ? 'No comments for initial position yet.'
+                : 'No comments for this move yet.';
+            commentsListDiv.appendChild(emptyMessage);
+        } else {
+            // Use DocumentFragment for batch DOM insertion
+            const fragment = document.createDocumentFragment();
+
+            filtered.forEach(c => {
+                const div = document.createElement('div');
+                div.classList.add('border-bottom', 'mb-2', 'pb-1');
+
+                const moveText = c.move_number === 0
+                    ? '<span class="move-label">Initial Position</span>'
+                    : `<span class="move-label">Move ${c.move_number}</span>`;
+
+                // Debug: Check if comment ID exists
+                console.log('Rendering comment:', c.id, 'Type:', typeof c.id);
+
+                div.innerHTML = `
+                    <div class="d-flex justify-content-between align-items-start">
+                        <strong class="text-primary comment_name">${c.user__username}</strong>
+                        <small class="text-white">${moveText}</small>
+                    </div>
+                    <div class="container">
+                        <div class="row">
+                            <div class="col text-start">
+                                <p class="mb-0 text-white">${c.comment}</p>
+                            </div>
+                        </div>
+                    </div>
+                `;
+                fragment.appendChild(div);
+            });
+
+            commentsListDiv.appendChild(fragment);
+
+            // Defer scroll to avoid forced reflow
+            requestAnimationFrame(() => {
+                commentsListDiv.scrollTop = commentsListDiv.scrollHeight;
+            });
+        }
+    }
+
+
+    // Button controls - optimized
+    function handleNextMove(e) {
+        if (e) e.preventDefault();
+
+        if (moveIndex < movesHistory.length) {
+            // advance index
+            moveIndex++;
+            currentMoveNumber = moveIndex;
+
+            // get SAN move, e.g. "Qh5+"
+            const sanMove = movesHistory[currentMoveNumber - 1];
+            console.log("Advancing to move:", sanMove);
+            const moveObj = chess.move(sanMove);
+            playSoundForMove(moveObj);
+
+            // now update UI
+            requestAnimationFrame(() => {
+                updateBoard();
+                renderComments();
+            });
+        }
+    }
+
+
+    function handlePrevMove(e) {
+        if (e) e.preventDefault();
+        if (moveIndex > 0) {
+            const undoneMove = chess.undo();
+            moveIndex--;
+            currentMoveNumber = moveIndex;
+            console.log("Reverting move:", undoneMove.san);
+            playSoundForMove(undoneMove);
+            requestAnimationFrame(() => {
+                updateBoard();
+                renderComments();
+            });
+        }
+    }
+
+    // Add keyboard shortcut tooltips
+    function addKeyboardShortcutTooltips() {
+        const nextBtn = document.getElementById("nextBtn");
+        const prevBtn = document.getElementById("prevBtn");
+        const resetBtn = document.getElementById("resetBtn");
+        const flipBtn = document.getElementById("flipBtn");
+
+        if (nextBtn) nextBtn.title = "Next move";
+        if (prevBtn) prevBtn.title = "Previous move";
+        if (resetBtn) resetBtn.title = "Reset";
+        if (flipBtn) flipBtn.title = "Flip board";
+    }
+
+    // Make board focusable for better keyboard navigation
+    function setupBoardFocus() {
+        const boardElement = document.getElementById('game-board');
+        if (boardElement) {
+            boardElement.setAttribute('tabindex', '-1');
+            boardElement.style.outline = 'none';
+
+            // Focus board on click for keyboard navigation
+            boardElement.addEventListener('click', () => {
+                boardElement.focus();
+            });
+        }
+    }
+
+    // Initialize everything
+    function initGame() {
+        // Initialize chessboard
+        board = Chessboard("game-board", {
+            position: "start",
+            draggable: false,
+            pieceTheme: "{% static 'chessboardjs-1.0.0/img/chesspieces/wikipedia/' %}{piece}.png",
+            width: 430,
+            dropOffBoard: 'snapback',
+        });
+
+
+        // Set up event listeners
+        document.getElementById("nextBtn").addEventListener("click", handleNextMove);
+        document.getElementById("prevBtn").addEventListener("click", handlePrevMove);
+        document.getElementById("resetBtn").addEventListener("click", (e) => {
+            e.preventDefault();
+            moveIndex = 0;
+            currentMoveNumber = 0;
+            requestAnimationFrame(() => {
+                updateBoard();
+                renderComments();
+            });
+            showMessage("Reset to initial position", "info");
+        });
+
+        document.getElementById("flipBtn").addEventListener("click", (e) => {
+            e.preventDefault();
+            orientation = orientation === "white" ? "black" : "white";
+            requestAnimationFrame(() => {
+                board.orientation(orientation);
+            });
+            const whiteLabel = document.getElementById("white-player-name");
+            const blackLabel = document.getElementById("black-player-name");
+            const temp = whiteLabel.textContent;
+            whiteLabel.textContent = blackLabel.textContent;
+            blackLabel.textContent = temp;
+
+            showMessage(`Board flipped to ${orientation} view`, "info");
+        });
+
+        // Set up keyboard navigation
+        document.addEventListener('keydown', (e) => {
+            const isTextInput = e.target.tagName === 'INPUT' ||
+                e.target.tagName === 'TEXTAREA' ||
+                e.target.isContentEditable;
+
+            if (isTextInput) return;
+
+            switch (e.key) {
+                case 'ArrowRight':
+                case ' ':
+                case 'Spacebar':
+                    e.preventDefault();
+                    handleNextMove();
+                    break;
+                case 'ArrowLeft':
+                    e.preventDefault();
+                    handlePrevMove();
+                    break;
+                case 'Home':
+                    e.preventDefault();
+                    document.getElementById("resetBtn").click();
+                    break;
+                case 'f':
+                case 'F':
+                    e.preventDefault();
+                    document.getElementById("flipBtn").click();
+                    break;
+                case 'r':
+                case 'R':
+                    e.preventDefault();
+                    document.getElementById("resetBtn").click();
+                    break;
+            }
+        });
+
+        // Set up comment form
+        document.getElementById('commentForm').addEventListener('submit', function (e) {
+            e.preventDefault();
+            const form = e.target;
+            const data = new FormData(form);
+            data.append('move_number', currentMoveNumber);
+
+            fetch(form.action, {
+                method: 'POST',
+                body: data,
+                headers: {
+                    'X-CSRFToken': data.get('csrfmiddlewaretoken'),
+                    'X-Requested-With': 'XMLHttpRequest'
+                }
+            })
+                .then(res => {
+                    if (!res.ok) throw new Error('Network response was not ok');
+                    return res.json();
+                })
+                .then(res => {
+                    if (res.status === 'success') {
+                        commentsData.push({
+                            user__username: res.username,
+                            move_number: res.move_number,
+                            comment: res.comment,
+                        });
+                        requestAnimationFrame(() => {
+                            renderComments();
+                        });
+                        form.reset();
+                        showMessage('Comment added successfully!', 'success');
+                    } else {
+                        console.error('Error response:', res);
+                        showMessage('Error adding comment: ' + (res.errors || 'Unknown error'), 'error');
+                    }
+                })
+                .catch(error => {
+                    console.error('Fetch error:', error);
+                    showMessage('Network error adding comment', 'error');
+                });
+        });
+
+        // Initial render
+        requestAnimationFrame(() => {
+            renderMovesList();
+            updateBoard();
+            renderComments();
+            addKeyboardShortcutTooltips();
+            setupBoardFocus();
+            autoResizeBoard();
+        });
+    }
+</script>
+
+
+
+{% endblock %}

@@ -1,110 +1,474 @@
 {% extends 'news/base.html' %}
+{% load static %}
 
 {% block title %}{{ article.title }} - ChessNews{% endblock %}
 
 {% block content %}
-<div class="container py-3">
-  <div class="row justify-content-center">
-    <div class="col-12 col-md-12 col-lg-12">
-      <div class="card shadow-sm p-3 p-md-4 mb-4 bg-white rounded-4 border-0">
-        <!-- Title -->
-        <h1 class="mb-3 text-primary text-center text-md-start" style="word-wrap: break-word;">
-          {{ article.title }}
-        </h1>
 
-        <!-- Author, Category & Actions -->
-        <div class="d-flex align-items-center flex-wrap gap-4 text-muted mb-4">
-          <div class="d-flex align-items-center">
-            <div class="author-avatar border rounded-circle d-flex align-items-center justify-content-center me-3 bg-light" style="width:48px; height:48px;">
-              <i class="bi bi-person-fill fs-4 text-secondary"></i>
-            </div>
-            <div>
-              <div class="fw-semibold text-dark">By {{ article.author.username }}</div>
-              <small class="text-muted">Chess Journalist</small>
-            </div>
-          </div>
-
-          <div class="vr d-none d-md-block"></div>
-
-          <div class="d-flex gap-3">
-            <button class="btn btn-outline-dark btn-sm rounded-pill px-3 like-btn">
-              <i class="bi bi-heart me-1"></i> Like
-            </button>
-            <button class="btn btn-outline-dark btn-sm rounded-pill px-3 share-btn">
-              <i class="bi bi-share me-1"></i> Share
-            </button>
-          </div>
-        </div>
-
-        <!-- Category -->
-        <p class="text-muted mb-3">
-          <strong>Category:</strong> {{ article.category }}
-        </p>
-
-        <!-- Article Content -->
-        <div class="mt-3 article-content" style="font-size: 1.05rem; line-height: 1.8; word-break: break-word;">
-          {{ article.content|safe }}
-        </div>
-
-        <!-- Back Button -->
-        <div class="text-center text-md-start">
-          <a href="{% url 'home' %}" class="btn btn-outline-primary mt-4 px-4 py-2 rounded-pill shadow-sm">
-            ← Back to Home
-          </a>
-        </div>
-      </div>
-    </div>
-  </div>
-</div>
 
 <style>
-  .article-content img {
-    max-width: 100%;
-    height: auto;
-    border-radius: 6px;
-    margin: 12px 0;
-  }
-
-  .article-content iframe {
-    width: 100%;
-    aspect-ratio: 16 / 9;
-    border-radius: 8px;
-  }
-
-  .like-btn:hover, .share-btn:hover {
-    background-color: #0d6efd;
-    color: white;
-    border-color: #0d6efd;
-    transition: all 0.3s ease;
-  }
-
-  .btn-outline-primary:hover {
-    background-color: #0d6efd;
-    color: #fff;
-  }
-
-  .author-avatar {
-    transition: transform 0.3s ease, box-shadow 0.3s ease;
-  }
-
-  .author-avatar:hover {
-    transform: scale(1.05);
-    box-shadow: 0 0 8px rgba(0,0,0,0.1);
-  }
-
-  @media (max-width: 576px) {
-    h1 {
-      font-size: 1.6rem;
-      text-align: center;
+    .article-container {
+        max-width: auto;
+        margin: 0 auto;
     }
+    
+    .article-card {
+        background: linear-gradient(145deg, rgba(30, 30, 40, 0.95), rgba(20, 20, 30, 0.98));
+        border-radius: 25px;
+        border: 1px solid rgba(26, 163, 123, 0.2);
+        position: relative;
+        overflow: hidden;
+    }
+    
+    .article-card:before {
+        content: '';
+        position: absolute;
+        top: 0;
+        left: 0;
+        right: 0;
+        height: 5px;
+        background: linear-gradient(90deg, #1aa37b, #169168);
+        border-radius: 25px 25px 0 0;
+    }
+    
+    .article-title {
+        font-weight: 800;
+        font-size: 2rem;
+        background: linear-gradient(135deg, #fff 0%, #aaa 100%);
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+        background-clip: text;
+        line-height: 1.3;
+        position: relative;
+        padding-bottom: 15px;
+    }
+    
+    .article-title:after {
+        content: '';
+        position: absolute;
+        bottom: 0;
+        left: 0;
+        width: 120px;
+        height: 3px;
+        background: #1aa37b;
+        border-radius: 2px;
+    }
+    
+    .author-section {
+        display: flex;
+        align-items: center;
+        gap: 15px;
+        padding: 20px;
+        background: rgba(26, 163, 123, 0.05);
+        border-radius: 15px;
+        margin: 25px 0;
+    }
+    
+    .author-avatar {
+        width: 60px;
+        height: 60px;
+        background: linear-gradient(135deg, #1aa37b, #169168);
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 1.5rem;
+        color: white;
+        flex-shrink: 0;
+        transition: transform 0.3s ease;
+    }
+    
+    .author-avatar:hover {
+        transform: scale(1.05);
+    }
+    
+    .author-info h5 {
+        color: white;
+        font-weight: 600;
+        margin-bottom: 5px;
+    }
+    
+    .author-info p {
+        color: #aaa;
+        font-size: 0.9rem;
+        margin: 0;
+    }
+    
+    .meta-badges {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 10px;
+        margin-bottom: 25px;
+    }
+    
+    .category-badge {
+        background: linear-gradient(135deg, #1aa37b, #169168);
+        color: white;
+        padding: 6px 16px;
+        border-radius: 20px;
+        font-size: 0.9rem;
+        font-weight: 500;
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
+    }
+    
+    .date-badge {
+        background: rgba(255, 255, 255, 0.1);
+        color: #aaa;
+        padding: 6px 16px;
+        border-radius: 20px;
+        font-size: 0.9rem;
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
+    }
+    
     .article-content {
-      font-size: 1rem;
-      line-height: 1.7;
+        font-size: 1.1rem;
+        line-height: 1.8;
+        color: #e0e0e0;
     }
-    .d-flex.gap-3 {
-      justify-content: center;
-      width: 100%;
+    
+    .article-content img {
+        max-width: 100%;
+        height: auto;
+        border-radius: 12px;
+        margin: 25px 0;
+        box-shadow: 0 8px 20px rgba(0, 0, 0, 0.2);
     }
-  }
+    
+    .article-content iframe {
+        width: 100%;
+        aspect-ratio: 16 / 9;
+        border-radius: 12px;
+        margin: 25px 0;
+        box-shadow: 0 8px 20px rgba(0, 0, 0, 0.2);
+    }
+    
+    .article-content p {
+        margin-bottom: 1.5rem;
+    }
+    
+    .article-content h2, .article-content h3 {
+        color: white;
+        margin-top: 2rem;
+        margin-bottom: 1rem;
+        font-weight: 600;
+    }
+    
+    .article-content h2 {
+        font-size: 1.8rem;
+        border-left: 4px solid #1aa37b;
+        padding-left: 15px;
+    }
+    
+    .article-content h3 {
+        font-size: 1.5rem;
+        color: #1aa37b;
+    }
+    
+    .action-buttons {
+        display: flex;
+        gap: 15px;
+        margin: 30px 0;
+        padding: 20px;
+        background: rgba(255, 255, 255, 0.05);
+        border-radius: 15px;
+    }
+    
+    .action-btn {
+        background: transparent;
+        border: 2px solid rgba(26, 163, 123, 0.3);
+        color: #aaa;
+        padding: 10px 20px;
+        border-radius: 25px;
+        font-weight: 500;
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        transition: all 0.3s ease;
+    }
+    
+    .action-btn:hover {
+        background: #1aa37b;
+        color: white;
+        border-color: #1aa37b;
+        transform: translateY(-3px);
+        box-shadow: 0 5px 15px rgba(26, 163, 123, 0.3);
+    }
+    
+    .action-btn.liked {
+        background: #1aa37b;
+        color: white;
+        border-color: #1aa37b;
+    }
+    
+    .back-button {
+        background: transparent;
+        border: 2px solid #1aa37b;
+        color: #1aa37b;
+        padding: 12px 30px;
+        border-radius: 25px;
+        font-weight: 600;
+        display: inline-flex;
+        align-items: center;
+        gap: 10px;
+        transition: all 0.3s ease;
+        text-decoration: none;
+    }
+    
+    .back-button:hover {
+        background: #1aa37b;
+        color: white;
+        transform: translateY(-3px);
+        box-shadow: 0 5px 15px rgba(26, 163, 123, 0.3);
+    }
+    
+    .stats-section {
+        display: flex;
+        gap: 25px;
+        margin: 25px 0;
+        padding: 20px;
+        background: rgba(255, 255, 255, 0.05);
+        border-radius: 15px;
+    }
+    
+    .stat-item {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        gap: 5px;
+    }
+    
+    .stat-value {
+        font-weight: 700;
+        font-size: 1.5rem;
+        color: #1aa37b;
+    }
+    
+    .stat-label {
+        font-size: 0.85rem;
+        color: #aaa;
+        text-transform: uppercase;
+        letter-spacing: 1px;
+    }
+    
+    /* Responsive Design */
+    @media (max-width: 768px) {
+        .article-title {
+            font-size: 2rem;
+        }
+        
+        .author-section {
+            flex-direction: column;
+            text-align: center;
+        }
+        
+        .meta-badges {
+            justify-content: center;
+        }
+        
+        .action-buttons {
+            flex-direction: column;
+        }
+        
+        .stats-section {
+            flex-wrap: wrap;
+            justify-content: center;
+        }
+        
+        .article-content {
+            font-size: 1rem;
+        }
+    }
+    
+    /* Animation */
+    @keyframes fadeIn {
+        from {
+            opacity: 0;
+            transform: translateY(20px);
+        }
+        to {
+            opacity: 1;
+            transform: translateY(0);
+        }
+    }
+    
+    .article-card {
+        animation: fadeIn 0.6s ease-out;
+    }
 </style>
+
+<div class="container py-5">
+    <div class="article-container">
+        <div class="article-card p-4 p-md-5">
+            <!-- Article Title -->
+            <h1 class="article-title mb-4">{{ article.title }}</h1>
+            
+            <!-- Author Section -->
+            <div class="author-section">
+                <div class="author-avatar">
+                    <i class="bi bi-person-fill"></i>
+                </div>
+                <div class="author-info">
+                    <p style="font-weight: bold; font-size: 1rem;">{{ article.author.username }}</p>
+                    <p><i class="bi bi-award me-1"></i> Chess Journalist</p>
+                </div>
+            </div>
+            
+            <!-- Meta Information -->
+            <div class="meta-badges">
+                <span class="category-badge">
+                    <i class="bi bi-tag"></i> {{ article.category }}
+                </span>
+                <span class="date-badge">
+                    <i class="bi bi-calendar-event"></i> {{ article.created_at|date:"F j, Y" }}
+                </span>
+                {% if article.updated_at != article.created_at %}
+                <span class="date-badge">
+                    <i class="bi bi-arrow-clockwise"></i> Updated: {{ article.updated_at|date:"M j, Y" }}
+                </span>
+                {% endif %}
+            </div>
+            
+            <!-- Statistics -->
+            <div class="stats-section">
+                <div class="stat-item">
+                    <span class="stat-value">{{ article.views }}</span>
+                    <span class="stat-label">Views</span>
+                </div>
+                <div class="stat-item">
+                    <span class="stat-value">{{ article.comments.count }}</span>
+                    <span class="stat-label">Comments</span>
+                </div>
+                <!-- {% if article.likes.count %}
+                <div class="stat-item">
+                    <span class="stat-value">{{ article.likes.count }}</span>
+                    <span class="stat-label">Likes</span>
+                </div>
+                {% endif %} -->
+            </div>
+            
+            <!-- Article Content -->
+            <div class="article-content mt-4">
+                {{ article.content|safe }}
+            </div>
+            
+            <!-- Action Buttons -->
+            <div class="action-buttons">
+                <button class="action-btn like-btn" data-article-id="{{ article.id }}">
+                    <i class="bi bi-heart"></i>
+                    <span class="like-text">Like</span>
+                    <span class="like-count">({{ article.likes.count }})</span>
+                </button>
+                <button class="action-btn share-btn">
+                    <i class="bi bi-share"></i> Share
+                </button>
+                <button class="action-btn bookmark-btn">
+                    <i class="bi bi-bookmark"></i> Save
+                </button>
+            </div>
+            
+            <!-- Back Button -->
+            <div class="text-center mt-4">
+                <a href="{% url 'all_blogs' %}" class="back-button">
+                    <i class="bi bi-arrow-left"></i> Back to Blogs
+                </a>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        // Like button functionality
+        const likeBtn = document.querySelector('.like-btn');
+        if (likeBtn) {
+            likeBtn.addEventListener('click', function() {
+                const articleId = this.dataset.articleId;
+                const likeText = this.querySelector('.like-text');
+                const likeCount = this.querySelector('.like-count');
+                
+                // Toggle like state
+                if (this.classList.contains('liked')) {
+                    this.classList.remove('liked');
+                    likeText.textContent = 'Like';
+                    // Update count (decrement)
+                    const currentCount = parseInt(likeCount.textContent.match(/\d+/)[0]);
+                    likeCount.textContent = `(${currentCount - 1})`;
+                    showMessage('Article unliked', 'info');
+                } else {
+                    this.classList.add('liked');
+                    likeText.textContent = 'Liked';
+                    // Update count (increment)
+                    const currentCount = parseInt(likeCount.textContent.match(/\d+/)[0]);
+                    likeCount.textContent = `(${currentCount + 1})`;
+                    showMessage('Article liked!', 'success');
+                }
+                
+                // Here you would typically make an AJAX call to update the like in the database
+                // fetch(`/article/${articleId}/like/`, { method: 'POST' })
+                //   .then(response => response.json())
+                //   .then(data => console.log(data));
+            });
+        }
+        
+        // Share button functionality
+        const shareBtn = document.querySelector('.share-btn');
+        if (shareBtn) {
+            shareBtn.addEventListener('click', function() {
+                if (navigator.share) {
+                    navigator.share({
+                        title: '{{ article.title }}',
+                        text: 'Check out this interesting article!',
+                        url: window.location.href
+                    });
+                } else {
+                    // Fallback: Copy to clipboard
+                    navigator.clipboard.writeText(window.location.href).then(() => {
+                        showMessage('Link copied to clipboard!', 'success');
+                    });
+                }
+            });
+        }
+        
+        // Bookmark button functionality
+        const bookmarkBtn = document.querySelector('.bookmark-btn');
+        if (bookmarkBtn) {
+            bookmarkBtn.addEventListener('click', function() {
+                if (this.classList.contains('bookmarked')) {
+                    this.classList.remove('bookmarked');
+                    this.innerHTML = '<i class="bi bi-bookmark"></i> Save';
+                    showMessage('Article removed from bookmarks', 'info');
+                } else {
+                    this.classList.add('bookmarked');
+                    this.innerHTML = '<i class="bi bi-bookmark-fill"></i> Saved';
+                    showMessage('Article saved to bookmarks', 'success');
+                }
+            });
+        }
+        
+        // Simple notification function
+        function showMessage(message, type) {
+            // Create notification element
+            const notification = document.createElement('div');
+            notification.className = `alert alert-${type} alert-dismissible fade show position-fixed top-0 start-50 translate-middle-x mt-3`;
+            notification.style.zIndex = '9999';
+            notification.innerHTML = `
+                ${message}
+                <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+            `;
+            
+            // Add to document
+            document.body.appendChild(notification);
+            
+            // Auto remove after 3 seconds
+            setTimeout(() => {
+                notification.remove();
+            }, 3000);
+        }
+    });
+</script>
+
 {% endblock %}

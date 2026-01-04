@@ -65,10 +65,27 @@
         min-height: 300px;
     }
     .editor-header {
+        font-weight: 700;
         font-size: 1.5rem;
-        font-weight: bold;
-        margin-bottom: 1rem;
-        color: #f9f9f9;
+        margin-bottom: 2rem;
+        text-align: center;
+        background: linear-gradient(135deg, #fff 0%, #aaa 100%);
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+        background-clip: text;
+        position: relative;
+        padding-bottom: 15px;
+    }
+    .editor-header:after {
+        content: '';
+        position: absolute;
+        bottom: 0;
+        left: 50%;
+        transform: translateX(-50%);
+        width: 100px;
+        height: 4px;
+        background: #1aa37b;
+        border-radius: 2px;
     }
     .editor-container {
         padding: 1.5rem;
@@ -76,18 +93,26 @@
         box-shadow: 0 4px 6px rgba(0, 0,    0, 0.1);
         border: 1px solid #444;
     }
+    .form-group {
+        animation: fadeIn 0.5s ease;
+        animation-fill-mode: both;
+    }
+    
+    .form-group:nth-child(1) { animation-delay: 0.1s; }
+    .form-group:nth-child(2) { animation-delay: 0.2s; }
+    .form-group:nth-child(3) { animation-delay: 0.3s; }
 </style>
-<div class="container my-4">
+<div class="container py-4">
     <div class="editor-header">
         Edit & Create Blog
     </div>
     <div class="row g-4">
         <!-- Left side: Editor -->
-        <div class="col-lg-9 col-md-8">
+        <div class="col-lg-12 col-md-12">
             <div class="editor-container bg-dark text-white">
                 <form method="post" enctype="multipart/form-data">
                     {% csrf_token %}
-                    <div class="mb-3">
+                    <div class="form-group mb-3">
                         <label for="{{ form.title.id_for_label }}" class="form-label">
                             <i class="bi bi-type me-1"></i> Title
                         </label>
@@ -95,7 +120,7 @@
                     </div>
                     <div class="mb-3">
                         <label for="{{ form.image.id_for_label }}" class="btn btn-dark mb-2">
-                            <i class="bi bi-upload me-1"></i> Upload
+                            <i class="bi bi-upload me-1"></i> Cover Photo
                         </label>
                         {{ form.image }}
 
@@ -123,18 +148,6 @@
                 </form>
             </div>
         </div>
-
-        <!-- Right side: Sidebar -->
-        <div class="col-lg-3 col-md-4">
-            <div class="sidebar bg-dark p-3 rounded shadow-sm">
-                <h5><i class="bi bi-journal-text me-1"></i>{{ request.user.username }}'s Blog</h5>
-                <a href="#" class="blog"><i class="bi bi-person-lines-fill me-2"></i> My Blogs</a>
-                <a href="#" class="blog"><i class="bi bi-collection me-2"></i> All Blogs</a>
-                <!-- <a href="#"><i class="bi bi-bookmark-heart me-2"></i> Saved Drafts</a> -->
-                <!-- <a href="#"><i class="bi bi-gear me-2"></i> Settings</a> -->
-            </div>
-        </div>
-
     </div>
 </div>
 

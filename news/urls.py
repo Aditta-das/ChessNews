@@ -13,10 +13,15 @@ urlpatterns = [
     path('puzzles/mark_solved/<int:puzzle_id>/', views.mark_puzzle_solved, name='mark_puzzle_solved'),
     path('trainer/find-square/', views.find_the_square, name='find_the_square'),
     path('submit-premium/', views.submit_premium_request, name='submit_premium_request'),
-    path('games/', views.games, name='games'),
+    # path('games/', views.games, name='games'),
     path('progress/', views.progress_profile, name='progress'),
     path('edit-profile/', views.edit_profile, name='edit_profile'),
     path('login/', views.login_view, name='login'),
     path('logout/', views.logout_view, name='logout'),
+    #Trial game page
+    path('games/', views.game_page, name='game_page'),
+    path('all-games/', views.all_games, name='all_games'),
+    re_path(r"^game/(?P<slug>[-\w\u0980-\u09FF]+)/$", views.game_detail, name="game_detail"),
+    path('game/<slug:slug>/add-comment/', views.add_comment, name='add_comment'),
 ]
 

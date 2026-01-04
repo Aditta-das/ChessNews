@@ -7,7 +7,7 @@ from django.db.models.signals import post_save
 from django.dispatch import receiver
 from django.utils import timezone
 from datetime import timedelta
-import uuid
+import uuid, re
 
 
 class Category(models.Model):
@@ -293,3 +293,58 @@ def create_or_update_user_profile(sender, instance, created, **kwargs):
     else:
         # Ensure profile exists for existing users
         UserProfile.objects.get_or_create(user=instance)
+        
+        
+        
+# Trial Section for Uploaded Games with Moves and Comments, dont push to github yet
+
+class UploadedGame(models.Model):
+    title = models.CharField(max_length=255)
+    uploaded_by = models.ForeignKey(User, on_delete=models.CASCADE)
+    pgn = models.TextField()
+    white_player = models.CharField(max_length=255, blank=True, null=True)
+    black_player = models.CharField(max_length=255, blank=True, null=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+    slug_link = models.SlugField(unique=True, blank=True, max_length=255)
+
+    def save(self, *args, **kwargs):
+        # Auto-slug
+        if not self.slug_link:
+            base_slug = slugify(self.title)
+            unique_slug = base_slug
+            counter = 1
+            while UploadedGame.objects.filter(slug_link=unique_slug).exists():
+                unique_slug = f"{base_slug}-{counter}"
+                counter += 1
+            self.slug_link = unique_slug
+
+        # Extract White & Black from PGN
+        white = re.search(r'\[White\s+"([^"]+)"\]', self.pgn)
+        black = re.search(r'\[Black\s+"([^"]+)"\]', self.pgn)
+
+        if white:
+            self.white_player = white.group(1)
+        else:
+            self.white_player = "Player 1"
+
+        if black:
+            self.black_player = black.group(1)
+        else:
+            self.black_player = "Player 2"
+
+        super().save(*args, **kwargs)
+    def __str__(self):
+        return f"{self.title} by {self.uploaded_by.username}"
+    
+class GameComment(models.Model):
+    game = models.ForeignKey(UploadedGame, on_delete=models.CASCADE, related_name="comments")
+    user = models.ForeignKey(User, on_delete=models.CASCADE)
+    move_number = models.IntegerField()
+    comment = models.TextField()
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        ordering = ['move_number', 'created_at']
+
+    def __str__(self):
+        return f"{self.id} - {self.user} on move {self.move_number}"

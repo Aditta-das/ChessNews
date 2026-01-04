@@ -2,60 +2,405 @@
 {% load nw_filter %}
 {% block content %}
 
+<style>
+    .page-title {
+        font-weight: 700;
+        margin-bottom: 2.5rem;
+        text-align: center;
+        background: linear-gradient(135deg, #fff 0%, #aaa 100%);
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+        background-clip: text;
+        position: relative;
+        padding-bottom: 15px;
+    }
+    
+    .page-title:after {
+        content: '';
+        position: absolute;
+        bottom: 0;
+        left: 50%;
+        transform: translateX(-50%);
+        width: 100px;
+        height: 4px;
+        background: rgba(26, 163, 123, 1);
+        border-radius: 2px;
+    }
+    
+    .sidebar {
+        background: linear-gradient(145deg, rgba(30, 30, 40, 0.8), rgba(20, 20, 30, 0.9));
+        border-radius: 20px;
+        border: 1px solid rgba(26, 163, 123, 0.1);
+        position: relative;
+        overflow: hidden;
+    }
+    
+    .sidebar:before {
+        content: '';
+        position: absolute;
+        top: 0;
+        left: 0;
+        right: 0;
+        height: 4px;
+        background: #1aa37b;
+        border-radius: 20px 20px 0 0;
+    }
+    
+    .sidebar h5 {
+        color: #fff;
+        font-weight: 600;
+        font-size: 1.2rem;
+    }
+    
+    .sidebar a.blog {
+        display: flex;
+        align-items: center;
+        padding: 10px 15px;
+        color: #aaa;
+        text-decoration: none;
+        border-radius: 10px;
+        transition: all 0.3s ease;
+        margin-bottom: 8px;
+    }
+    
+    .sidebar a.blog:hover {
+        background: rgba(26, 163, 123, 0.1);
+        color: #fff;
+        transform: translateX(5px);
+    }
+    
+    .sidebar .btn-primary {
+        background: #1aa37b;
+        border: none;
+        border-radius: 50px;
+        font-weight: 500;
+        transition: all 0.3s ease;
+    }
+    
+    .sidebar .btn-primary:hover {
+        background: #169168;
+        transform: translateY(-2px);
+        box-shadow: 0 5px 15px rgba(26, 163, 123, 0.3);
+    }
+    
+    .blog-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(350px, 1fr));
+        gap: 1.5rem;
+    }
+    
+    .blog-card {
+        background: linear-gradient(145deg, rgba(30, 30, 40, 0.8), rgba(20, 20, 30, 0.9));
+        border-radius: 20px;
+        overflow: hidden;
+        transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+        border: 1px solid rgba(26, 163, 123, 0.1);
+        position: relative;
+        height: 100%;
+        display: flex;
+        flex-direction: column;
+        text-decoration: none !important;
+        color: white !important;
+    }
+    
+    .blog-card:hover {
+        transform: translateY(-10px);
+        box-shadow: 0 15px 35px rgba(26, 163, 123, 0.2),
+                    0 5px 15px rgba(0, 0, 0, 0.3);
+        border-color: rgba(26, 163, 123, 0.3);
+    }
+    
+    .blog-card:before {
+        content: '';
+        position: absolute;
+        top: 0;
+        left: 0;
+        right: 0;
+        height: 4px;
+        background: #1aa37b;
+        border-radius: 20px 20px 0 0;
+    }
+    
+    .blog-image {
+        height: 220px;
+        object-fit: cover;
+        width: 100%;
+    }
+    
+    .blog-body {
+        padding: 1.5rem;
+        flex-grow: 1;
+        display: flex;
+        flex-direction: column;
+    }
+    
+    .blog-title {
+        font-size: 1.4rem;
+        font-weight: 600;
+        margin: 0 0 1rem 0;
+        color: #fff;
+        line-height: 1.3;
+        display: -webkit-box;
+        -webkit-line-clamp: 2;
+        -webkit-box-orient: vertical;
+        overflow: hidden;
+    }
+    
+    .blog-meta {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 10px;
+        font-size: 0.85rem;
+        color: #aaa;
+        margin-bottom: 1rem;
+    }
+    
+    .blog-meta span {
+        display: flex;
+        align-items: center;
+        gap: 5px;
+    }
+    
+    .blog-meta i {
+        color: #1aa37b;
+    }
+    
+    .blog-content {
+        color: #e0e0e0;
+        line-height: 1.6;
+        flex-grow: 1;
+        display: -webkit-box;
+        -webkit-line-clamp: 3;
+        -webkit-box-orient: vertical;
+        overflow: hidden;
+    }
+    
+    .blog-footer {
+        padding: 1rem 1.5rem;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        border-top: 1px solid rgba(255, 255, 255, 0.1);
+        margin-top: auto;
+    }
+    
+    .blog-stats {
+        display: flex;
+        gap: 15px;
+    }
+    
+    .blog-stat {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        gap: 2px;
+    }
+    
+    .stat-value {
+        font-weight: 600;
+        color: #1aa37b;
+        font-size: 1rem;
+    }
+    
+    .stat-label {
+        font-size: 0.75rem;
+        color: #aaa;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+    }
+    
+    .empty-blogs {
+        text-align: center;
+        padding: 4rem 2rem;
+        grid-column: 1 / -1;
+    }
+    
+    .empty-icon {
+        font-size: 4rem;
+        color: #1aa37b;
+        margin-bottom: 1.5rem;
+        opacity: 0.5;
+    }
+    
+    .empty-blogs h3 {
+        font-size: 1.8rem;
+        margin-bottom: 1rem;
+        color: #fff;
+    }
+    
+    .empty-blogs p {
+        color: #aaa;
+        max-width: 500px;
+        margin: 0 auto 2rem;
+    }
+    
+    .create-btn {
+        background: #1aa37b;
+        color: white;
+        border: none;
+        padding: 0.8rem 2rem;
+        border-radius: 50px;
+        font-size: 1rem;
+        font-weight: 500;
+        display: inline-flex;
+        align-items: center;
+        gap: 0.5rem;
+        transition: all 0.3s ease;
+        text-decoration: none;
+    }
+    
+    .create-btn:hover {
+        transform: translateY(-3px);
+        box-shadow: 0 10px 25px rgba(26, 163, 123, 0.4);
+        color: white;
+    }
+    
+    /* Responsive adjustments */
+    @media (max-width: 768px) {
+        .blog-grid {
+            grid-template-columns: 1fr;
+            gap: 1rem;
+        }
+        
+        .sidebar {
+            margin-bottom: 1.5rem;
+        }
+    }
+    
+    /* Animation for card loading */
+    @keyframes fadeInUp {
+        from {
+            opacity: 0;
+            transform: translateY(20px);
+        }
+        to {
+            opacity: 1;
+            transform: translateY(0);
+        }
+    }
+    
+    .blog-card {
+        animation: fadeInUp 0.6s ease-out;
+        animation-fill-mode: both;
+    }
+    
+    .blog-card:nth-child(1) { animation-delay: 0.1s; }
+    .blog-card:nth-child(2) { animation-delay: 0.2s; }
+    .blog-card:nth-child(3) { animation-delay: 0.3s; }
+    .blog-card:nth-child(4) { animation-delay: 0.4s; }
+    .blog-card:nth-child(5) { animation-delay: 0.5s; }
+    .blog-card:nth-child(6) { animation-delay: 0.6s; }
+</style>
+
 <div class="container my-4">
+    <h4 class="page-title">Blog Community</h4>
+    
     <div class="row g-4">
         {% if request.user.is_authenticated %}
+        <!-- Sidebar -->
         <div class="col-lg-3 col-md-4 order-1 order-md-2">
-            <div class="sidebar bg-dark p-3 rounded shadow-sm">
-                <h5 class="mb-3"><i class="bi bi-journal-text me-1"></i>{{ request.user.username }}'s Blog</h5>
-                <a href="{% url 'user_blogs' request.user.username %}" class="d-block mb-2 blog"><i class="bi bi-person-lines-fill me-2"></i> My Blogs</a>
-                <a href="{% url 'all_blogs' %}" class="d-block mb-2 blog"><i class="bi bi-collection me-2"></i> All Blogs</a>
-                <a href="{% url 'write_article' %}" class="btn btn-primary btn-sm mt-3"
-                    style="width: 100%; font-size: 1rem;">Create a post</a>
+            <div class="sidebar p-4">
+                <h5 class="mb-4"><i class="bi bi-journal-text me-2"></i>{{ request.user.username }}'s Blog</h5>
+                <a href="{% url 'user_blogs' request.user.username %}" class="blog">
+                    <i class="bi bi-person-lines-fill me-2"></i> My Blogs
+                </a>
+                <a href="{% url 'all_blogs' %}" class="blog">
+                    <i class="bi bi-collection me-2"></i> All Blogs
+                </a>
+                <a href="{% url 'write_article' %}" class="btn btn-primary btn-md mt-4">
+                    <i class="bi bi-plus-circle me-2"></i>Create Post
+                </a>
             </div>
         </div>
         {% else %}
+        <!-- Sidebar for non-authenticated users -->
         <div class="col-lg-3 col-md-4 order-1 order-md-2">
-            <div class="sidebar bg-dark p-3 rounded shadow-sm">
-                <a href="{% url 'write_article' %}" class="btn btn-primary btn-sm"
-                    style="width: 100%; font-size: 1rem;">Signup</a>
+            <div class="sidebar p-4 text-center">
+                <h5 class="mb-4"><i class="bi bi-journal-text me-2"></i>Join Our Community</h5>
+                <a href="{% url 'register' %}" class="btn btn-primary btn-md" style="width: 100%;">
+                    <i class="bi bi-person-plus me-2"></i>Sign Up
+                </a>
+                <p class="text-muted small mt-3 mb-2">Or</p>
+                <a href="{% url 'login' %}" class="btn btn-outline-light btn-sm" style="width: 100%;">
+                    <i class="bi bi-box-arrow-in-right me-2"></i>Login
+                </a>
             </div>
         </div>
         {% endif %}
 
         <!-- Main Blogs Section -->
         <div class="col-lg-9 col-md-8 order-2 order-md-1">
-            <div class="row g-4">
+            {% if blogs %}
+            <div class="blog-grid">
                 {% for blog in blogs %}
-                <div class="col-lg-6 col-md-6 col-sm-12">
-                    <div class="card bg-dark text-white h-100 border-0 shadow-sm">
-                        {% if blog.image %}
-                        <img src="{{ blog.image.url }}" class="card-img-top" alt="{{ blog.title }}"
-                            style="height:220px; object-fit:cover;">
-                        {% endif %}
-                        <div class="card-body">
-                            <h5 style="font-weight: 800;">
-                                <a href="{% url 'article_detail' slug=blog.slug %}"
-                                   class="text-decoration-none text-light stretched-link">
-                                    {{ blog.title }}
-                                </a>
-                            </h5>
-                            <div class="d-flex flex-wrap text-muted small mb-2">
-                                <span class="me-3"><i class="bi bi-person-fill"></i> {{ blog.author.username }}</span>
-                                <span class="me-3"><i class="bi bi-calendar-event"></i> {{ blog.created_at|date:"M d, Y" }}</span>
-                                <span class="me-3"><i class="bi bi-eye"></i> {{ blog.views }}</span>
-                                <span><i class="bi bi-chat-dots"></i> {{ blog.comments.count }}</span>
-                            </div>
-                            <p class="card-text">{{ blog.content|remove_img_tags|truncatewords:25|safe }}</p>
-                        </div>
+                <a href="{% url 'article_detail' slug=blog.slug %}" class="blog-card">
+                    {% if blog.image %}
+                    <img src="{{ blog.image.url }}" class="blog-image" alt="{{ blog.title }}">
+                    {% else %}
+                    <div class="blog-image" style="background: linear-gradient(135deg, #1aa37b, #169168); display: flex; align-items: center; justify-content: center;">
+                        <i class="bi bi-journal-text" style="font-size: 3rem; color: white; opacity: 0.7;"></i>
                     </div>
-                </div>
-                {% empty %}
-                <p>No blogs available yet.</p>
+                    {% endif %}
+                    
+                    <div class="blog-body">
+                        <h5 class="blog-title">{{ blog.title }}</h5>
+                        
+                        <div class="blog-meta">
+                            <span><i class="bi bi-person-fill"></i> {{ blog.author.username }}</span>
+                            <!-- <span><i class="bi bi-calendar-event"></i> {{ blog.created_at|date:"M d, Y" }}</span>
+                            <span><i class="bi bi-eye"></i> {{ blog.views }}</span>
+                            <span><i class="bi bi-chat-dots"></i> {{ blog.comments.count }}</span> -->
+                        </div>
+                        
+                        <p class="blog-content">{{ blog.content|remove_img_tags|truncatewords:30|safe }}</p>
+                    </div>
+                    
+                    <div class="blog-footer">
+                        <div class="blog-stats">
+                            <div class="blog-stat">
+                                <span class="stat-value">{{ blog.views }}</span>
+                                <span class="stat-label">Views</span>
+                            </div>
+                            <div class="blog-stat">
+                                <span class="stat-value">{{ blog.comments.count }}</span>
+                                <span class="stat-label">Comments</span>
+                            </div>
+                            {% if blog.likes.count %}
+                            <div class="blog-stat">
+                                <span class="stat-value">{{ blog.likes.count }}</span>
+                                <span class="stat-label">Likes</span>
+                            </div>
+                            {% endif %}
+                        </div>
+                        <span class="view-blog-btn">
+                            <i class="bi bi-arrow-right"></i>
+                        </span>
+                    </div>
+                </a>
                 {% endfor %}
             </div>
+            {% else %}
+            <!-- Empty State -->
+            <div class="empty-blogs">
+                <div class="empty-icon">
+                    <i class="bi bi-journal-text"></i>
+                </div>
+                <h3>No Blogs Available Yet</h3>
+                <p>Be the first to share your thoughts! Write a blog post to start discussing with the community.</p>
+                {% if user.is_authenticated %}
+                <a href="{% url 'write_article' %}" class="create-btn">
+                    <i class="bi bi-pencil-square me-2"></i>
+                    Write First Blog
+                </a>
+                {% else %}
+                <a href="{% url 'register' %}" class="create-btn">
+                    <i class="bi bi-person-plus me-2"></i>
+                    Join to Write
+                </a>
+                {% endif %}
+            </div>
+            {% endif %}
         </div>
-
     </div>
 </div>
 

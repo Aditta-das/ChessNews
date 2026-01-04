@@ -78,3 +78,10 @@ class TicketAdmin(admin.ModelAdmin):
             'fields': ('purchase_date',),
         }),
     )
+    
+    
+# Trial
+from .models import UploadedGame, GameComment
+
+admin.site.register(UploadedGame)
+admin.site.register(GameComment)

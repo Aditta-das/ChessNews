@@ -1,0 +1,34 @@
+{% extends 'news/base.html' %}
+{% load static %}
+{% load widget_tweaks %}
+{% block content %}
+<div class="container py-4 text-white">
+
+    <!-- Upload Card -->
+    <div class="card bg-dark bg-opacity-50 border-0 shadow-sm p-3 mx-auto" style="max-width: 600px;">
+        <h5 class="card-title mb-3 text-center">Upload a Game</h5>
+        <form method="POST">
+            {% csrf_token %}
+            
+            <!-- Title -->
+            <div class="mb-2">
+                {{ game_form.title.label_tag }}
+                {{ game_form.title|add_class:"form-control form-control-sm" }}
+            </div>
+
+            <!-- PGN -->
+            <div class="mb-2">
+                {{ game_form.pgn.label_tag }}
+                {{ game_form.pgn|add_class:"form-control form-control-sm" }}
+                <small class="text-muted">You can add comments in PGN like {Your comment here}</small>
+            </div>
+
+            <!-- Submit -->
+            <div class="text-center">
+                <button type="submit" name="upload_game" class="btn btn-sm btn-primary w-50">Upload</button>
+            </div>
+        </form>
+    </div>
+
+</div>
+{% endblock %}
