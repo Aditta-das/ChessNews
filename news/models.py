@@ -24,7 +24,8 @@ class Article(models.Model):
     image = models.ImageField(upload_to='articles/', blank=True, null=True)
     published_at = models.DateTimeField(auto_now_add=True)
     is_big_news = models.BooleanField(default=False)
-
+    likes = models.ManyToManyField(User, related_name="liked_articles", blank=True)
+    
     def save(self, *args, **kwargs):
         if self.is_big_news:
         # Unmark all other articles
@@ -348,3 +349,14 @@ class GameComment(models.Model):
 
     def __str__(self):
         return f"{self.id} - {self.user} on move {self.move_number}"
+
+
+class Events(models.Model):
+    title = models.CharField(max_length=200)
+    description = models.TextField(null=True, blank=True)
+    start = models.DateTimeField()
+    end = models.DateTimeField()
+    
+    
+    def __str__(self):
+        return self.title

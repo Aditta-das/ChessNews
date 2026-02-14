@@ -15,6 +15,7 @@
         rel="stylesheet">
 
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/lipis/flag-icons@7.3.2/css/flag-icons.min.css" />
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
 
     <link rel="icon" type="image/png" href="/static/knight.png">
 
@@ -1024,7 +1025,6 @@
     <nav class="navbar navbar-expand-lg navbar-dark mb-3 py-2">
         <div class="container">
             <a class="navbar-brand d-flex align-items-center" href="{% url 'home' %}">
-                <i class="fas fa-chess-knight me-2" style="font-size: 1.8rem;"></i>
                 <span class="logo-text">
                     <span class="logo-main">GM</span>
                     <span class="logo-sub">Bangladesh</span>
@@ -1037,36 +1037,31 @@
                 <ul class="navbar-nav ms-auto">
                     <li class="nav-item mx-1">
                         <a class="nav-link position-relative px-3" href="{% url 'all_games' %}">
-                            <i class="fas fa-book me-1"></i>
                             Games
                             <span class="nav-link-underline"></span>
                         </a>
                     </li>
                     <li class="nav-item mx-1">
-                        <a class="nav-link position-relative px-3" href="{% url 'all_blogs' %}">
-                            <i class="fas fa-pen-fancy me-1"></i>
-                            Blogs
+                        <a class="nav-link position-relative px-3" href="{% url 'all_events' %}">
+                            Events
                             <span class="nav-link-underline"></span>
                         </a>
                     </li>
                     <li class="nav-item mx-1">
                         <a class="nav-link position-relative px-3" href="{% url 'puzzle_list' %}">
-                            <i class="fas fa-heart me-1"></i>
                             Tactics
                             <span class="nav-link-underline"></span>
                         </a>
                     </li>
                     <li class="nav-item mx-1">
-                        <a class="nav-link position-relative px-3" href="{% url 'find_the_square' %}">
-                            <i class="fas fa-heart me-1"></i>
-                            Vision
+                        <a class="nav-link position-relative px-3" href="{% url 'all_blogs' %}">
+                            Blogs
                             <span class="nav-link-underline"></span>
                         </a>
                     </li>
                     <li class="nav-item mx-1">
                         <a class="nav-link position-relative px-3" href="#" data-bs-toggle="modal"
                             data-bs-target="#qrSupportModal">
-                            <i class="fas fa-heart me-1"></i>
                             Support Us
                             <span class="nav-link-underline"></span>
                         </a>
@@ -1081,6 +1076,12 @@
                             <li>
                                 <a class="dropdown-item" href="{% url 'progress' %}">
                                     <i class="bi bi-person-badge text-primary me-2"></i>Profile
+                                </a>
+                            </li>
+                            <hr>
+                            <li>
+                                <a class="dropdown-item" href="{% url 'find_the_square' %}">
+                                    <i class="bi bi-bullseye text-danger me-2"></i>Vision
                                 </a>
                             </li>
                             <hr>
@@ -1119,7 +1120,6 @@
                         </a>
                     </li>
                     {% endif %}
-
                 </ul>
             </div>
         </div>
@@ -1127,6 +1127,13 @@
 
     <div class="container content">
         {% block content %}{% endblock %}
+        <footer class="footer-text text-center mt-4">
+        </footer>
+        <script>
+            const footer = document.querySelector('.footer-text');
+            const currentYear = new Date().getFullYear();
+            footer.textContent = `© ${currentYear} GM Bangladesh. All rights reserved.`;
+        </script>
     </div>
 
     <!-- Support Us QR Modal -->
@@ -1178,6 +1185,7 @@
     </div>
 
     <script>
+               
         window.addEventListener('DOMContentLoaded', function () {
             // Check if banner has been shown in this session
             if (!sessionStorage.getItem('bannerShown_{{ banner.id|default:0 }}')) {
@@ -1202,6 +1210,7 @@
     </script>
     {% endif %}
     <script src="{% static 'bootstrap.bundle.min.js' %}"></script>
+    <script src="{% static 'index.global.min.js' %}"></script>
 </body>
 
 </html>

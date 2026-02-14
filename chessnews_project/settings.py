@@ -289,3 +289,22 @@ EMAIL_HOST_USER = 'adittadas00@gmail.com'
 EMAIL_HOST_PASSWORD = 'puqhleijelwcudes'
 
 
+# Cache configuration
+CACHES = {
+    'default': {
+        'BACKEND': 'django.core.cache.backends.locmem.LocMemCache',
+        'LOCATION': 'unique-snowflake',
+        'TIMEOUT': 300,  # 5 minutes default timeout
+        'OPTIONS': {
+            'MAX_ENTRIES': 1000
+        }
+    }
+}
+
+# For production, consider using Redis or Memcached:
+# CACHES = {
+#     'default': {
+#         'BACKEND': 'django.core.cache.backends.redis.RedisCache',
+#         'LOCATION': 'redis://127.0.0.1:6379',
+#     }
+# }

@@ -7,6 +7,7 @@ urlpatterns = [
     path('blogs/user/<str:username>/', views.user_blogs, name='user_blogs'),
     path('write-article/', views.create_article, name='write_article'),
     re_path(r"^article/(?P<slug>[-\w\u0980-\u09FF]+)/$", views.article_detail, name="article_detail"),
+    re_path(r"^article/(?P<slug>[-\w\u0980-\u09FF]+)/like/$", views.toggle_like, name="toggle_like"),
     path('books/', views.book_list, name='book_list'),
     path('puzzles/', views.puzzle_list, name='puzzle_list'),
     path('buy-premium/', views.buy_premium, name='buy_premium'),
@@ -23,5 +24,11 @@ urlpatterns = [
     path('all-games/', views.all_games, name='all_games'),
     re_path(r"^game/(?P<slug>[-\w\u0980-\u09FF]+)/$", views.game_detail, name="game_detail"),
     path('game/<slug:slug>/add-comment/', views.add_comment, name='add_comment'),
+    path("analyze/", views.analyze_position),
+    path("search-games/", views.search_games, name="search_games"),
+    path('event/', views.all_events, name='all_events'),
+    path("events/", views.events_json, name="events_json"),
+    path("add-event/", views.add_event, name="add_event"),
+
 ]
 

@@ -11,7 +11,7 @@
         max-width: auto;
         margin: 0 auto;
     }
-    
+
     .article-card {
         background: linear-gradient(145deg, rgba(30, 30, 40, 0.95), rgba(20, 20, 30, 0.98));
         border-radius: 25px;
@@ -19,7 +19,7 @@
         position: relative;
         overflow: hidden;
     }
-    
+
     .article-card:before {
         content: '';
         position: absolute;
@@ -30,7 +30,7 @@
         background: linear-gradient(90deg, #1aa37b, #169168);
         border-radius: 25px 25px 0 0;
     }
-    
+
     .article-title {
         font-weight: 800;
         font-size: 2rem;
@@ -42,7 +42,7 @@
         position: relative;
         padding-bottom: 15px;
     }
-    
+
     .article-title:after {
         content: '';
         position: absolute;
@@ -53,7 +53,7 @@
         background: #1aa37b;
         border-radius: 2px;
     }
-    
+
     .author-section {
         display: flex;
         align-items: center;
@@ -63,7 +63,7 @@
         border-radius: 15px;
         margin: 25px 0;
     }
-    
+
     .author-avatar {
         width: 60px;
         height: 60px;
@@ -77,30 +77,30 @@
         flex-shrink: 0;
         transition: transform 0.3s ease;
     }
-    
+
     .author-avatar:hover {
         transform: scale(1.05);
     }
-    
+
     .author-info h5 {
         color: white;
         font-weight: 600;
         margin-bottom: 5px;
     }
-    
+
     .author-info p {
         color: #aaa;
         font-size: 0.9rem;
         margin: 0;
     }
-    
+
     .meta-badges {
         display: flex;
         flex-wrap: wrap;
         gap: 10px;
         margin-bottom: 25px;
     }
-    
+
     .category-badge {
         background: linear-gradient(135deg, #1aa37b, #169168);
         color: white;
@@ -112,7 +112,7 @@
         align-items: center;
         gap: 6px;
     }
-    
+
     .date-badge {
         background: rgba(255, 255, 255, 0.1);
         color: #aaa;
@@ -123,13 +123,13 @@
         align-items: center;
         gap: 6px;
     }
-    
+
     .article-content {
         font-size: 1.1rem;
         line-height: 1.8;
         color: #e0e0e0;
     }
-    
+
     .article-content img {
         max-width: 100%;
         height: auto;
@@ -137,7 +137,7 @@
         margin: 25px 0;
         box-shadow: 0 8px 20px rgba(0, 0, 0, 0.2);
     }
-    
+
     .article-content iframe {
         width: 100%;
         aspect-ratio: 16 / 9;
@@ -145,29 +145,30 @@
         margin: 25px 0;
         box-shadow: 0 8px 20px rgba(0, 0, 0, 0.2);
     }
-    
+
     .article-content p {
         margin-bottom: 1.5rem;
     }
-    
-    .article-content h2, .article-content h3 {
+
+    .article-content h2,
+    .article-content h3 {
         color: white;
         margin-top: 2rem;
         margin-bottom: 1rem;
         font-weight: 600;
     }
-    
+
     .article-content h2 {
         font-size: 1.8rem;
         border-left: 4px solid #1aa37b;
         padding-left: 15px;
     }
-    
+
     .article-content h3 {
         font-size: 1.5rem;
         color: #1aa37b;
     }
-    
+
     .action-buttons {
         display: flex;
         gap: 15px;
@@ -176,7 +177,7 @@
         background: rgba(255, 255, 255, 0.05);
         border-radius: 15px;
     }
-    
+
     .action-btn {
         background: transparent;
         border: 2px solid rgba(26, 163, 123, 0.3);
@@ -189,7 +190,7 @@
         gap: 8px;
         transition: all 0.3s ease;
     }
-    
+
     .action-btn:hover {
         background: #1aa37b;
         color: white;
@@ -197,13 +198,13 @@
         transform: translateY(-3px);
         box-shadow: 0 5px 15px rgba(26, 163, 123, 0.3);
     }
-    
+
     .action-btn.liked {
         background: #1aa37b;
         color: white;
         border-color: #1aa37b;
     }
-    
+
     .back-button {
         background: transparent;
         border: 2px solid #1aa37b;
@@ -217,14 +218,14 @@
         transition: all 0.3s ease;
         text-decoration: none;
     }
-    
+
     .back-button:hover {
         background: #1aa37b;
         color: white;
         transform: translateY(-3px);
         box-shadow: 0 5px 15px rgba(26, 163, 123, 0.3);
     }
-    
+
     .stats-section {
         display: flex;
         gap: 25px;
@@ -233,68 +234,69 @@
         background: rgba(255, 255, 255, 0.05);
         border-radius: 15px;
     }
-    
+
     .stat-item {
         display: flex;
         flex-direction: column;
         align-items: center;
         gap: 5px;
     }
-    
+
     .stat-value {
         font-weight: 700;
         font-size: 1.5rem;
         color: #1aa37b;
     }
-    
+
     .stat-label {
         font-size: 0.85rem;
         color: #aaa;
         text-transform: uppercase;
         letter-spacing: 1px;
     }
-    
+
     /* Responsive Design */
     @media (max-width: 768px) {
         .article-title {
             font-size: 2rem;
         }
-        
+
         .author-section {
             flex-direction: column;
             text-align: center;
         }
-        
+
         .meta-badges {
             justify-content: center;
         }
-        
+
         .action-buttons {
             flex-direction: column;
         }
-        
+
         .stats-section {
             flex-wrap: wrap;
             justify-content: center;
         }
-        
+
         .article-content {
             font-size: 1rem;
         }
     }
-    
+
     /* Animation */
     @keyframes fadeIn {
         from {
             opacity: 0;
             transform: translateY(20px);
         }
+
         to {
             opacity: 1;
             transform: translateY(0);
         }
     }
-    
+
     .article-card {
         animation: fadeIn 0.6s ease-out;
     }
@@ -305,7 +307,7 @@
         <div class="article-card p-4 p-md-5">
             <!-- Article Title -->
             <h1 class="article-title mb-4">{{ article.title }}</h1>
-            
+
             <!-- Author Section -->
             <div class="author-section">
                 <div class="author-avatar">
@@ -316,7 +318,7 @@
                     <p><i class="bi bi-award me-1"></i> Chess Journalist</p>
                 </div>
             </div>
-            
+
             <!-- Meta Information -->
             <div class="meta-badges">
                 <span class="category-badge">
@@ -331,45 +333,30 @@
                 </span>
                 {% endif %}
             </div>
-            
-            <!-- Statistics -->
-            <div class="stats-section">
-                <div class="stat-item">
-                    <span class="stat-value">{{ article.views }}</span>
-                    <span class="stat-label">Views</span>
-                </div>
-                <div class="stat-item">
-                    <span class="stat-value">{{ article.comments.count }}</span>
-                    <span class="stat-label">Comments</span>
-                </div>
-                <!-- {% if article.likes.count %}
-                <div class="stat-item">
-                    <span class="stat-value">{{ article.likes.count }}</span>
-                    <span class="stat-label">Likes</span>
-                </div>
-                {% endif %} -->
-            </div>
-            
+
             <!-- Article Content -->
             <div class="article-content mt-4">
                 {{ article.content|safe }}
             </div>
-            
+
             <!-- Action Buttons -->
             <div class="action-buttons">
-                <button class="action-btn like-btn" data-article-id="{{ article.id }}">
-                    <i class="bi bi-heart"></i>
-                    <span class="like-text">Like</span>
+                <button class="action-btn like-btn {% if user in article.likes.all %}liked{% endif %}"
+                    data-slug="{{ article.slug }}">
+                    <i class="bi bi-heart{% if user in article.likes.all %}-fill{% endif %}"></i>
+                    <span class="like-text">
+                        {% if user in article.likes.all %}Liked{% else %}Like{% endif %}
+                    </span>
                     <span class="like-count">({{ article.likes.count }})</span>
                 </button>
                 <button class="action-btn share-btn">
                     <i class="bi bi-share"></i> Share
                 </button>
-                <button class="action-btn bookmark-btn">
+                <!-- <button class="action-btn bookmark-btn">
                     <i class="bi bi-bookmark"></i> Save
-                </button>
+                </button> -->
             </div>
-            
+
             <!-- Back Button -->
             <div class="text-center mt-4">
                 <a href="{% url 'all_blogs' %}" class="back-button">
@@ -381,15 +368,15 @@
 </div>
 
 <script>
-    document.addEventListener('DOMContentLoaded', function() {
+    document.addEventListener('DOMContentLoaded', function () {
         // Like button functionality
         const likeBtn = document.querySelector('.like-btn');
         if (likeBtn) {
-            likeBtn.addEventListener('click', function() {
+            likeBtn.addEventListener('click', function () {
                 const articleId = this.dataset.articleId;
                 const likeText = this.querySelector('.like-text');
                 const likeCount = this.querySelector('.like-count');
-                
+
                 // Toggle like state
                 if (this.classList.contains('liked')) {
                     this.classList.remove('liked');
@@ -397,27 +384,25 @@
                     // Update count (decrement)
                     const currentCount = parseInt(likeCount.textContent.match(/\d+/)[0]);
                     likeCount.textContent = `(${currentCount - 1})`;
-                    showMessage('Article unliked', 'info');
                 } else {
                     this.classList.add('liked');
                     likeText.textContent = 'Liked';
                     // Update count (increment)
                     const currentCount = parseInt(likeCount.textContent.match(/\d+/)[0]);
                     likeCount.textContent = `(${currentCount + 1})`;
-                    showMessage('Article liked!', 'success');
                 }
-                
+
                 // Here you would typically make an AJAX call to update the like in the database
                 // fetch(`/article/${articleId}/like/`, { method: 'POST' })
                 //   .then(response => response.json())
                 //   .then(data => console.log(data));
             });
         }
-        
+
         // Share button functionality
         const shareBtn = document.querySelector('.share-btn');
         if (shareBtn) {
-            shareBtn.addEventListener('click', function() {
+            shareBtn.addEventListener('click', function () {
                 if (navigator.share) {
                     navigator.share({
                         title: '{{ article.title }}',
@@ -427,28 +412,28 @@
                 } else {
                     // Fallback: Copy to clipboard
                     navigator.clipboard.writeText(window.location.href).then(() => {
-                        showMessage('Link copied to clipboard!', 'success');
+                        // showMessage('Link copied to clipboard!', 'success');
                     });
                 }
             });
         }
-        
+
         // Bookmark button functionality
-        const bookmarkBtn = document.querySelector('.bookmark-btn');
-        if (bookmarkBtn) {
-            bookmarkBtn.addEventListener('click', function() {
-                if (this.classList.contains('bookmarked')) {
-                    this.classList.remove('bookmarked');
-                    this.innerHTML = '<i class="bi bi-bookmark"></i> Save';
-                    showMessage('Article removed from bookmarks', 'info');
-                } else {
-                    this.classList.add('bookmarked');
-                    this.innerHTML = '<i class="bi bi-bookmark-fill"></i> Saved';
-                    showMessage('Article saved to bookmarks', 'success');
-                }
-            });
-        }
-        
+        // const bookmarkBtn = document.querySelector('.bookmark-btn');
+        // if (bookmarkBtn) {
+        //     bookmarkBtn.addEventListener('click', function() {
+        //         if (this.classList.contains('bookmarked')) {
+        //             this.classList.remove('bookmarked');
+        //             this.innerHTML = '<i class="bi bi-bookmark"></i> Save';
+        //             showMessage('Article removed from bookmarks', 'info');
+        //         } else {
+        //             this.classList.add('bookmarked');
+        //             this.innerHTML = '<i class="bi bi-bookmark-fill"></i> Saved';
+        //             showMessage('Article saved to bookmarks', 'success');
+        //         }
+        //     });
+        // }
+
         // Simple notification function
         function showMessage(message, type) {
             // Create notification element
@@ -459,14 +444,43 @@
                 ${message}
                 <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
             `;
-            
+
             // Add to document
             document.body.appendChild(notification);
-            
+
             // Auto remove after 3 seconds
             setTimeout(() => {
                 notification.remove();
             }, 3000);
+        }
+    });
+
+
+    document.addEventListener('DOMContentLoaded', function () {
+
+        const likeBtn = document.querySelector('.like-btn');
+
+        if (likeBtn) {
+            likeBtn.addEventListener('click', function () {
+
+                const slug = this.dataset.slug;
+
+                fetch(`/article/${slug}/like/`)
+                    .then(res => res.json())
+                    .then(data => {
+
+                        this.classList.toggle("liked", data.liked);
+
+                        this.querySelector(".like-text").textContent =
+                            data.liked ? "Liked" : "Like";
+
+                        this.querySelector(".like-count").textContent =
+                            `(${data.like_count})`;
+
+                        this.querySelector("i").className =
+                            data.liked ? "bi bi-heart-fill" : "bi bi-heart";
+                    });
+            });
         }
     });
 </script>

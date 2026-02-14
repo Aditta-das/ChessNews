@@ -1,7 +1,8 @@
 from django.contrib import admin
 from .models import Article, \
     Category, TopPlayerImg, TournamentBanner, BangladeshiTopPlayer, \
-    Book, Puzzle, EmailOTP, Quote, PuzzleSolve, UserProfile, BoardVision, Tournament, Ticket
+    Book, Puzzle, EmailOTP, Quote, PuzzleSolve, UserProfile, BoardVision, \
+        Tournament, Ticket, UploadedGame, GameComment, Events
 
 admin.site.site_header = "ChessBD AdminPanel"
 admin.site.site_title = "ChessBD"
@@ -13,6 +14,8 @@ admin.site.register(TopPlayerImg)
 admin.site.register(TournamentBanner)
 admin.site.register(BangladeshiTopPlayer)
 admin.site.register(Book)
+
+
 @admin.register(Puzzle)
 class PuzzleAdmin(admin.ModelAdmin):
     ordering = ['id']
@@ -80,8 +83,7 @@ class TicketAdmin(admin.ModelAdmin):
     )
     
     
-# Trial
-from .models import UploadedGame, GameComment
 
 admin.site.register(UploadedGame)
 admin.site.register(GameComment)
+admin.site.register(Events)

@@ -6,6 +6,7 @@
 <script src="{% static 'jquery.min.js' %}"></script>
 <script src="{% static 'chessboardjs-1.0.0/js/chessboard-1.0.0.min.js' %}"></script>
 <script src="{% static 'chess.min.js' %}"></script>
+
 <audio id="correctSound" src="{% static 'sound/puzzle-correct.mp3' %}"></audio>
 <audio id="wrongSound" src="{% static 'sound/puzzle-wrong.mp3' %}"></audio>
 <audio id="moveSound">
@@ -350,6 +351,30 @@
         font-weight: bold;
         font-size: 1.1em;
     }
+
+    #evaluation-bar {
+        height: 20px;
+        background-color: var(--chess-dark);
+        overflow: hidden;
+    }
+
+    .progress-bar {
+        background: #ffffff;
+        display: flex;
+        align-items: center;
+        justify-content: flex-end;
+        color: #000;
+        font-weight: bold;
+        font-size: 12px;
+    }
+
+
+    #moves-list span[data-move-index="0"] {
+        font-weight: bold !important;
+        color: #ffcc00 !important;
+        opacity: 1 !important;
+        font-style: italic;
+    }
 </style>
 
 <div class="container py-3 text-white">
@@ -383,8 +408,27 @@
             </div>
 
             <div id="moves-list" class="text-white mb-3 p-2 border rounded"
-                style="max-width:430px;margin:auto;height:150px;overflow-y:auto;"></div>
+                style="max-width:430px;margin:auto;height:150px;overflow-y:auto;">
+            </div>
 
+            <!-- Bar Section -->
+            <div class="text-center my-2" style="max-width:430px;margin:auto;">
+                <div class="progress border rounded" id="evaluation-bar" style="position: relative; height: 20px;">
+                    <div id="white-bar" style="height: 100%; 
+                        background-color: #fff;
+                        width: 0%; position: absolute; 
+                        left: 0; top: 0; display: flex; align-items: center; 
+                        justify-content: flex-start; color: black; font-weight: bold; 
+                        font-size: 12px;">
+                        0.0</div>
+                    <div id="black-bar" style="height: 100%; background-color: #000; 
+                        width: 0%; position: absolute; right: 0; top: 0; 
+                        display: flex; align-items: center; justify-content: flex-end; 
+                        color: white; font-weight: bold; font-size: 12px;">
+                    </div>
+                </div>
+            </div>
+            <!-- Bar section -->
             <div id="comments-list" class="text-left mb-3 p-2 border rounded"
                 style="max-width:430px;margin:auto;height:200px;overflow-y:auto;"></div>
 
@@ -456,7 +500,6 @@
     const movesHistoryVerbose = chess.history({ verbose: true });
     const movesHistory = chess.history({ verbose: true });
 
-    console.log("Loaded moves history:", movesHistory);
     let moveIndex = 0; // 0 means initial position
     let orientation = "white";
     let currentMoveNumber = 0; // Start with move 0 (initial position)
@@ -594,13 +637,9 @@
     }
 
     // Function to format move with chess symbols
-    function formatMove(move) {
-        const blackSymbols = {
-            'p': '', 'n': '♘', 'b': '♗', 'r': '♖', 'q': '♕', 'k': '♔'
-        };
-        const whiteSymbols = {
-            'p': '', 'n': '♞', 'b': '♝', 'r': '♜', 'q': '♛', 'k': '♚'
-        };
+    const blackSymbols = { 'p': '', 'n': '♘', 'b': '♗', 'r': '♖', 'q': '♕', 'k': '♔' };
+    const whiteSymbols = { 'p': '', 'n': '♞', 'b': '♝', 'r': '♜', 'q': '♛', 'k': '♚' };
+    function formatMove(move, reverse = false) {
         const color = move.color || 'w';
         const piece = move.piece || 'p';
         const to = move.to || '';
@@ -618,7 +657,10 @@
         return `${icon}${isCapture ? 'x' : ''}${to}`;
     }
 
+
+
     // Render PGN moves - optimized with DocumentFragment
+    // Render PGN moves - optimized without initial position
     function renderMovesList() {
         // Clear content efficiently
         while (movesListDiv.firstChild) {
@@ -627,35 +669,7 @@
 
         totalMovesSpan.textContent = movesHistory.length;
 
-        // Use DocumentFragment for batch DOM insertion
         const fragment = document.createDocumentFragment();
-
-        // Add initial position (move 0)
-        const initialMoveDiv = document.createElement("div");
-        initialMoveDiv.classList.add("d-flex", "mb-1", "align-items-center");
-
-        const initialMoveNumSpan = document.createElement("span");
-        initialMoveNumSpan.textContent = `0. `;
-        initialMoveNumSpan.classList.add("me-2", "text-muted", "fw-bold", "move-0");
-        initialMoveNumSpan.style.minWidth = "35px";
-        initialMoveDiv.appendChild(initialMoveNumSpan);
-
-        const initialPositionSpan = document.createElement("span");
-        initialPositionSpan.textContent = "Initial Position";
-        initialPositionSpan.classList.add("move-0");
-        initialPositionSpan.style.cursor = "pointer";
-        initialPositionSpan.dataset.moveIndex = "0";
-        initialPositionSpan.addEventListener("click", () => {
-            moveIndex = 0;
-            currentMoveNumber = 0;
-            requestAnimationFrame(() => {
-                updateBoard();
-                renderComments();
-            });
-        });
-        initialMoveDiv.appendChild(initialPositionSpan);
-        fragment.appendChild(initialMoveDiv);
-
         let moveCounter = 1;
 
         // Group moves in pairs for white/black
@@ -666,7 +680,7 @@
             // Move number
             const moveNumSpan = document.createElement("span");
             moveNumSpan.textContent = `${moveCounter}. `;
-            moveNumSpan.classList.add("me-2", "text-muted", "fw-bold");
+            moveNumSpan.classList.add("me-2", "text-white", "fw-bold");
             moveNumSpan.style.minWidth = "35px";
             movePairDiv.appendChild(moveNumSpan);
 
@@ -678,7 +692,7 @@
             whiteIconSpan.classList.add("move-icon");
             whiteIconSpan.innerHTML = formatMove(movesHistoryVerbose[i]);
             whiteIconSpan.style.cursor = "pointer";
-            whiteIconSpan.dataset.moveIndex = i + 1; // +1 because move 0 is initial
+            whiteIconSpan.dataset.moveIndex = i + 1;
 
             whiteIconSpan.addEventListener("click", () => {
                 moveIndex = i + 1;
@@ -701,7 +715,7 @@
                 blackIconSpan.classList.add("move-icon");
                 blackIconSpan.innerHTML = formatMove(movesHistoryVerbose[i + 1]);
                 blackIconSpan.style.cursor = "pointer";
-                blackIconSpan.dataset.moveIndex = i + 2; // +2 because move 0 is initial
+                blackIconSpan.dataset.moveIndex = i + 2;
 
                 blackIconSpan.addEventListener("click", () => {
                     moveIndex = i + 2;
@@ -720,11 +734,18 @@
             moveCounter++;
         }
 
-        // Batch append
         movesListDiv.appendChild(fragment);
     }
 
     // Update board position - optimized
+    let fenOpenings = {};
+    fetch("{% static 'openings/openings.json' %}")
+        .then(response => response.json())
+        .then(data => {
+            fenOpenings = data;
+        })
+        .catch(error => console.error("Error loading openings:", error));
+
     function updateBoard() {
         chess.reset();
         for (let i = 0; i < moveIndex; i++) {
@@ -745,6 +766,18 @@
         currentMoveNumberSpan.textContent = currentMoveNumber;
         commentMoveNumberSpan.textContent = currentMoveNumber;
         hiddenMoveNumberInput.value = currentMoveNumber;
+
+        analyzeWithStockfish();
+        const currentFEN = chess.fen().split(' ')[0];
+        const initialMoveSpan = movesListDiv.querySelector('span[data-move-index="0"]');
+        if (initialMoveSpan) {
+            if (moveIndex === 0) {
+                lastOpeningName = "Initial Position";
+            } else if (fenOpenings[currentFEN]) {
+                lastOpeningName = fenOpenings[currentFEN];
+            }
+            initialMoveSpan.textContent = lastOpeningName;
+        }
     }
 
     // Highlight current move in moves list - optimized
@@ -799,9 +832,6 @@
                     ? '<span class="move-label">Initial Position</span>'
                     : `<span class="move-label">Move ${c.move_number}</span>`;
 
-                // Debug: Check if comment ID exists
-                console.log('Rendering comment:', c.id, 'Type:', typeof c.id);
-
                 div.innerHTML = `
                     <div class="d-flex justify-content-between align-items-start">
                         <strong class="text-primary comment_name">${c.user__username}</strong>
@@ -839,7 +869,6 @@
 
             // get SAN move, e.g. "Qh5+"
             const sanMove = movesHistory[currentMoveNumber - 1];
-            console.log("Advancing to move:", sanMove);
             const moveObj = chess.move(sanMove);
             playSoundForMove(moveObj);
 
@@ -858,7 +887,6 @@
             const undoneMove = chess.undo();
             moveIndex--;
             currentMoveNumber = moveIndex;
-            console.log("Reverting move:", undoneMove.san);
             playSoundForMove(undoneMove);
             requestAnimationFrame(() => {
                 updateBoard();
@@ -1016,6 +1044,8 @@
         // Initial render
         requestAnimationFrame(() => {
             renderMovesList();
+            moveIndex = 1;
+            currentMoveNumber = 1;
             updateBoard();
             renderComments();
             addKeyboardShortcutTooltips();
@@ -1023,6 +1053,248 @@
             autoResizeBoard();
         });
     }
+
+
+
+    let engineTimeout = null;
+    let isAnalyzing = false;
+
+    function analyzeWithStockfish() {
+        if (engineTimeout) clearTimeout(engineTimeout);
+
+        // Don't spam if already analyzing
+        if (isAnalyzing) return;
+
+        engineTimeout = setTimeout(() => {
+            // Show loading indicator
+            showAnalysisLoading(true);
+            isAnalyzing = true;
+
+            fetch("/analyze/", {
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/json",
+                    "X-CSRFToken": "{{ csrf_token }}"
+                },
+                body: JSON.stringify({
+                    fen: chess.fen()
+                })
+            })
+                .then(res => res.json())
+                .then(data => {
+                    if (data.error) {
+                        console.warn("Analysis error:", data.error);
+                        return;
+                    }
+
+                    if (data.evaluation) {
+                        let evalText = "--";
+
+                        if (data.evaluation.type === "cp") {
+                            evalText = (data.evaluation.value / 100).toFixed(2);
+                        } else if (data.evaluation.type === "mate") {
+                            evalText = `Mate in ${Math.abs(data.evaluation.value)}`;
+                        }
+
+                        updateBestMoveInList(currentMoveNumber, data.best_move_san);
+                        updateEvaluationBar(data.evaluation);
+                    }
+                })
+                .catch(err => {
+                    console.warn("Stockfish error:", err);
+                })
+                .finally(() => {
+                    showAnalysisLoading(false);
+                    isAnalyzing = false;
+                });
+        }, 500); // Increased debounce for better UX
+    }
+
+    function showAnalysisLoading(isLoading) {
+        const evalBar = document.getElementById('evaluation-bar');
+        const evalText = document.getElementById('evaluation-text');
+
+        if (isLoading) {
+            if (evalBar) evalBar.style.opacity = '0.5';
+            if (evalText) evalText.textContent = 'Analyzing...';
+        } else {
+            if (evalBar) evalBar.style.opacity = '1';
+        }
+    }
+
+
+    // Cache DOM elements
+    const evaluationBarElements = {
+        whiteBar: document.getElementById("white-bar"),
+        blackBar: document.getElementById("black-bar")
+    };
+
+    // Cache last values to avoid unnecessary DOM updates
+    let lastScore = null;
+    let lastText = null;
+
+    function updateEvaluationBar(evaluation) {
+        const { whiteBar, blackBar } = evaluationBarElements;
+        if (!whiteBar || !blackBar || !evaluation) return;
+        if (moveIndex >= movesHistory.length) return;
+
+        const MAX = 10;
+        let score = 0;
+        let text = "--";
+        const isWhiteToPlay = chess.turn() === 'w';
+
+        // Calculate score efficiently
+        if (evaluation.type === "mate") {
+            const mateIn = Math.abs(evaluation.value);
+
+            // Stockfish evaluation: 
+            // positive value = mate FOR the player whose turn it is
+            // negative value = mate AGAINST the player whose turn it is
+            if (evaluation.value > 0) {
+                // Mate FOR the player to move
+                if (isWhiteToPlay) {
+                    // White to play and has mate = White winning
+                    score = MAX;
+                    text = `M${mateIn}`;
+                } else {
+                    // Black to play and has mate = Black winning
+                    score = -MAX;
+                    text = `M${mateIn}`;
+                }
+            } else {
+                // Mate AGAINST the player to move
+                if (isWhiteToPlay) {
+                    // White to play and is getting mated = Black winning
+                    score = -MAX;
+                    text = `M${mateIn}`;
+                } else {
+                    // Black to play and is getting mated = White winning
+                    score = MAX;
+                    text = `M${mateIn}`;
+                }
+            }
+        }
+        else if (evaluation.type === "cp") {
+            // Centipawn evaluation is always from the perspective of the player to move
+            score = evaluation.value / 100;
+
+            // Convert to White's perspective for display
+            if (!isWhiteToPlay) {
+                score = -score;
+            }
+
+            // Clamp to reasonable range
+            score = Math.max(-MAX, Math.min(MAX, score));
+
+            // Format text
+            text = Math.abs(score) < 0.05 ? "0.0" : score.toFixed(1);
+        }
+
+        // Only update if values changed (performance optimization)
+        if (score === lastScore && text === lastText) return;
+
+        lastScore = score;
+        lastText = text;
+
+        // Batch DOM updates
+        requestAnimationFrame(() => {
+            // convert score (-MAX to +MAX) → 0–100 scale centered at 50
+            // +MAX = 100% white, -MAX = 0% white, 0 = 50% white
+            const whitePercent = 50 + (score / MAX) * 50;
+            const blackPercent = 100 - whitePercent;
+
+            console.log(whitePercent, blackPercent, text, "Turn:", isWhiteToPlay ? "White" : "Black");
+
+            // Update bars with smooth transitions
+            whiteBar.style.transition = "width 0.3s ease";
+            blackBar.style.transition = "width 0.3s ease";
+
+            whiteBar.style.width = whitePercent + "%";
+            blackBar.style.width = blackPercent + "%";
+
+            // Handle padding based on who's winning
+            if (evaluation.type === "mate") {
+                if (score > 0) {
+                    // White winning - show text on white bar
+                    whiteBar.style.paddingLeft = "12px";
+                    whiteBar.style.paddingRight = "0";
+                    blackBar.style.paddingLeft = "0";
+                    blackBar.style.paddingRight = "0";
+                    whiteBar.innerText = text;
+                    blackBar.innerText = "";
+                } else if (score < 0) {
+                    // Black winning - show text on black bar
+                    whiteBar.style.paddingLeft = "0";
+                    whiteBar.style.paddingRight = "0";
+                    blackBar.style.paddingLeft = "0";
+                    blackBar.style.paddingRight = "12px";
+                    whiteBar.innerText = "";
+                    blackBar.innerText = text;
+                } else {
+                    whiteBar.innerText = "";
+                    blackBar.innerText = "";
+                }
+            } else {
+                // Normal position - restore padding
+                whiteBar.style.paddingLeft = "12px";
+                whiteBar.style.paddingRight = "0";
+                blackBar.style.paddingLeft = "0";
+                blackBar.style.paddingRight = "12px";
+
+                // Show text on the side that's winning
+                if (score > 0.05) {
+                    whiteBar.innerText = text;
+                    blackBar.innerText = "";
+                } else if (score < -0.05) {
+                    whiteBar.innerText = "";
+                    blackBar.innerText = text;
+                } else {
+                    whiteBar.innerText = "";
+                    blackBar.innerText = "";
+                }
+            }
+        });
+    }
+
+    function reverseSymbols(symbols) {
+        const reversed = {};
+        for (const key in symbols) {
+            if (symbols[key]) reversed[symbols[key]] = key.toUpperCase();
+        }
+        return reversed;
+    }
+
+    const reversedBlack = reverseSymbols(blackSymbols);
+    const reversedWhite = reverseSymbols(whiteSymbols);
+    function symbolToLetter(moveStr, color = 'w') {
+        let reversed = color === 'w' ? reversedWhite : reversedBlack;
+        const firstChar = moveStr[0];
+
+        if (reversed[firstChar]) {
+            return reversed[firstChar] + moveStr.slice(1);
+        }
+        reversed = color === 'w' ? reversedBlack : reversedWhite;
+        if (reversed[firstChar]) {
+            return reversed[firstChar] + moveStr.slice(1);
+        }
+        return moveStr;
+    }
+
+    function updateBestMoveInList(moveIndex, bestMove) {
+        const span = document.querySelector(
+            `span[data-move-index="${moveIndex + 1}"]`
+        );
+        if (moveIndex < 2) return;
+        if (!span || !bestMove) return;
+        if (bestMove === symbolToLetter(span.innerHTML)) {
+            return;
+        };
+        // prevent duplicate arrows
+        if (span.innerText.includes("→")) return;
+
+        span.innerHTML += ` <span style="opacity:0.6">→ ${bestMove}</span>`;
+    }
+
 </script>
 
 

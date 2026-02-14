@@ -21,7 +21,7 @@
         position: relative;
         padding-bottom: 15px;
     }
-    
+
     .page-title:after {
         content: '';
         position: absolute;
@@ -33,14 +33,14 @@
         background: rgba(26, 163, 123, 1);
         border-radius: 2px;
     }
-    
+
     .game-grid {
         display: grid;
         grid-template-columns: repeat(auto-fill, minmax(350px, 1fr));
         gap: 1.5rem;
         padding: 1rem 0;
     }
-    
+
     .game-card {
         background: linear-gradient(145deg, rgba(30, 30, 40, 0.8), rgba(20, 20, 30, 0.9));
         border-radius: 20px;
@@ -55,14 +55,14 @@
         text-decoration: none !important;
         color: white !important;
     }
-    
+
     .game-card:hover {
         transform: translateY(-10px);
         box-shadow: 0 15px 35px rgba(26, 163, 123, 0.2),
-                    0 5px 15px rgba(0, 0, 0, 0.3);
+            0 5px 15px rgba(0, 0, 0, 0.3);
         border-color: rgba(26, 163, 123, 0.3);
     }
-    
+
     .game-card:before {
         content: '';
         position: absolute;
@@ -73,13 +73,13 @@
         background: #1aa37b;
         border-radius: 20px 20px 0 0;
     }
-    
+
     .game-header {
         padding: 1.5rem 1.5rem 1rem;
         position: relative;
         z-index: 1;
     }
-    
+
     .game-title {
         font-size: 1.4rem;
         font-weight: 600;
@@ -91,7 +91,7 @@
         -webkit-box-orient: vertical;
         overflow: hidden;
     }
-    
+
     .game-meta {
         display: flex;
         align-items: center;
@@ -99,11 +99,11 @@
         font-size: 0.85rem;
         color: #aaa;
     }
-    
+
     .game-meta i {
         color: #667eea;
     }
-    
+
     .game-board-container {
         padding: 0.5rem 1.5rem;
         flex-grow: 1;
@@ -111,7 +111,7 @@
         align-items: center;
         justify-content: center;
     }
-    
+
     .mini-board {
         width: 100%;
         max-width: 200px;
@@ -128,11 +128,11 @@
     .mini-board .black-3c85d {
         background-color: #769656 !important;
     }
-    
+
     .game-card:hover .mini-board {
         transform: scale(1.05);
     }
-    
+
     .game-footer {
         padding: 1rem 1.5rem 1.5rem;
         display: flex;
@@ -141,7 +141,7 @@
         border-top: 1px solid rgba(255, 255, 255, 0.1);
         margin-top: auto;
     }
-    
+
     .view-game-btn {
         background: #1aa37b;
         color: white;
@@ -156,62 +156,62 @@
         transition: all 0.3s ease;
         text-decoration: none;
     }
-    
+
     .view-game-btn:hover {
         transform: translateX(5px);
         box-shadow: #1aa37b;
         color: white;
     }
-    
+
     .game-stats {
         display: flex;
         gap: 1rem;
     }
-    
+
     .stat-item {
         display: flex;
         flex-direction: column;
         align-items: center;
         gap: 0.2rem;
     }
-    
+
     .stat-value {
         font-weight: 600;
         color: rgba(26, 163, 123, 1);
         font-size: 1.1rem;
     }
-    
+
     .stat-label {
         font-size: 0.75rem;
         color: #aaa;
         text-transform: uppercase;
         letter-spacing: 0.5px;
     }
-    
+
     .empty-state {
         text-align: center;
         padding: 4rem 2rem;
         grid-column: 1 / -1;
     }
-    
+
     .empty-state-icon {
         font-size: 4rem;
         color: #667eea;
         margin-bottom: 1.5rem;
     }
-    
+
     .empty-state h3 {
         font-size: 1.8rem;
         margin-bottom: 1rem;
         color: #fff;
     }
-    
+
     .empty-state p {
         color: #aaa;
         max-width: 500px;
         margin: 0 auto 2rem;
     }
-    
+
     .upload-btn {
         background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
         color: white;
@@ -226,59 +226,97 @@
         transition: all 0.3s ease;
         text-decoration: none;
     }
-    
+
     .upload-btn:hover {
         transform: translateY(-3px);
         box-shadow: 0 10px 25px rgba(100, 126, 234, 0.4);
         color: white;
     }
-    
+
     /* Responsive adjustments */
     @media (max-width: 768px) {
         .game-grid {
             grid-template-columns: 1fr;
             gap: 1rem;
         }
-        
+
         .game-card {
             max-width: 100%;
         }
     }
-    
+
     /* Animation for card loading */
     @keyframes fadeInUp {
         from {
             opacity: 0;
             transform: translateY(20px);
         }
+
         to {
             opacity: 1;
             transform: translateY(0);
         }
     }
-    
+
     .game-card {
         animation: fadeInUp 0.6s ease-out;
         animation-fill-mode: both;
     }
-    
-    .game-card:nth-child(1) { animation-delay: 0.1s; }
-    .game-card:nth-child(2) { animation-delay: 0.2s; }
-    .game-card:nth-child(3) { animation-delay: 0.3s; }
-    .game-card:nth-child(4) { animation-delay: 0.4s; }
-    .game-card:nth-child(5) { animation-delay: 0.5s; }
-    .game-card:nth-child(6) { animation-delay: 0.6s; }
+
+    .game-card:nth-child(1) {
+        animation-delay: 0.1s;
+    }
+
+    .game-card:nth-child(2) {
+        animation-delay: 0.2s;
+    }
+
+    .game-card:nth-child(3) {
+        animation-delay: 0.3s;
+    }
+
+    .game-card:nth-child(4) {
+        animation-delay: 0.4s;
+    }
+
+    .game-card:nth-child(5) {
+        animation-delay: 0.5s;
+    }
+
+    .game-card:nth-child(6) {
+        animation-delay: 0.6s;
+    }
 </style>
 
 <div class="container py-4 text-white">
     <h4 class="page-title">Chess Game Library</h4>
-    
+    <div class="mb-4 text-center">
+        <div style="
+        display:flex;
+        align-items:center;
+        max-width:400px;
+        margin:auto;
+        background:rgba(30,30,40,.8);
+        border-radius:40px;
+        padding:6px 15px;
+        border:1px solid rgba(100,126,234,.2);
+    ">
+            <input type="text" id="game-search" placeholder="Search games..." style="
+                    background:transparent;
+                    border:none;
+                    outline:none;
+                    color:white;
+                    width:100%;
+                    padding:8px;
+               ">
+        </div>
+    </div>
     {% if games %}
-    <div class="game-grid">
+    <div class="game-grid" id="game-container">
         {% for game in games %}
-        <a href="{% url 'game_detail' game.slug_link %}" class="game-card" 
-           data-pgn="{{ game.pgn|escapejs }}" data-id="{{ game.id }}">
-            
+        <a href="{% url 'game_detail' game.slug_link %}" class="game-card" data-pgn="{{ game.pgn|escapejs }}"
+            data-id="{{ game.id }}">
+
             <div class="game-header">
                 <h3 class="game-title">{{ game.title }}</h3>
                 <div class="game-meta">
@@ -290,17 +328,17 @@
                     {% endif %}
                 </div>
             </div>
-            
+
             <div class="game-board-container">
                 <div class="mini-board" id="board-{{ game.id }}"></div>
             </div>
-            
+
             <div class="game-footer">
                 <span class="view-game-btn">
                     <i class="fas fa-chess-board"></i>
                     View Game
                 </span>
-                
+
                 <div class="game-stats">
                     {% if game.comments.count %}
                     <div class="stat-item">
@@ -313,14 +351,15 @@
         </a>
         {% endfor %}
     </div>
-    
+
     {% else %}
     <div class="empty-state">
         <div class="empty-state-icon">
             <i class="fas fa-chess-board"></i>
         </div>
         <h3>No Games Uploaded Yet</h3>
-        <p>Be the first to share a chess game! Upload your PGN file to start analyzing and discussing with the community.</p>
+        <p>Be the first to share a chess game! Upload your PGN file to start analyzing and discussing with the
+            community.</p>
         {% if user.is_authenticated %}
         <a href="{% url 'game_page' %}" class="upload-btn">
             <i class="fas fa-upload"></i>
@@ -338,11 +377,11 @@
 
 
 <script>
-    document.addEventListener('DOMContentLoaded', function() {
+    document.addEventListener('DOMContentLoaded', function () {
         document.querySelectorAll(".game-card").forEach((card) => {
             const gameId = card.getAttribute("data-id");
             const boardId = "board-" + gameId;
-            
+
             // Initialize mini chessboard
             Chessboard(boardId, {
                 position: "start",
@@ -353,7 +392,7 @@
                 pieceScale: 0.8,
                 sparePieces: false
             });
-            
+
             // Try to load actual game position from PGN
             try {
                 const pgn = card.getAttribute("data-pgn");
@@ -378,6 +417,38 @@
                 console.log("Could not load PGN for game", gameId);
             }
         });
+    });
+
+    document.getElementById("game-search").addEventListener("keyup", function () {
+        let query = this.value;
+
+        fetch(`/search-games/?q=${query}`)
+            .then(res => res.json())
+            .then(data => {
+                document.getElementById("game-container").innerHTML = data.html;
+
+                // reinitialize boards after reload
+                document.querySelectorAll(".game-card").forEach((card) => {
+                    const gameId = card.getAttribute("data-id");
+                    const boardId = "board-" + gameId;
+
+                    const pgn = card.getAttribute("data-pgn");
+                    let position = "start";
+
+                    if (pgn && pgn.trim()) {
+                        const chess = new Chess();
+                        chess.load_pgn(pgn);
+                        position = chess.fen();
+                    }
+
+                    Chessboard(boardId, {
+                        position: position,
+                        draggable: false,
+                        pieceTheme: "{% static 'chessboardjs-1.0.0/img/chesspieces/wikipedia/' %}{piece}.png",
+                        showNotation: false
+                    });
+                });
+            });
     });
 </script>
 

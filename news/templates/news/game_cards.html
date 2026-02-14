@@ -1,0 +1,27 @@
+{% for game in games %}
+<a href="{% url 'game_detail' game.slug_link %}" class="game-card"
+   data-pgn="{{ game.pgn|escapejs }}" data-id="{{ game.id }}">
+
+    <div class="game-header">
+        <h3 class="game-title">{{ game.title }}</h3>
+        <div class="game-meta">
+            <span>{{ game.created_at|date:"M d, Y" }}</span>
+            {% if game.user %}
+            <span>By {{ game.user.username }}</span>
+            {% endif %}
+        </div>
+    </div>
+
+    <div class="game-board-container">
+        <div class="mini-board" id="board-{{ game.id }}"></div>
+    </div>
+
+    <div class="game-footer">
+        <span class="view-game-btn">View Game</span>
+    </div>
+</a>
+{% empty %}
+<div class="empty-state">
+    <h3>No Games Found</h3>
+</div>
+{% endfor %}

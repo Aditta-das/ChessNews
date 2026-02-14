@@ -1,11 +1,12 @@
 from django.shortcuts import render, get_object_or_404, redirect
 from .models import Article, TopPlayerImg, \
     TournamentBanner, BangladeshiTopPlayer, Book, \
-        Puzzle, EmailOTP, PuzzleSolve, UserProfile, BoardVision, Tournament
+        Puzzle, EmailOTP, PuzzleSolve, UserProfile, \
+            BoardVision, Tournament, UploadedGame, GameComment, Events
 from django.contrib.auth.models import User
 from django.contrib.auth import logout
 import requests, random, json
-from .forms import EmailLoginForm, ProfileEditForm, ArticleForm
+from .forms import EmailLoginForm, ProfileEditForm, ArticleForm, GameCommentForm
 from django.core.mail import send_mail
 from django.contrib import messages
 from django.contrib.auth import login, authenticate
@@ -16,6 +17,8 @@ from django.contrib.auth.decorators import login_required
 from .decorators import premium_required
 from django.utils import timezone
 from django.db.models import Sum, F, ExpressionWrapper, IntegerField
+from django.views.decorators.csrf import csrf_exempt
+from django.template.loader import render_to_string
 
 def home(request):
     # Big news
@@ -82,6 +85,21 @@ def all_blogs(request):
 def article_detail(request, slug):
     article = get_object_or_404(Article, slug=slug)
     return render(request, 'news/detail.html', {'article': article})
+
+@login_required
+def toggle_like(request, slug):
+    article = get_object_or_404(Article, slug=slug)
+    user = request.user
+    if user in article.likes.all():
+        article.likes.remove(user)
+        liked = False
+    else:
+        article.likes.add(user)
+        liked = True
+    return JsonResponse({
+        'liked': liked,
+        'like_count': article.likes.count()
+    })
 
 def user_blogs(request, username):
     user = get_object_or_404(User, username=username)
@@ -367,14 +385,16 @@ def game_page(request):
 
 
 def all_games(request):
-    games = UploadedGame.objects.all()
+    games = UploadedGame.objects.all().order_by("-created_at")
     return render(request, 'news/all_games.html', {'games': games})
 
-from django.shortcuts import render, get_object_or_404
-from django.http import JsonResponse
-from django.views.decorators.csrf import csrf_exempt
-from .models import UploadedGame, GameComment
-from .forms import GameCommentForm
+def search_games(request):
+    query = request.GET.get("q", "")
+    games = UploadedGame.objects.filter(title__icontains=query)
+    html = render_to_string("news/game_cards.html", {"games": games}, request=request)
+    return JsonResponse({"html": html})
+
+
 
 def game_detail(request, slug):
     game = get_object_or_404(UploadedGame, slug_link=slug)
@@ -420,3 +440,75 @@ def add_comment(request, slug):
     return JsonResponse({"status": "error"}, status=400)
 
 # End of trial section
+
+
+from django.http import JsonResponse
+from django.views.decorators.csrf import csrf_exempt
+from django.views.decorators.cache import cache_page
+from django.core.cache import cache
+import json
+# from .services.engine import analyze_fen
+import hashlib
+from .services.cache import cached_analyze_fen
+
+@csrf_exempt
+def analyze_position(request):
+    if request.method == "POST":
+        try:
+            data = json.loads(request.body)
+            fen = data.get("fen")
+            
+            if not fen:
+                return JsonResponse({"error": "No FEN provided"}, status=400)
+            
+            # Generate cache key
+            cache_key = f"analysis_{hashlib.md5(fen.encode()).hexdigest()}"
+            
+            # Try to get from cache first
+            result = cache.get(cache_key)
+            
+            if result is None:
+                # If not in cache, analyze and store
+                result = cached_analyze_fen(fen)
+                cache.set(cache_key, result, timeout=300)  # Cache for 5 minutes
+            
+            return JsonResponse(result)
+            
+        except Exception as e:
+            return JsonResponse({"error": str(e)}, status=500)
+    
+    return JsonResponse({"error": "Method not allowed"}, status=405)
+
+
+
+
+def all_events(request):
+    return render(request, 'news/events.html')
+
+def events_json(request):
+    events = Events.objects.all()
+    event_list = []
+    for event in events:
+        event_list.append({
+            'title': event.title,
+            'start': event.start.isoformat(),
+            'end': event.end.isoformat(),
+            'description': event.description,
+        })
+    return JsonResponse(event_list, safe=False)
+
+def add_event(request):
+    if request.method == 'POST':
+        title = request.POST.get('title')
+        description = request.POST.get('description')
+        start = request.POST.get('start')
+        end = request.POST.get('end')
+
+        event = Events.objects.create(
+            title=title,
+            description=description,
+            start=start,
+            end=end
+        )
+        return JsonResponse({'status': 'success', 'event_id': event.id})
+    return JsonResponse({'status': 'error'}, status=400)
