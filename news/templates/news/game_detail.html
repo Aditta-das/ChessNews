@@ -399,14 +399,7 @@
 
         <!-- Right column: Moves list + comment form -->
         <div class="col-md-6">
-            <h4 class="mt-2 text-center card-title">{{ game.title }}</h4>
-
-            <!-- Display current move number -->
-            <div class="text-center mb-3">
-                <span class="badge bg-info">Current Move: <span id="current-move-number">0</span></span>
-                <span class="badge bg-secondary ms-2">Total Moves: <span id="total-moves">0</span></span>
-            </div>
-
+            <h4 class="mb-2 text-center card-title">{{ game.title }}</h4>
             <div id="moves-list" class="text-white mb-3 p-2 border rounded"
                 style="max-width:430px;margin:auto;height:150px;overflow-y:auto;">
             </div>
@@ -430,9 +423,10 @@
             </div>
             <!-- Bar section -->
             <div id="comments-list" class="text-left mb-3 p-2 border rounded"
-                style="max-width:430px;margin:auto;height:200px;overflow-y:auto;"></div>
+                style="max-width:430px;margin:auto;max-height:80px;overflow-y:auto;">
+            </div>
 
-            <div class="text-center mt-3" style="max-width:430px; margin:auto;">
+            <div class="text-center mt-3" style="max-width:430px;max-height:20px;margin:auto;">
                 <form id="commentForm" method="post" action="{% url 'add_comment' game.slug_link %}">
                     {% csrf_token %}
                     <div class="mb-2">
@@ -507,9 +501,7 @@
     const movesListDiv = document.getElementById("moves-list");
     const commentsListDiv = document.getElementById("comments-list");
     const commentMoveNumberSpan = document.getElementById("comment-move-number");
-    const totalMovesSpan = document.getElementById("total-moves");
     const hiddenMoveNumberInput = document.getElementById("hidden-move-number");
-    const currentMoveNumberSpan = document.getElementById("current-move-number");
 
     // Load all comments from backend
     const commentsData = {{ comments_json| safe }};
@@ -667,9 +659,22 @@
             movesListDiv.removeChild(movesListDiv.firstChild);
         }
 
-        totalMovesSpan.textContent = movesHistory.length;
-
         const fragment = document.createDocumentFragment();
+        const startSpan = document.createElement("span");
+        startSpan.textContent = "Initial Position";
+        startSpan.dataset.moveIndex = "0";
+        startSpan.style.cursor = "pointer";
+        startSpan.style.display = "block";
+        startSpan.style.marginBottom = "5px";
+
+        startSpan.addEventListener("click", () => {
+            moveIndex = 0;
+            currentMoveNumber = 0;
+            updateBoard();
+            renderComments();
+        });
+
+        fragment.appendChild(startSpan);
         let moveCounter = 1;
 
         // Group moves in pairs for white/black
@@ -763,7 +768,6 @@
         });
 
         // Update text content without causing reflow
-        currentMoveNumberSpan.textContent = currentMoveNumber;
         commentMoveNumberSpan.textContent = currentMoveNumber;
         hiddenMoveNumberInput.value = currentMoveNumber;
 
@@ -785,7 +789,6 @@
         const allSpans = movesListDiv.querySelectorAll("span[data-move-index]");
         const currentSpan = movesListDiv.querySelector(`span[data-move-index="${moveIndex}"]`);
 
-        // Batch style updates
         allSpans.forEach(s => {
             s.style.cssText = 'font-weight: normal; color: white; background-color: transparent; padding: 0; border-radius: 0; opacity: 0.7;';
             s.classList.remove("move-0");
@@ -793,9 +796,14 @@
 
         if (currentSpan) {
             currentSpan.style.cssText = 'font-weight: bold; color: #ffcc00; background-color: rgba(255, 204, 0, 0.2); padding: 3px 6px; border-radius: 5px; opacity: 1;';
+
+            /* ✅ AUTO SCROLL TO CURRENT MOVE */
+            currentSpan.scrollIntoView({
+                behavior: "auto",
+                block: "nearest"
+            });
         }
 
-        // Special styling for move 0
         if (moveIndex === 0) {
             const move0Span = movesListDiv.querySelector('span[data-move-index="0"]');
             if (move0Span) {

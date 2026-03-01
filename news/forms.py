@@ -2,20 +2,45 @@ from django import forms
 from django.contrib.auth.models import User
 from .models import UserProfile, Article
 
+from django import forms
+import re
+
 class EmailLoginForm(forms.Form):
-    email = forms.EmailField()
-    username = forms.CharField(required=False, max_length=150)
-    password = forms.CharField(widget=forms.PasswordInput)
-    otp = forms.CharField(required=False, max_length=6)
+    email = forms.EmailField(
+        widget=forms.EmailInput(attrs={
+            "class": "form-control form-control-lg",
+            "placeholder": "Enter email"
+        })
+    )
 
-    def clean_username(self):
-        username = self.cleaned_data.get('username')
-        email = self.cleaned_data.get('email')
+    password = forms.CharField(
+        widget=forms.PasswordInput(attrs={
+            "class": "form-control form-control-lg",
+            "placeholder": "Enter password"
+        })
+    )
 
-        if username:
-            if User.objects.filter(username=username).exists():
-                raise forms.ValidationError("This username is already taken.")
-        return username
+    def clean_password(self):
+        password = self.cleaned_data.get("password")
+        if hasattr(self, "user_obj") and self.user_obj:
+            return password
+        if len(password) < 8:
+            raise forms.ValidationError("Password must be at least 8 characters.")
+
+        if not re.search(r"[A-Z]", password):
+            raise forms.ValidationError("Must contain uppercase letter.")
+
+        if not re.search(r"[a-z]", password):
+            raise forms.ValidationError("Must contain lowercase letter.")
+
+        if not re.search(r"[0-9]", password):
+            raise forms.ValidationError("Must contain a number.")
+
+        if not re.search(r"[!@#$%^&*(),.?\":{}|<>]", password):
+            raise forms.ValidationError("Must contain special character.")
+
+        return password
+    # otp = forms.CharField(required=False, max_length=6)
 
 
 class ProfileEditForm(forms.ModelForm):
@@ -115,7 +140,7 @@ class UploadedGameForm(forms.ModelForm):
                 'placeholder': 'Enter PGN with comments like {Your comment here}'
             }),
         }
-        
+
 class GameCommentForm(forms.ModelForm):
     class Meta:
         model = GameComment

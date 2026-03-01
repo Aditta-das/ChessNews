@@ -8,10 +8,21 @@ admin.site.site_header = "ChessBD AdminPanel"
 admin.site.site_title = "ChessBD"
 admin.site.index_title = "Welcome to ChessBD Admin Panel"
 
-admin.site.register(Article)
+@admin.register(Article)
+class ArticleAdmin(admin.ModelAdmin):
+    list_display = ('title', 'author', 'published_at')
+    search_fields = ('title', 'author__username')
+    ordering = ('-published_at',)
+    
+    
 admin.site.register(Category)
 admin.site.register(TopPlayerImg)
-admin.site.register(TournamentBanner)
+
+@admin.register(TournamentBanner)
+class TournamentBannerAdmin(admin.ModelAdmin):
+    ordering = ['id']
+    list_display = ('title', 'show_banner', 'inside_home', 'created_at')
+
 admin.site.register(BangladeshiTopPlayer)
 admin.site.register(Book)
 

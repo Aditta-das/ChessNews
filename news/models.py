@@ -120,6 +120,7 @@ class TournamentBanner(models.Model):
     image = models.ImageField(upload_to='banners/')
     link = models.URLField(blank=True, null=True)
     show_banner = models.BooleanField(default=True)
+    inside_home = models.BooleanField(default=False)
     created_at = models.DateTimeField(auto_now_add=True)
     
     def save(self, *args, **kwargs):
@@ -302,7 +303,7 @@ def create_or_update_user_profile(sender, instance, created, **kwargs):
 class UploadedGame(models.Model):
     title = models.CharField(max_length=255)
     uploaded_by = models.ForeignKey(User, on_delete=models.CASCADE)
-    pgn = models.TextField()
+    pgn = models.TextField()  # always store PGN text here
     white_player = models.CharField(max_length=255, blank=True, null=True)
     black_player = models.CharField(max_length=255, blank=True, null=True)
     created_at = models.DateTimeField(auto_now_add=True)
@@ -323,17 +324,11 @@ class UploadedGame(models.Model):
         white = re.search(r'\[White\s+"([^"]+)"\]', self.pgn)
         black = re.search(r'\[Black\s+"([^"]+)"\]', self.pgn)
 
-        if white:
-            self.white_player = white.group(1)
-        else:
-            self.white_player = "Player 1"
-
-        if black:
-            self.black_player = black.group(1)
-        else:
-            self.black_player = "Player 2"
+        self.white_player = white.group(1) if white else "Player 1"
+        self.black_player = black.group(1) if black else "Player 2"
 
         super().save(*args, **kwargs)
+
     def __str__(self):
         return f"{self.title} by {self.uploaded_by.username}"
     

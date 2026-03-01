@@ -14,7 +14,6 @@ def analyze_fen(fen):
         # Get evaluation with timeout protection
         evaluation = stockfish.get_evaluation()
         uci_move = stockfish.get_best_move()
-        
         san_move = None
         if uci_move:
             board = chess.Board(fen)

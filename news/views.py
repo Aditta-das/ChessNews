@@ -1,4 +1,5 @@
 from django.shortcuts import render, get_object_or_404, redirect
+from django.urls import reverse
 from .models import Article, TopPlayerImg, \
     TournamentBanner, BangladeshiTopPlayer, Book, \
         Puzzle, EmailOTP, PuzzleSolve, UserProfile, \
@@ -19,6 +20,7 @@ from django.utils import timezone
 from django.db.models import Sum, F, ExpressionWrapper, IntegerField
 from django.views.decorators.csrf import csrf_exempt
 from django.template.loader import render_to_string
+from django.http import JsonResponse, HttpResponseForbidden
 
 def home(request):
     # Big news
@@ -45,6 +47,7 @@ def home(request):
 
     # Tournament banner
     banner = TournamentBanner.objects.filter(show_banner=True).order_by('-created_at').first()
+    home_banner = TournamentBanner.objects.filter(inside_home=True).order_by('-created_at').first()
     tournaments = Tournament.objects.all()
 
     profile = None
@@ -60,22 +63,44 @@ def home(request):
         'top_bd_players': top_bd_players,
         'tournaments': tournaments,
         'profile': profile,  
+        'home_banner': home_banner,
     })
 
 
 @login_required
-def create_article(request):
-    if request.method == "POST":
-        form = ArticleForm(request.POST, request.FILES)
-        if form.is_valid():
-            article = form.save(commit=False)
-            article.author = request.user  # logged-in user
-            article.save()
-            return redirect('article_detail', slug=article.slug)
+def create_article(request, slug=None):
+    if slug:
+        # Edit mode
+        article = get_object_or_404(Article, slug=slug)
+        if article.author != request.user:
+            return HttpResponseForbidden("You cannot edit this article.")
     else:
-        form = ArticleForm()
+        article = None  # Create mode
 
-    return render(request, "news/create_article.html", {"form": form})
+    if request.method == "POST":
+        form = ArticleForm(request.POST, request.FILES, instance=article)
+        if form.is_valid():
+            article_obj = form.save(commit=False)
+            if not article:  # only assign author for new article
+                article_obj.author = request.user
+            article_obj.save()
+            return redirect('article_detail', slug=article_obj.slug)
+    else:
+        form = ArticleForm(instance=article)
+
+    return render(request, "news/create_article.html", {"form": form, "editing": article is not None})
+
+
+@login_required
+def delete_article(request, slug):
+    article = get_object_or_404(Article, slug=slug)
+    if article.author != request.user:
+        return HttpResponseForbidden("You cannot delete this article.")
+
+    if request.method == "POST":
+        article.delete()
+        return JsonResponse({"status": "success"})
+    return JsonResponse({"status": "error"}, status=400)
 
 
 def all_blogs(request):
@@ -246,11 +271,15 @@ def progress_profile(request):
     # Y-axis: Time taken for each puzzle
     times = [solve.time_taken for solve in solves]
     puzzles_solved = PuzzleSolve.objects.filter(user=request.user).count()
+    user_games = UploadedGame.objects.filter(uploaded_by=request.user).order_by("-created_at")
+    user_blogs = Article.objects.filter(author=request.user).order_by("-published_at")
     context = {
         'labels': json.dumps(labels),
         'data': json.dumps(times),
         'puzzles_solved': puzzles_solved,
         'average_time': round(sum(times) / len(times), 2) if times else 0,
+        'user_games': user_games,
+        'user_blogs': user_blogs,
     }
 
     return render(request, 'news/progress.html', context)
@@ -262,59 +291,53 @@ def generate_otp():
     return str(random.randint(10000, 99999))
 
 
+from django.shortcuts import render, redirect
+from django.contrib.auth import authenticate, login
+from django.contrib.auth.models import User
+from django.core.validators import validate_email
+from django.core.exceptions import ValidationError
+from .forms import EmailLoginForm
+
+
 def login_view(request):
     form = EmailLoginForm(request.POST or None)
-    # show_otp = False
-    # email_sent = False
 
-    if request.method == 'POST':
-        email = request.POST.get('email')
-        password = request.POST.get('password')
-        # otp_input = request.POST.get('otp')
-        username_from_email = email.split('@')[0]
+    if request.method == "POST" and form.is_valid():
+
+        email = form.cleaned_data["email"].lower()
+        password = form.cleaned_data["password"]
+
+        username_from_email = email.split("@")[0]
 
         try:
             user = User.objects.get(email=email)
             user_auth = authenticate(request, username=user.username, password=password)
-            if user_auth is not None:
+
+            if user_auth:
                 login(request, user_auth)
-                return redirect('home')
+                return redirect("home")
             else:
-                form.add_error('password', 'Invalid password')
+                form.add_error("password", "Incorrect email or password.")
+
         except User.DoesNotExist:
-            # show_otp = True
-            # otp_obj, created = EmailOTP.objects.get_or_create(email=email)
 
-            # if created or otp_input == "":
-            #     otp = generate_otp()
-            #     otp_obj.otp = otp
-            #     otp_obj.save()
-            #     send_mail(
-            #         subject='Your OTP Code',
-            #         message=f'Your OTP is: {otp}',
-            #         from_email='adittadas00@gmail.com',
-            #         recipient_list=[email],
-            #         fail_silently=False,
-            #     )
-            #     email_sent = True
+            username = username_from_email
+            counter = 1
 
-            # elif otp_input and otp_input == str(otp_obj.otp):
-            if User.objects.filter(username=username_from_email).exists():
-                form.add_error('email', 'Email is already linked to an account. Try logging in.')
-            else:
-                user = User.objects.create_user(username=username_from_email, email=email, password=password)
-                # otp_obj.delete()
-                login(request, user)
-                return redirect('home')
-            # else:
-            #     form.add_error('otp', 'Invalid OTP')
+            while User.objects.filter(username=username).exists():
+                username = f"{username_from_email}{counter}"
+                counter += 1
 
-    return render(request, 'news/login.html', {
-        'form': form,
-        # 'show_otp': show_otp,
-        # 'email_sent': email_sent
-    })
+            user = User.objects.create_user(
+                username=username,
+                email=email,
+                password=password
+            )
 
+            login(request, user)
+            return redirect("home")
+
+    return render(request, "news/login.html", {"form": form})
 
 @login_required
 @csrf_exempt
@@ -383,6 +406,72 @@ def game_page(request):
 
     return render(request, 'news/game_page.html', {'game_form': form})
 
+@login_required
+def fetch_chesscom_games(request):
+    if request.method == "POST":
+        username = request.POST.get("username")
+        year = request.POST.get("year")
+        month = request.POST.get("month")
+        if not (username and year and month):
+            return JsonResponse({'success': False, 'error': 'Missing parameters'}, status=400)
+
+        # Convert month/year to int
+        try:
+            year = int(year)
+            month = int(month)
+        except:
+            return JsonResponse({'success': False, 'error': 'Invalid month/year'}, status=400)
+
+        import requests
+        url = f"https://api.chess.com/pub/player/{username}/games/{year}/{month:02d}"
+        r = requests.get(url)
+
+        if r.status_code != 200:
+            return JsonResponse({'success': False, 'error': f'Failed to fetch: {r.status_code}'}, status=r.status_code)
+
+        data = r.json()
+        games_list = []
+        for g in data.get("games", []):
+            games_list.append({
+                "white": g["white"]["username"],
+                "black": g["black"]["username"],
+                "url": g.get("url", "#"),
+                "pgn": g.get("pgn", ""),   # ← ADD THIS
+                "end_time": g.get("end_time")
+            })
+
+        return JsonResponse({'success': True, 'games': games_list})
+    return JsonResponse({'success': False, 'error': 'Invalid method'}, status=405)
+
+@login_required
+def save_chesscom_game(request):
+    if request.method == 'POST':
+        username = request.POST.get('username')
+        white = request.POST.get('white')
+        black = request.POST.get('black')
+        url = request.POST.get('url')
+        end_time = request.POST.get('end_time')  # timestamp
+        title = request.POST.get('title', f"{white} vs {black}")
+
+        if not all([username, white, black, url, end_time]):
+            return JsonResponse({'success': False, 'error': 'Missing data'}, status=400)
+
+        # Save the game
+        game = UploadedGame.objects.create(
+            uploaded_by=request.user,
+            title=title,
+            pgn=request.POST.get('pgn', ''),
+            white_player=white,
+            black_player=black,
+        )
+
+        # Return redirect URL to game details
+        return JsonResponse({
+            'success': True,
+            'redirect_url': reverse('game_detail', args=[game.slug_link])
+        })
+
+    return JsonResponse({'success': False, 'error': 'Invalid request'}, status=400)
 
 def all_games(request):
     games = UploadedGame.objects.all().order_by("-created_at")
@@ -447,7 +536,6 @@ from django.views.decorators.csrf import csrf_exempt
 from django.views.decorators.cache import cache_page
 from django.core.cache import cache
 import json
-# from .services.engine import analyze_fen
 import hashlib
 from .services.cache import cached_analyze_fen
 
@@ -471,7 +559,6 @@ def analyze_position(request):
                 # If not in cache, analyze and store
                 result = cached_analyze_fen(fen)
                 cache.set(cache_key, result, timeout=300)  # Cache for 5 minutes
-            
             return JsonResponse(result)
             
         except Exception as e:

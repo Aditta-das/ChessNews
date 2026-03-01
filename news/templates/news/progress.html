@@ -7,7 +7,7 @@
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.5/font/bootstrap-icons.css">
 
 <style>
-    /* Keep all existing styles exactly the same */
+    /* ----------------- EXISTING STYLES (UNCHANGED) ----------------- */
     .profile-header {
         background: rgba(40, 40, 40, 0.7);
         backdrop-filter: blur(8px);
@@ -28,10 +28,10 @@
         background: rgba(255, 255, 255, 0.1);
         border: none;
         color: #fff;
-        font-size: 0.9rem;
+        font-size: .9rem;
         padding: 6px 12px;
         border-radius: 6px;
-        transition: 0.3s;
+        transition: .3s;
     }
 
     .edit-btn:hover {
@@ -44,19 +44,14 @@
         color: #fff;
     }
 
-    .profile-sub {
-        color: #aaa;
-        font-size: 0.95rem;
-    }
-
     .profile-bio {
         color: #f8f8f8;
         margin-top: 5px;
-        font-size: 0.9rem;
+        font-size: .9rem;
     }
 
     .profile-stats {
-        font-size: 0.85rem;
+        font-size: .85rem;
         color: #aaa;
         margin-top: 10px;
     }
@@ -68,205 +63,240 @@
     .card-glass {
         background: rgba(40, 40, 40, 0.45);
         backdrop-filter: blur(10px) saturate(180%);
-        -webkit-backdrop-filter: blur(10px) saturate(180%);
         border-radius: 12px;
         border: 1px solid rgba(255, 255, 255, 0.125);
     }
 
     .stat-card {
-        transition: transform 0.3s ease, box-shadow 0.3s ease;
+        transition: transform .3s, box-shadow .3s;
     }
 
     .stat-card:hover {
         transform: translateY(-5px);
-        box-shadow: 0 8px 24px rgba(0, 0, 0, 0.4);
+        box-shadow: 0 8px 24px rgba(0, 0, 0, .4);
     }
 
     .stat-icon {
         font-size: 2.5rem;
-        opacity: 0.8;
+        opacity: .8;
     }
 
-    @media screen and (max-width: 768px) {
-        .profile-header {
-            text-align: center;
-        }
-
-        .profile-header .d-flex {
-            flex-direction: column;
-            align-items: center;
-        }
-
-        .profile-header .ms-2 {
-            margin-left: 0 !important;
-        }
-    }
-
-    @media screen and (min-width: 769px) {
-        .edit-btn {
-            font-size: 12.4px;
-            font-weight: 500;
-        }
-
-        .btn-style {
-            position: relative;
-            width: auto;
-            top: 5px;
-        }
-    }
-    @media screen and (min-width: 992px) {
-        .edit-btn {
-            font-size: 14px;
-            font-weight: 600;
-        }
-    }
-    
-    /* New chart container styles */
     .chart-container {
-        background: rgba(25, 25, 25, 0.4);
+        background: rgba(25, 25, 25, .4);
         border-radius: 10px;
         padding: 15px;
-        border: 1px solid rgba(255, 255, 255, 0.1);
-        box-shadow: inset 0 2px 10px rgba(0, 0, 0, 0.2);
+        border: 1px solid rgba(255, 255, 255, .1);
+        box-shadow: inset 0 2px 10px rgba(0, 0, 0, .2);
         position: relative;
-        overflow: hidden;
     }
-    
-    .chart-container::before {
-        content: '';
-        position: absolute;
-        top: 0;
-        left: 0;
-        right: 0;
-        height: 1px;
-        background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.1), transparent);
+
+    /* ----------------- TAB SYSTEM ----------------- */
+    .tab-btn {
+        cursor: pointer;
+    }
+
+    .active-tab {
+        background: rgba(100, 180, 255, 0.25);
+        border: 1px solid rgba(100, 180, 255, 0.5);
+    }
+
+    .tab-section {
+        display: none;
+    }
+
+    .tab-section.active {
+        display: block;
+    }
+
+    #progressChart {
+        color: #fff;
     }
 </style>
 
 <div class="container py-3">
 
-    <!-- Profile Header -->
+    <!-- PROFILE HEADER -->
     <div class="profile-header shadow mb-4">
         <div class="d-flex flex-wrap align-items-center justify-content-between">
+
             <div class="d-flex align-items-center flex-wrap">
                 <img src="{% if request.user.userprofile.image %}{{ request.user.userprofile.image.url }}{% else %}{% static 'profile_images/user.png' %}{% endif %}"
-                    alt="Profile Photo" class="profile-img me-2">
+                    class="profile-img me-2">
+
                 <div>
-                    <div class="d-flex align-items-center flex-nowrap justify-content-start">
-                        <span class="profile-name me-2">{{ user.username|default:"Guest Player" }}</span>
-                        <!-- <span class="fi fi-bd"></span> -->
-                    </div>
-                    <!-- <div class="profile-sub">
-                        <i class="bi bi-geo-alt"></i> Feni
-                    </div> -->
+                    <span class="profile-name me-2">{{ user.username|default:"Guest Player" }}</span>
+
                     <div class="profile-bio">
                         {{ request.user.userprofile.bio|default:"Add Description Here" }}
                     </div>
+
                     <div class="profile-stats">
                         <span><b>{{ user.date_joined.date }}</b> Joined</span>
                     </div>
                 </div>
             </div>
-            <div class="btn-style">
-                <a href="{% url 'edit_profile' %}" class="text-decoration-none">
-                    <button class="edit-btn">Edit Profile</button>
-                </a>
-            </div>
+
+            <a href="{% url 'edit_profile' %}">
+                <button class="edit-btn">Edit Profile</button>
+            </a>
+
         </div>
     </div>
 
-    <!-- Title -->
-    <div class="text-left mb-4">
-        <h3 class="mb-4 text-white fw-bold">Your Puzzle Progress</h3>
+    <!-- NAVIGATION TABS -->
+    <div class="d-flex gap-3 mb-4 flex-wrap">
+
+        <div class="card-glass px-4 py-2 text-white fw-semibold stat-card tab-btn active-tab" data-tab="stats">
+            <i class="bi bi-bar-chart-line me-1"></i> Stats
+        </div>
+
+        <div class="card-glass px-4 py-2 text-white fw-semibold stat-card tab-btn" data-tab="blogs">
+            <i class="bi bi-journal-text me-1"></i> My Blogs
+        </div>
+
+        <div class="card-glass px-4 py-2 text-white fw-semibold stat-card tab-btn" data-tab="games">
+            <i class="bi bi-controller me-1"></i> My Games
+        </div>
+
     </div>
 
-    <!-- Charts and Stats -->
-    <div class="row g-4">
-        <!-- Chart -->
-        <div class="col-lg-8 col-md-12">
-            <div class="card card-glass p-4 h-100 shadow">
-                <div class="d-flex justify-content-between align-items-center mb-3">
-                    <h5 class="text-white fw-bold mb-0">Time Taken per Puzzle</h5>
-                    <div class="text-white-50" style="font-size: 0.85rem;">
-                        <i class="bi bi-info-circle me-1"></i>Lower is better
+    <!-- ===================== STATS TAB (EXACTLY YOUR PUZZLE STATS) ===================== -->
+    <div id="stats" class="tab-section active">
+
+        <!-- Title -->
+        <div class="text-left mb-4">
+            <h3 class="mb-4 text-white fw-bold">Your Puzzle Progress</h3>
+        </div>
+
+        <!-- Charts and Stats -->
+        <div class="row g-4">
+
+            <!-- Chart -->
+            <div class="col-lg-8 col-md-12">
+                <div class="card card-glass p-4 h-100 shadow">
+                    <div class="d-flex justify-content-between align-items-center mb-3">
+                        <h5 class="text-white fw-bold mb-0">Time Taken per Puzzle</h5>
+                        <div class="text-white-50" style="font-size: 0.85rem;">
+                            <i class="bi bi-info-circle me-1"></i>Lower is better
+                        </div>
+                    </div>
+                    <div class="chart-container" style="position: relative; height:350px;">
+                        <canvas id="progressChart"></canvas>
                     </div>
                 </div>
-                <div class="chart-container" style="position: relative; height:350px;">
-                    <canvas id="progressChart"></canvas>
+            </div>
+
+            <!-- Stats -->
+            <div class="col-lg-4 col-md-12">
+                <h5 class="text-white fw-bold mb-3">Stats at a Glance</h5>
+
+                <div class="card card-glass stat-card p-3 mb-3">
+                    <div class="d-flex align-items-center">
+                        <div class="me-3 text-white">
+                            <i class="bi bi-clock-history stat-icon"></i>
+                        </div>
+                        <div>
+                            <h6 class="text-white-50 mb-0">Average Time</h6>
+                            <h4 class="fw-bold text-white mb-0">{{ average_time|default:"0s" }}</h4>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="card card-glass stat-card p-3 mb-3">
+                    <div class="d-flex align-items-center">
+                        <div class="me-3 text-white">
+                            <i class="bi bi-check2-square stat-icon"></i>
+                        </div>
+                        <div>
+                            <h6 class="text-white-50 mb-0">Puzzles Solved</h6>
+                            <h4 class="fw-bold text-white mb-0">{{ puzzles_solved|default:"0" }}</h4>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="card card-glass stat-card p-3">
+                    <div class="d-flex align-items-center">
+                        <div class="me-3 text-white">
+                            <i class="bi bi-graph-up-arrow stat-icon"></i>
+                        </div>
+                        <div>
+                            <h6 class="text-white-50 mb-0">Success Rate</h6>
+                            <h4 class="fw-bold text-white mb-0">{{ success_rate|default:"Coming Soon" }}</h4>
+                        </div>
+                    </div>
                 </div>
             </div>
         </div>
 
-        <!-- Stats -->
-        <div class="col-lg-4 col-md-12">
-            <h5 class="text-white fw-bold mb-3">Stats at a Glance</h5>
+        <!-- Achievements -->
+        <div class="row g-4 mt-3">
+            <div class="col-12">
+                <h3 class="mb-1 text-white fw-bold">Achievements</h3>
+            </div>
 
-            <div class="card card-glass stat-card p-3 mb-3">
-                <div class="d-flex align-items-center">
-                    <div class="me-3 text-white">
-                        <i class="bi bi-clock-history stat-icon"></i>
-                    </div>
-                    <div>
-                        <h6 class="text-white-50 mb-0">Average Time</h6>
-                        <h4 class="fw-bold text-white mb-0">{{ average_time|default:"0s" }}</h4>
+            {% if puzzles_solved >= 5 %}
+            <div class="col-lg-4 col-md-6 col-sm-12">
+                <div class="card card-glass stat-card p-3 h-100 d-flex align-items-center">
+                    <div class="d-flex align-items-center">
+                        <div class="me-3">
+                            <img src="{% static 'progress/puzzle.png' %}" alt="Puzzle Icon" class="stat-icon img-fluid"
+                                style="width: 50px; height: 50px;">
+                        </div>
+                        <div>
+                            <h6 class="text-white-50 mb-0">Puzzle Beginner</h6>
+                            <p class="fw-bold text-white mb-0">You correctly solved 5 Puzzles!</p>
+                        </div>
                     </div>
                 </div>
             </div>
-
-            <div class="card card-glass stat-card p-3 mb-3">
-                <div class="d-flex align-items-center">
-                    <div class="me-3 text-white">
-                        <i class="bi bi-check2-square stat-icon"></i>
-                    </div>
-                    <div>
-                        <h6 class="text-white-50 mb-0">Puzzles Solved</h6>
-                        <h4 class="fw-bold text-white mb-0">{{ puzzles_solved|default:"0" }}</h4>
-                    </div>
+            {% else %}
+            <div class="col-lg-4 col-md-6 col-sm-12">
+                <div class="card card-glass stat-card p-3 h-100 d-flex justify-content-center align-items-center">
+                    <img src="{% static 'progress/lock.png' %}" alt="Locked Icon" class="stat-icon img-fluid"
+                        style="width: 50px; height: 50px;">
                 </div>
             </div>
-
-            <div class="card card-glass stat-card p-3">
-                <div class="d-flex align-items-center">
-                    <div class="me-3 text-white">
-                        <i class="bi bi-graph-up-arrow stat-icon"></i>
-                    </div>
-                    <div>
-                        <h6 class="text-white-50 mb-0">Success Rate</h6>
-                        <h4 class="fw-bold text-white mb-0">{{ success_rate|default:"Coming Soon" }}</h4>
-                    </div>
-                </div>
-            </div>
+            {% endif %}
         </div>
+
     </div>
-
-    <!-- Achievements -->
-    <div class="row g-4 mt-3">
-        <div class="col-12">
-            <h3 class="mb-1 text-white fw-bold">Achievements</h3>
-        </div>
-
-        {% if puzzles_solved >= 5 %}
-        <div class="col-lg-4 col-md-6 col-sm-12">
-            <div class="card card-glass stat-card p-3 h-100 d-flex align-items-center">
-                <div class="d-flex align-items-center">
-                    <div class="me-3">
-                        <img src="{% static 'progress/puzzle.png' %}" alt="Puzzle Icon" class="stat-icon img-fluid"
-                            style="width: 50px; height: 50px;">
-                    </div>
-                    <div>
-                        <h6 class="text-white-50 mb-0">Puzzle Beginner</h6>
-                        <p class="fw-bold text-white mb-0">You correctly solved 5 Puzzles!</p>
-                    </div>
+    <!-- ===================== BLOGS TAB ===================== -->
+    <div id="blogs" class="tab-section">
+        {% if user_blogs %}
+        <div class="row">
+            {% for blog in user_blogs %}
+            <div class="col-md-4 mb-3">
+                <div class="card bg-dark text-white p-3 rounded-4 shadow">
+                    <small>{{ blog.title }}</small><br>
+                    <a href="{% url 'article_detail' blog.slug %}" class="btn btn-sm btn-primary mt-2">
+                        View Blog
+                    </a>
                 </div>
             </div>
+            {% endfor %}
         </div>
         {% else %}
-        <div class="col-lg-4 col-md-6 col-sm-12">
-            <div class="card card-glass stat-card p-3 h-100 d-flex justify-content-center align-items-center">
-                <img src="{% static 'progress/lock.png' %}" alt="Locked Icon" class="stat-icon img-fluid"
-                    style="width: 50px; height: 50px;">
+        <p class="text-center text-muted">No games uploaded yet.</p>
+        {% endif %}
+    </div>
+
+    <!-- ===================== GAMES TAB ===================== -->
+    <div id="games" class="tab-section">
+        {% if user_games %}
+        <div class="row">
+            {% for game in user_games %}
+            <div class="col-md-4 mb-3">
+                <div class="card bg-dark text-white p-3 rounded-4 shadow">
+                    <small>{{ game.white_player }} vs {{ game.black_player }}</small><br>
+                    <a href="{% url 'game_detail' game.slug_link %}" class="btn btn-sm btn-primary mt-2">
+                        View Game
+                    </a>
+                </div>
             </div>
+            {% endfor %}
         </div>
+        {% else %}
+        <p class="text-center text-muted">No games uploaded yet.</p>
         {% endif %}
     </div>
 
@@ -280,27 +310,27 @@
         datasets: [{
             label: 'Time Taken (seconds)',
             data: {{ data| safe }},
-            fill: true,
-            backgroundColor: function(context) {
-                const chart = context.chart;
-                const {ctx, chartArea} = chart;
-                if (!chartArea) {
-                    return null;
-                }
-                return createGradient(ctx, chartArea);
-            },
-            borderColor: 'rgba(255, 255, 255, 0.8)',
-            borderWidth: 2,
+    fill: true,
+        backgroundColor: function(context) {
+            const chart = context.chart;
+            const { ctx, chartArea } = chart;
+            if (!chartArea) {
+                return null;
+            }
+            return createGradient(ctx, chartArea);
+        },
+    borderColor: 'rgba(255, 255, 255, 0.8)',
+        borderWidth: 2,
             pointBackgroundColor: 'rgba(255, 255, 255, 1)',
-            pointBorderColor: 'rgba(40, 40, 40, 1)',
-            pointBorderWidth: 2,
-            pointRadius: 6,
-            pointHoverRadius: 8,
-            pointHoverBackgroundColor: 'rgba(255, 255, 255, 1)',
-            pointHoverBorderColor: 'rgba(255, 255, 255, 0.8)',
-            pointHoverBorderWidth: 3,
-            tension: 0.4,
-            borderDash: [0, 0]
+                pointBorderColor: 'rgba(40, 40, 40, 1)',
+                    pointBorderWidth: 2,
+                        pointRadius: 6,
+                            pointHoverRadius: 8,
+                                pointHoverBackgroundColor: 'rgba(255, 255, 255, 1)',
+                                    pointHoverBorderColor: 'rgba(255, 255, 255, 0.8)',
+                                        pointHoverBorderWidth: 3,
+                                            tension: 0.4,
+                                                borderDash: [0, 0]
         }]
     };
 
@@ -318,9 +348,9 @@
         options: {
             responsive: true,
             maintainAspectRatio: false,
-            plugins: { 
-                legend: { 
-                    display: false 
+            plugins: {
+                legend: {
+                    display: false
                 },
                 tooltip: {
                     backgroundColor: 'rgba(30, 30, 30, 0.95)',
@@ -332,7 +362,7 @@
                     padding: 12,
                     displayColors: false,
                     callbacks: {
-                        label: function(context) {
+                        label: function (context) {
                             return `${context.parsed.y.toFixed(1)} seconds`;
                         }
                     }
@@ -345,19 +375,19 @@
                         display: true,
                         text: 'Time Taken (seconds)',
                         color: 'rgba(255, 255, 255, 0.8)',
-                        font: { 
-                            size: 14, 
+                        font: {
+                            size: 14,
                             weight: 'bold',
                             family: "'Segoe UI', 'Roboto', sans-serif"
                         },
-                        padding: {top: 10, bottom: 10}
+                        padding: { top: 10, bottom: 10 }
                     },
-                    ticks: { 
+                    ticks: {
                         color: 'rgba(255, 255, 255, 0.7)',
                         font: { size: 12 },
                         padding: 8
                     },
-                    grid: { 
+                    grid: {
                         color: 'rgba(255, 255, 255, 0.12)',
                         drawBorder: false,
                         lineWidth: 1
@@ -368,22 +398,22 @@
                         display: true,
                         text: 'Puzzle Number',
                         color: 'rgba(255, 255, 255, 0.8)',
-                        font: { 
-                            size: 14, 
+                        font: {
+                            size: 14,
                             weight: 'bold',
                             family: "'Segoe UI', 'Roboto', sans-serif"
                         },
-                        padding: {top: 10, bottom: 10}
+                        padding: { top: 10, bottom: 10 }
                     },
-                    ticks: { 
-                        maxRotation: 45, 
-                        autoSkip: true, 
+                    ticks: {
+                        maxRotation: 45,
+                        autoSkip: true,
                         color: 'rgba(255, 255, 255, 0.7)',
                         font: { size: 12 },
                         padding: 8
                     },
-                    grid: { 
-                        display: false 
+                    grid: {
+                        display: false
                     }
                 }
             },
@@ -410,13 +440,26 @@
     // Add smooth animation on hover
     const canvas = document.getElementById('progressChart');
     canvas.style.transition = 'all 0.3s ease';
-    
+
     canvas.addEventListener('mouseenter', () => {
         canvas.style.transform = 'scale(1.005)';
     });
-    
+
     canvas.addEventListener('mouseleave', () => {
         canvas.style.transform = 'scale(1)';
     });
+
+    // ---------------- TABS ----------------
+    const btns = document.querySelectorAll(".tab-btn");
+    const sections = document.querySelectorAll(".tab-section");
+    btns.forEach(btn => {
+        btn.addEventListener("click", () => {
+            btns.forEach(b => b.classList.remove("active-tab"));
+            sections.forEach(s => s.classList.remove("active"));
+            btn.classList.add("active-tab");
+            document.getElementById(btn.dataset.tab).classList.add("active");
+        });
+    });
 </script>
+
 {% endblock %}

@@ -1185,7 +1185,7 @@
     </div>
 
     <script>
-               
+
         window.addEventListener('DOMContentLoaded', function () {
             // Check if banner has been shown in this session
             if (!sessionStorage.getItem('bannerShown_{{ banner.id|default:0 }}')) {
@@ -1211,6 +1211,8 @@
     {% endif %}
     <script src="{% static 'bootstrap.bundle.min.js' %}"></script>
     <script src="{% static 'index.global.min.js' %}"></script>
+    <script src="{% static 'jquery.min.js' %}"></script>
+    <script src="{% static 'chessboardjs-1.0.0/js/chessboard-1.0.0.min.js' %}"></script>
 </body>
 
 </html>
