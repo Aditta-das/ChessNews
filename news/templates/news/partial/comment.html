@@ -1,0 +1,743 @@
+<!-- news/partial/comment.html -->
+<div class="comment-card mb-4" id="comment-{{ comment.id }}" data-comment-id="{{ comment.id }}">
+    <div class="comment-main"
+        style="background: rgba(255, 255, 255, 0.03); border-radius: 15px; padding: 20px; border: 1px solid rgba(26, 163, 123, 0.1); width: auto;">
+        <div class="comment-header d-flex align-items-center mb-3">
+            <div class="comment-avatar me-3">
+                <div class="avatar-circle"
+                    style="width: 45px; height: 45px; background: linear-gradient(135deg, #1aa37b, #0d7a5a); border-radius: 50%; display: flex; align-items: center; justify-content: center;">
+                    <span class="text-white" style="font-weight: 600;">{{ comment.user.username|first|upper }}</span>
+                </div>
+            </div>
+            <div class="comment-meta">
+                <h6 class="mb-0 text-white">{{ comment.user.username }}</h6>
+                <small class="text-muted">
+                    <i class="bi bi-clock me-1" style="color: #1aa37b;"></i>
+                    {{ comment.created_at|timesince }} ago
+                </small>
+            </div>
+
+            <!-- Comment Actions -->
+            <div class="comment-actions ms-auto">
+                {% if user == comment.user %}
+                <button class="btn btn-sm btn-link edit-comment" data-comment-id="{{ comment.id }}"
+                    style="color: #1aa37b;">
+                    <i class="bi bi-pencil-fill"></i>
+                </button>
+                <button class="btn btn-sm btn-link delete-comment" data-comment-id="{{ comment.id }}"
+                    style="color: #dc3545;">
+                    <i class="bi bi-trash-fill"></i>
+                </button>
+                {% endif %}
+                <button class="btn btn-sm btn-link reply-toggle" data-comment-id="{{ comment.id }}"
+                    style="color: #1aa37b;">
+                    <i class="bi bi-reply-fill me-1"></i>Reply
+                </button>
+            </div>
+        </div>
+        <div class="comment-content mb-3">
+            <p class="mb-0 comment-text" id="text-{{ comment.id }}" style="color: #e0e0e0; line-height: 1.6;">
+                {{ comment.content }}
+            </p>
+            <div class="edit-container mt-2" id="edit-container-{{ comment.id }}" style="display:none;">
+                <textarea class="form-control edit-input mb-2" id="edit-input-{{ comment.id }}"
+                    rows="3">{{ comment.content }}</textarea>
+                <div class="d-flex gap-2">
+                    <button class="btn btn-sm save-edit" data-comment-id="{{ comment.id }}"
+                        style="background:#1aa37b;color:white;">
+                        Save
+                    </button>
+
+                    <button class="btn btn-sm cancel-edit" data-comment-id="{{ comment.id }}"
+                        style="background:#444;color:white;">
+                        Cancel
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Reply Form (Hidden by default) -->
+        <div class="reply-form-container mt-3" id="reply-form-{{ comment.id }}" style="display: none;">
+            <form class="reply-form" data-parent-id="{{ comment.id }}">
+                {% csrf_token %}
+                <div class="d-flex gap-2">
+                    <textarea class="form-control reply-input" rows="2" placeholder="Write your reply..."
+                        required></textarea>
+                    <button type="submit" class="btn btn-sm"
+                        style="background: #1aa37b; color: white; white-space: nowrap;">
+                        <i class="bi bi-send"></i>
+                    </button>
+                </div>
+            </form>
+        </div>
+
+        <!-- Replies Section -->
+        {% if comment.replies.exists %}
+        <div class="replies-section mt-3 ms-4 ps-3" style="border-left: 2px solid rgba(26, 163, 123, 0.2);">
+            {% for reply in comment.replies.all %}
+            {% include 'news/partial/reply.html' with reply=reply %}
+            {% endfor %}
+        </div>
+        {% endif %}
+    </div>
+</div>
+<script>
+    document.addEventListener("click", function (e) {
+
+        if (e.target.closest(".edit-comment")) {
+            const btn = e.target.closest(".edit-comment")
+            const id = btn.dataset.commentId
+            const text = document.getElementById(`text-${id}`)
+            const edit = document.getElementById(`edit-container-${id}`)
+            text.style.display = "none"
+            edit.style.display = "block"
+        }
+    })
+    document.addEventListener("click", function (e) {
+
+        if (e.target.classList.contains("save-edit")) {
+
+            const id = e.target.dataset.commentId
+            const textarea = document.getElementById(`edit-input-${id}`)
+            const content = textarea.value.trim()
+
+            if (!content) return
+
+            fetch(`/comment/${id}/edit/`, {
+
+                method: "POST",
+
+                headers: {
+                    "X-CSRFToken": '{{ csrf_token }}',
+                    "Content-Type": "application/x-www-form-urlencoded"
+                },
+
+                body: new URLSearchParams({
+                    content: content
+                })
+
+            })
+                .then(res => res.json())
+                .then(data => {
+                    if (data.status === "success") {
+                        const text = document.getElementById(`text-${id}`)
+                        const edit = document.getElementById(`edit-container-${id}`)
+
+                        text.innerText = data.content
+
+                        edit.style.display = "none"
+                        text.style.display = "block"
+
+                    } else {
+                        alert("Error updating comment. Please try again.")
+                    }
+                })
+        }
+    })
+    document.addEventListener("DOMContentLoaded", function () {
+
+        // Toggle reply form
+        document.addEventListener("click", function (e) {
+            if (e.target.closest(".reply-toggle")) {
+                e.preventDefault();
+                const btn = e.target.closest(".reply-toggle");
+                const commentId = btn.dataset.commentId;
+                const formContainer = document.getElementById(`reply-form-${commentId}`);
+                if (formContainer) {
+                    formContainer.style.display = formContainer.style.display === "none" ? "block" : "none";
+                }
+            }
+        });
+
+        // Submit reply via AJAX
+        document.addEventListener("submit", function (e) {
+            if (e.target.classList.contains("reply-form")) {
+                e.preventDefault();
+                const form = e.target;
+                const parentId = form.dataset.parentId;
+                console.log("Submitting reply for comment ID:", parentId);
+                const textarea = form.querySelector(".reply-input");
+                if (!textarea) return;
+
+                const content = textarea.value.trim();
+                if (!content) return;
+
+                const csrfToken = form.querySelector("[name=csrfmiddlewaretoken]").value;
+                const submitBtn = form.querySelector("button[type=submit]");
+                if (submitBtn) submitBtn.disabled = true;
+
+                fetch(`/comment/${parentId}/reply/`, {
+                    method: "POST",
+                    headers: {
+                        "X-CSRFToken": csrfToken,
+                        "Content-Type": "application/x-www-form-urlencoded"
+                    },
+                    body: new URLSearchParams({ content: content })
+                })
+                    .then(res => res.json())
+                    .then(data => {
+                        if (data.status === "success" && data.html) {
+                            // Clear textarea
+                            textarea.value = "";
+                            form.style.display = "none";
+
+                            // Append reply HTML
+                            const commentCard = form.closest(".comment-card");
+                            if (!commentCard) return;
+
+                            let repliesSection = commentCard.querySelector(".replies-section");
+                            if (!repliesSection) {
+                                repliesSection = document.createElement("div");
+                                repliesSection.classList.add("replies-section", "mt-3", "ms-4", "ps-3");
+                                repliesSection.style.borderLeft = "2px solid rgba(26, 163, 123, 0.2)";
+                                commentCard.querySelector(".comment-main").appendChild(repliesSection);
+                            }
+
+                            // Avoid duplicate appending
+                            const tempDiv = document.createElement("div");
+                            tempDiv.innerHTML = data.html;
+                            const newReply = tempDiv.firstElementChild;
+                            if (newReply && !document.getElementById(newReply.id)) {
+                                repliesSection.appendChild(newReply);
+                            }
+
+                        } else {
+                            console.error("No HTML returned from backend or error status", data);
+                            alert("Failed to post reply.");
+                        }
+                    })
+                    .catch(err => console.error("AJAX error:", err))
+                    .finally(() => {
+                        if (submitBtn) submitBtn.disabled = false;
+                    });
+            }
+        });
+
+    });
+</script>
+<style>
+    /* Comments Section - Beautiful Chess Theme */
+    .comments-section {
+        margin-top: 60px;
+        padding-top: 40px;
+        border-top: 2px solid rgba(26, 163, 123, 0.2);
+        position: relative;
+    }
+
+    .comments-section:before {
+        content: '♜ ♞ ♝ ♛ ♚ ♝ ♞ ♜';
+        position: absolute;
+        top: -20px;
+        left: 50%;
+        transform: translateX(-50%) rotate(5deg);
+        font-size: 1.2rem;
+        color: rgba(26, 163, 123, 0.15);
+        white-space: nowrap;
+        background: rgba(20, 20, 30, 0.9);
+        padding: 5px 30px;
+        border-radius: 50px;
+        letter-spacing: 8px;
+    }
+
+    .comments-header {
+        position: relative;
+        display: inline-block;
+    }
+
+    .comments-header h3 {
+        font-size: 2rem;
+        font-weight: 700;
+        background: linear-gradient(135deg, #fff, #ccc);
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+        background-clip: text;
+        position: relative;
+    }
+
+    .comments-header h3 i {
+        background: rgba(26, 163, 123, 0.2);
+        padding: 10px;
+        border-radius: 50%;
+        margin-right: 15px;
+    }
+
+    .comment-count-badge {
+        background: linear-gradient(135deg, #1aa37b, #0f8b66);
+        color: white;
+        padding: 5px 15px;
+        border-radius: 30px;
+        font-size: 0.9rem;
+        font-weight: 600;
+        margin-left: 15px;
+        box-shadow: 0 4px 15px -5px rgba(26, 163, 123, 0.4);
+        display: inline-block;
+        vertical-align: middle;
+    }
+
+    /* Comment Form Styling */
+    .comment-form-container {
+        background: rgba(26, 163, 123, 0.05);
+        border-radius: 20px;
+        padding: 25px;
+        border: 1px solid rgba(26, 163, 123, 0.15);
+        box-shadow: 0 15px 35px -15px rgba(0, 0, 0, 0.5);
+        transition: all 0.3s ease;
+    }
+
+    .comment-form-container:hover {
+        border-color: rgba(26, 163, 123, 0.3);
+        box-shadow: 0 20px 40px -15px rgba(26, 163, 123, 0.2);
+    }
+
+    .comment-input {
+        background: rgba(0, 0, 0, 0.3) !important;
+        border: 2px solid rgba(26, 163, 123, 0.2) !important;
+        color: white !important;
+        border-radius: 15px !important;
+        padding: 15px !important;
+        font-size: 1rem;
+        transition: all 0.3s ease;
+        resize: vertical;
+    }
+
+    .comment-input:focus {
+        border-color: #1aa37b !important;
+        box-shadow: 0 0 0 4px rgba(26, 163, 123, 0.1) !important;
+        background: rgba(0, 0, 0, 0.4) !important;
+    }
+
+    .comment-input::placeholder {
+        color: #666;
+        font-style: italic;
+    }
+
+    /* Comment Card Styling */
+    .comment-card {
+        transition: all 0.3s ease;
+        animation: slideInComment 0.5s ease-out;
+    }
+
+    @keyframes slideInComment {
+        from {
+            opacity: 0;
+            transform: translateY(20px);
+        }
+
+        to {
+            opacity: 1;
+            transform: translateY(0);
+        }
+    }
+
+    .comment-main {
+        background: linear-gradient(145deg, rgba(35, 35, 45, 0.95), rgba(25, 25, 35, 0.98)) !important;
+        backdrop-filter: blur(5px);
+        transition: all 0.3s ease;
+        position: relative;
+        overflow: hidden;
+    }
+
+    .comment-main:hover {
+        transform: translateY(-3px);
+        border-color: rgba(26, 163, 123, 0.3) !important;
+        box-shadow: 0 15px 30px -12px rgba(26, 163, 123, 0.2);
+    }
+
+    .comment-main:before {
+        content: '';
+        position: absolute;
+        top: 0;
+        left: 0;
+        width: 4px;
+        height: 100%;
+        background: linear-gradient(180deg, #1aa37b, transparent);
+        opacity: 0;
+        transition: opacity 0.3s ease;
+    }
+
+    .comment-main:hover:before {
+        opacity: 1;
+    }
+
+    /* Avatar Styling */
+    .avatar-circle {
+        background: linear-gradient(135deg, #1aa37b, #0d7a5a) !important;
+        box-shadow: 0 5px 15px -5px rgba(26, 163, 123, 0.4);
+        transition: all 0.3s ease;
+        position: relative;
+        overflow: hidden;
+    }
+
+    .avatar-circle:after {
+        content: '';
+        position: absolute;
+        top: -50%;
+        left: -50%;
+        width: 200%;
+        height: 200%;
+        background: radial-gradient(circle, rgba(255, 255, 255, 0.2) 0%, transparent 70%);
+        opacity: 0;
+        transition: opacity 0.3s ease;
+    }
+
+    .comment-card:hover .avatar-circle:after {
+        opacity: 1;
+    }
+
+    .avatar-circle span {
+        text-shadow: 0 2px 5px rgba(0, 0, 0, 0.3);
+        font-size: 1.2rem;
+    }
+
+    /* Comment Actions */
+    .comment-actions button {
+        opacity: 0.6;
+        transition: all 0.2s ease;
+        padding: 5px 10px;
+        border-radius: 20px;
+        text-decoration: none;
+    }
+
+    .comment-actions button:hover {
+        opacity: 1;
+        transform: scale(1.1);
+        background: rgba(26, 163, 123, 0.1);
+        text-decoration: none;
+    }
+
+    .comment-actions .edit-comment:hover {
+        color: #1aa37b !important;
+        text-shadow: 0 0 10px rgba(26, 163, 123, 0.5);
+    }
+
+    .comment-actions .delete-comment:hover {
+        color: #ff4757 !important;
+        text-shadow: 0 0 10px rgba(255, 71, 87, 0.5);
+    }
+
+    .reply-toggle {
+        background: rgba(26, 163, 123, 0.1) !important;
+        border-radius: 20px !important;
+        padding: 5px 15px !important;
+    }
+
+    .reply-toggle:hover {
+        background: rgba(26, 163, 123, 0.2) !important;
+        transform: translateX(5px) !important;
+    }
+
+    /* Reply Form */
+    .reply-form-container {
+        animation: slideDown 0.3s ease;
+    }
+
+    .reply-input {
+        background: rgba(0, 0, 0, 0.3) !important;
+        border: 2px solid rgba(26, 163, 123, 0.15) !important;
+        color: white !important;
+        border-radius: 12px !important;
+        padding: 10px 15px !important;
+        font-size: 0.95rem;
+        transition: all 0.3s ease;
+    }
+
+    .reply-input:focus {
+        border-color: #1aa37b !important;
+        box-shadow: 0 0 0 3px rgba(26, 163, 123, 0.1) !important;
+    }
+
+    .reply-input::placeholder {
+        color: #666;
+        font-style: italic;
+        font-size: 0.9rem;
+    }
+
+    /* Replies Section */
+    .replies-section {
+        position: relative;
+        padding-left: 25px;
+        margin-top: 20px;
+    }
+
+    .replies-section:before {
+        content: '';
+        position: absolute;
+        left: 0;
+        top: 0;
+        width: 3px;
+        height: 100%;
+        background: linear-gradient(180deg, #1aa37b, rgba(26, 163, 123, 0.1), transparent);
+        border-radius: 3px;
+    }
+
+    /* Reply Card */
+    .reply-card {
+        background: rgba(0, 0, 0, 0.2) !important;
+        border-radius: 12px;
+        padding: 15px;
+        margin-bottom: 15px;
+        border: 1px solid rgba(26, 163, 123, 0.1);
+        transition: all 0.3s ease;
+        animation: slideInReply 0.4s ease-out;
+        position: relative;
+        overflow: hidden;
+    }
+
+    @keyframes slideInReply {
+        from {
+            opacity: 0;
+            transform: translateX(-10px);
+        }
+
+        to {
+            opacity: 1;
+            transform: translateX(0);
+        }
+    }
+
+    .reply-card:hover {
+        background: rgba(0, 0, 0, 0.3) !important;
+        border-color: rgba(26, 163, 123, 0.2);
+        transform: translateX(3px);
+    }
+
+    .reply-card:before {
+        content: '↳';
+        position: absolute;
+        left: -15px;
+        top: 10px;
+        color: #1aa37b;
+        font-size: 1.2rem;
+        opacity: 0.5;
+    }
+
+    .reply-avatar .avatar-circle {
+        width: 30px;
+        height: 30px;
+    }
+
+    .reply-avatar .avatar-circle span {
+        font-size: 0.8rem;
+    }
+
+    .reply-actions button {
+        padding: 2px 8px;
+        opacity: 0.5;
+        transition: all 0.2s ease;
+    }
+
+    .reply-actions button:hover {
+        opacity: 1;
+        transform: scale(1.1);
+    }
+
+    .reply-content p {
+        color: #ccc;
+        font-size: 0.95rem;
+        line-height: 1.6;
+    }
+
+    /* No Comments Message */
+    #no-comments-message {
+        background: rgba(0, 0, 0, 0.2);
+        border-radius: 20px;
+        padding: 40px;
+        border: 2px dashed rgba(26, 163, 123, 0.2);
+        transition: all 0.3s ease;
+    }
+
+    #no-comments-message:hover {
+        border-color: rgba(26, 163, 123, 0.3);
+        background: rgba(0, 0, 0, 0.25);
+    }
+
+    #no-comments-message i {
+        color: #333;
+        transition: all 0.3s ease;
+    }
+
+    #no-comments-message:hover i {
+        color: #1aa37b;
+        transform: scale(1.1);
+    }
+
+    /* Timestamps */
+    .comment-meta small,
+    .reply-meta small {
+        display: flex;
+        align-items: center;
+        gap: 4px;
+        color: #888 !important;
+    }
+
+    .comment-meta small i,
+    .reply-meta small i {
+        font-size: 0.8rem;
+    }
+
+    /* Login Alert */
+    .alert-info {
+        background: rgba(26, 163, 123, 0.1) !important;
+        border: 1px solid rgba(26, 163, 123, 0.3) !important;
+        border-radius: 15px !important;
+        color: #fff !important;
+        backdrop-filter: blur(5px);
+        padding: 20px !important;
+    }
+
+    .alert-info a {
+        color: #1aa37b !important;
+        font-weight: 600;
+        text-decoration: underline;
+        text-underline-offset: 4px;
+        transition: all 0.2s ease;
+    }
+
+    .alert-info a:hover {
+        color: #fff !important;
+        text-decoration-color: #fff;
+    }
+
+    /* Submit Button */
+    #submit-comment {
+        background: linear-gradient(135deg, #1aa37b, #0f8b66) !important;
+        border: none !important;
+        padding: 12px 30px !important;
+        border-radius: 30px !important;
+        font-weight: 600;
+        letter-spacing: 0.5px;
+        transition: all 0.3s ease;
+        position: relative;
+        overflow: hidden;
+    }
+
+    #submit-comment:before {
+        content: '';
+        position: absolute;
+        top: 0;
+        left: -100%;
+        width: 100%;
+        height: 100%;
+        background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.2), transparent);
+        transition: left 0.5s ease;
+    }
+
+    #submit-comment:hover {
+        transform: translateY(-3px);
+        box-shadow: 0 10px 25px -5px #1aa37b;
+    }
+
+    #submit-comment:hover:before {
+        left: 100%;
+    }
+
+    #submit-comment:disabled {
+        opacity: 0.7;
+        cursor: not-allowed;
+        transform: none;
+    }
+
+    /* Reply Button */
+    .reply-form button[type="submit"] {
+        background: #1aa37b !important;
+        border: none;
+        border-radius: 50% !important;
+        width: 45px;
+        height: 45px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        transition: all 0.3s ease;
+    }
+
+    .reply-form button[type="submit"]:hover {
+        background: #0f8b66 !important;
+        transform: rotate(15deg) scale(1.1);
+        box-shadow: 0 5px 15px -3px #1aa37b;
+    }
+
+    .reply-form button[type="submit"] i {
+        font-size: 1.2rem;
+    }
+
+    /* Loading Spinner */
+    .spinner-border {
+        width: 1.2rem;
+        height: 1.2rem;
+        border-width: 0.15em;
+    }
+
+    /* Responsive Design */
+    @media (max-width: 768px) {
+        .comments-section:before {
+            font-size: 0.8rem;
+            letter-spacing: 4px;
+            padding: 3px 15px;
+        }
+
+        .comment-header {
+            flex-wrap: wrap;
+        }
+
+        .comment-actions {
+            margin-top: 10px;
+            margin-left: 0 !important;
+            width: 100%;
+            justify-content: flex-start;
+        }
+
+        .replies-section {
+            padding-left: 15px;
+        }
+
+        .reply-card:before {
+            left: -10px;
+        }
+
+        #submit-comment {
+            width: 100%;
+        }
+    }
+
+    /* Hover Effects */
+    .comment-card {
+        cursor: default;
+    }
+
+    .comment-content p {
+        transition: all 0.2s ease;
+    }
+
+    .comment-card:hover .comment-content p {
+        color: #f0f0f0;
+    }
+
+    /* Custom Scrollbar for Comments */
+    .comments-list {
+        max-height: 800px;
+        overflow-y: auto;
+        padding-right: 10px;
+        scrollbar-width: thin;
+        scrollbar-color: #1aa37b rgba(255, 255, 255, 0.1);
+    }
+
+    .comments-list::-webkit-scrollbar {
+        width: 6px;
+    }
+
+    .comments-list::-webkit-scrollbar-track {
+        background: rgba(255, 255, 255, 0.05);
+        border-radius: 10px;
+    }
+
+    .comments-list::-webkit-scrollbar-thumb {
+        background: #1aa37b;
+        border-radius: 10px;
+        transition: all 0.3s ease;
+    }
+
+    .comments-list::-webkit-scrollbar-thumb:hover {
+        background: #0f8b66;
+        box-shadow: 0 0 10px #1aa37b;
+    }
+</style>

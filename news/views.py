@@ -21,6 +21,7 @@ from django.db.models import Sum, F, ExpressionWrapper, IntegerField
 from django.views.decorators.csrf import csrf_exempt
 from django.template.loader import render_to_string
 from django.http import JsonResponse, HttpResponseForbidden
+from django.views.decorators.http import require_POST
 
 def home(request):
     # Big news
@@ -111,6 +112,121 @@ def article_detail(request, slug):
     article = get_object_or_404(Article, slug=slug)
     return render(request, 'news/detail.html', {'article': article})
 
+# views.py
+@login_required
+@require_POST
+def add_article_comment(request, slug):
+    article = get_object_or_404(Article, slug=slug)
+    form = CommentForm(request.POST)
+    
+    if form.is_valid():
+        comment = form.save(commit=False)
+        comment.article = article
+        comment.user = request.user
+        comment.save()
+        
+        # Render the comment HTML
+        html = render_to_string(
+            'news/partial/comment.html',
+            {
+                'comment': comment,
+                'user': request.user
+            },
+            request=request
+        )
+        print(({
+            'status': 'success',
+            'html': html,
+            'comment_count': article.comments.filter(parent__isnull=True).count(),
+            'comment_id': comment.id
+        }))
+        return JsonResponse({
+            'status': 'success',
+            'html': html,
+            'comment_count': article.comments.filter(parent__isnull=True).count(),
+            'comment_id': comment.id
+        })
+    
+    return JsonResponse({
+        'status': 'error',
+        'errors': form.errors.get_json_data()
+    }, status=400)
+
+@login_required
+@require_POST
+def add_article_reply(request, parent_id):
+    if request.method == "POST":
+        parent_comment = get_object_or_404(Comment, id=parent_id)
+        content = request.POST.get("content", "").strip()
+        if content:
+            # Create reply
+            reply = Comment.objects.create(
+                user=request.user,
+                article=parent_comment.article,
+                content=content,
+                parent=parent_comment
+            )
+            # Render reply HTML
+            try:
+                html = render_to_string(
+                    "news/partial/reply.html",
+                    {"reply": reply, "user": request.user},
+                    request=request
+                )
+            except Exception as e:
+                print("Error rendering reply template:", e)
+                html = ""
+            return JsonResponse({"status": "success", "html": html})
+    return JsonResponse({"status": "error", "html": ""})  
+
+@login_required
+@require_POST
+def edit_comment(request, comment_id):
+    comment = get_object_or_404(Comment, id=comment_id)
+    # Only comment owner can edit
+    if request.user != comment.user:
+        return JsonResponse({"status": "error", "message": "Permission denied"})
+
+    content = request.POST.get("content", "").strip()
+
+    if not content:
+        return JsonResponse({"status": "error", "message": "Empty comment"})
+
+    comment.content = content
+    comment.save()
+
+    return JsonResponse({
+        "status": "success",
+        "content": comment.content
+    })
+
+@login_required
+@require_POST
+def delete_comment(request, comment_id):
+    comment = get_object_or_404(Comment, id=comment_id)
+    print(comment)
+    if request.user != comment.user:
+        return JsonResponse({"status": "error"})
+    comment.delete()
+    return JsonResponse({"status": "success"})
+
+@login_required
+@require_POST
+def delete_reply(request, reply_id):
+    if request.method == "POST":
+        reply = get_object_or_404(Comment, id=reply_id)
+        if reply.user != request.user:
+            return JsonResponse({
+                "status": "error",
+                "message": "Permission denied"
+            })
+        reply.delete()
+        return JsonResponse({
+            "status": "success",
+            "reply_id": reply_id
+        })
+    return JsonResponse({"status": "error"})
+
 @login_required
 def toggle_like(request, slug):
     article = get_object_or_404(Article, slug=slug)
@@ -149,8 +265,8 @@ def puzzle_list(request):
     if profile.has_active_premium():
         if not profile.is_premium:
             # User is on free trial
-            remaining_days = 7 - (timezone.now() - profile.free_premium_start).days
-            messages.info(request, f"You are using your 7-day free trial! {remaining_days} day(s) left.")
+            remaining_days = 2 - (timezone.now() - profile.free_premium_start).days
+            messages.info(request, f"You're using Freemium! {remaining_days} day(s) left.")
     else:
         # Trial expired and not premium
         messages.warning(request, "Your free trial has expired. Buy premium to continue!")
@@ -298,45 +414,53 @@ from django.core.validators import validate_email
 from django.core.exceptions import ValidationError
 from .forms import EmailLoginForm
 
-
-def login_view(request):
-    form = EmailLoginForm(request.POST or None)
+def register_view(request):
+    form = EmailLoginForm(request.POST or None, is_register=True)
 
     if request.method == "POST" and form.is_valid():
-
         email = form.cleaned_data["email"].lower()
         password = form.cleaned_data["password"]
 
         username_from_email = email.split("@")[0]
 
+        username = username_from_email
+        counter = 1
+
+        while User.objects.filter(username=username).exists():
+            username = f"{username_from_email}{counter}"
+            counter += 1
+
+        user = User.objects.create_user(
+            username=username,
+            email=email,
+            password=password
+        )
+
+        login(request, user)
+        return redirect("home")
+
+    return render(request, "news/register.html", {"form": form})
+
+
+def login_view(request):
+    form = EmailLoginForm(request.POST or None)
+    if request.method == "POST" and form.is_valid():
+        email = form.cleaned_data["email"].lower()
+        password = form.cleaned_data["password"]
         try:
             user = User.objects.get(email=email)
-            user_auth = authenticate(request, username=user.username, password=password)
-
-            if user_auth:
+            user_auth = authenticate(
+                request,
+                username=user.username,
+                password=password
+            )
+            if user_auth is not None:
                 login(request, user_auth)
                 return redirect("home")
             else:
-                form.add_error("password", "Incorrect email or password.")
-
+                form.add_error("password", "Incorrect password.")
         except User.DoesNotExist:
-
-            username = username_from_email
-            counter = 1
-
-            while User.objects.filter(username=username).exists():
-                username = f"{username_from_email}{counter}"
-                counter += 1
-
-            user = User.objects.create_user(
-                username=username,
-                email=email,
-                password=password
-            )
-
-            login(request, user)
-            return redirect("home")
-
+            form.add_error("email", "No account found with this email.")
     return render(request, "news/login.html", {"form": form})
 
 @login_required

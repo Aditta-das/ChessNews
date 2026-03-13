@@ -44,6 +44,25 @@ class Article(models.Model):
     def __str__(self):
         return self.title
     
+class Comment(models.Model):
+    article = models.ForeignKey(Article, on_delete=models.CASCADE, related_name='comments')
+    user = models.ForeignKey(User, on_delete=models.CASCADE, related_name='article_comments')
+    content = models.TextField()
+    parent = models.ForeignKey('self', on_delete=models.CASCADE, null=True, blank=True, related_name='replies')
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+    is_active = models.BooleanField(default=True)
+    
+    class Meta:
+        ordering = ['-created_at']
+    
+    def __str__(self):
+        return f'Comment by {self.user.username} on {self.article.title}'
+    
+    @property
+    def is_parent(self):
+        return self.parent is None
+    
 class TopPlayerImg(models.Model):
     name = models.CharField(max_length=100)
     fide_id = models.CharField(max_length=20, unique=True)

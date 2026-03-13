@@ -1,6 +1,6 @@
 from django import forms
 from django.contrib.auth.models import User
-from .models import UserProfile, Article
+from .models import UserProfile, Article, Comment
 
 from django import forms
 import re
@@ -12,7 +12,6 @@ class EmailLoginForm(forms.Form):
             "placeholder": "Enter email"
         })
     )
-
     password = forms.CharField(
         widget=forms.PasswordInput(attrs={
             "class": "form-control form-control-lg",
@@ -20,27 +19,28 @@ class EmailLoginForm(forms.Form):
         })
     )
 
+    def __init__(self, *args, **kwargs):
+        self.is_register = kwargs.pop("is_register", False)
+        super().__init__(*args, **kwargs)
+
     def clean_password(self):
         password = self.cleaned_data.get("password")
-        if hasattr(self, "user_obj") and self.user_obj:
-            return password
-        if len(password) < 8:
-            raise forms.ValidationError("Password must be at least 8 characters.")
-
-        if not re.search(r"[A-Z]", password):
-            raise forms.ValidationError("Must contain uppercase letter.")
-
-        if not re.search(r"[a-z]", password):
-            raise forms.ValidationError("Must contain lowercase letter.")
-
-        if not re.search(r"[0-9]", password):
-            raise forms.ValidationError("Must contain a number.")
-
-        if not re.search(r"[!@#$%^&*(),.?\":{}|<>]", password):
-            raise forms.ValidationError("Must contain special character.")
-
+        
+        # ONLY validate password complexity if this is a registration
+        if self.is_register:
+            if len(password) < 8:
+                raise forms.ValidationError("Password must be at least 8 characters.")
+            if not re.search(r"[A-Z]", password):
+                raise forms.ValidationError("Must contain uppercase letter.")
+            if not re.search(r"[a-z]", password):
+                raise forms.ValidationError("Must contain lowercase letter.")
+            if not re.search(r"[0-9]", password):
+                raise forms.ValidationError("Must contain a number.")
+            if not re.search(r"[!@#$%^&*(),.?\":{}|<>]", password):
+                raise forms.ValidationError("Must contain special character.")
+        
+        # For login, just return the password without validation
         return password
-    # otp = forms.CharField(required=False, max_length=6)
 
 
 class ProfileEditForm(forms.ModelForm):
@@ -119,7 +119,29 @@ class ArticleForm(forms.ModelForm):
             }),
         }
 
+class CommentForm(forms.ModelForm):
+    class Meta:
+        model = Comment
+        fields = ['content']
+        widgets = {
+            'content': forms.Textarea(attrs={
+                'class': 'form-control comment-input',
+                'rows': 3,
+                'placeholder': 'Write your comment...'
+            })
+        }
 
+class ReplyForm(forms.ModelForm):
+    class Meta:
+        model = Comment
+        fields = ['content']
+        widgets = {
+            'content': forms.Textarea(attrs={
+                'class': 'form-control reply-input',
+                'rows': 2,
+                'placeholder': 'Write your reply...'
+            })
+        }
 
 
 # Trials section for game upload form

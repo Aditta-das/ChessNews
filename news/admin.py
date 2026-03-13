@@ -2,7 +2,7 @@ from django.contrib import admin
 from .models import Article, \
     Category, TopPlayerImg, TournamentBanner, BangladeshiTopPlayer, \
     Book, Puzzle, EmailOTP, Quote, PuzzleSolve, UserProfile, BoardVision, \
-        Tournament, Ticket, UploadedGame, GameComment, Events
+        Tournament, Ticket, UploadedGame, GameComment, Events, Comment
 
 admin.site.site_header = "ChessBD AdminPanel"
 admin.site.site_title = "ChessBD"
@@ -13,7 +13,8 @@ class ArticleAdmin(admin.ModelAdmin):
     list_display = ('title', 'author', 'published_at')
     search_fields = ('title', 'author__username')
     ordering = ('-published_at',)
-    
+
+admin.site.register(Comment)
     
 admin.site.register(Category)
 admin.site.register(TopPlayerImg)
