@@ -1,0 +1,593 @@
+{% extends 'news/base.html' %}
+{% load static %}
+
+{% block title %}Memory Trainer{% endblock %}
+
+{% block content %}
+<link rel="stylesheet" href="{% static 'chessboardjs-1.0.0/css/chessboard-1.0.0.min.css' %}">
+
+<style>
+    @media (max-width: 767px) {
+        #main-layout {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            margin: 0 auto;
+        }
+
+        #board-container {
+            width: 100% !important;
+            justify-content: center;
+            order: 2;
+        }
+
+        #board {
+            width: 100% !important;
+            height: auto !important;
+            aspect-ratio: 1/1;
+        }
+
+        #controls-container {
+            order: 3;
+            width: 100% !important;
+        }
+
+        #config-panel {
+            order: 1;
+            width: 100% !important;
+        }
+
+        .ctrl-btn,
+        .mode-btn {
+            font-size: 0.8rem;
+            padding: 6px 4px;
+        }
+    }
+
+    #config-panel { width: 100%; }
+
+    .section-label {
+        font-size: 0.62rem;
+        font-weight: 700;
+        letter-spacing: 2px;
+        text-transform: uppercase;
+        color: var(--color-gray-400);
+        margin-bottom: 8px;
+    }
+
+    .btn-grid-2 {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 6px;
+        margin-bottom: 4px;
+    }
+
+    .ctrl-btn, .mode-btn {
+        padding: 8px 6px;
+        border-radius: 7px;
+        border: 1px solid var(--border);
+        background: var(--card-color);
+        color: var(--chess-secondary);
+        font-size: 0.82rem;
+        font-weight: 600;
+        cursor: pointer;
+        transition: all 0.15s ease;
+        text-align: center;
+        line-height: 1.3;
+        width: 100%;
+    }
+
+    .ctrl-btn:hover, .mode-btn:hover {
+        border-color: var(--chess-primary);
+        color: var(--chess-light);
+        background: oklch(28% 0.02 256);
+    }
+
+    .ctrl-btn.selected, .mode-btn.selected {
+        background: var(--chess-primary);
+        border-color: var(--chess-primary);
+        color: #fff;
+    }
+
+    .mode-btn.progressive.selected {
+        background: linear-gradient(135deg, #779556, #b58863);
+        border-color: #b58863;
+    }
+
+    #start-btn {
+        width: 100%;
+        padding: 9px;
+        font-size: 0.82rem;
+        font-weight: 700;
+        letter-spacing: 1px;
+        text-transform: uppercase;
+        border-radius: 8px;
+        border: none;
+        background: var(--chess-primary);
+        color: #fff;
+        cursor: pointer;
+        transition: all 0.2s ease;
+        margin-top: 4px;
+    }
+
+    #start-btn:hover:not(:disabled) {
+        background: #67804a;
+        transform: translateY(-1px);
+        box-shadow: 0 4px 12px rgba(119, 149, 86, 0.35);
+    }
+
+    #start-btn:disabled { opacity: 0.45; cursor: not-allowed; }
+
+    /* Board */
+    #board-container {
+        width: 100%;
+        max-width: 600px;
+        margin: 0 auto;
+    }
+
+    .timer-track {
+        width: 100%;
+        height: 5px;
+        background: var(--card-color);
+        border-radius: 99px;
+        overflow: hidden;
+        margin-bottom: 10px;
+    }
+
+    #timer-bar {
+        height: 100%;
+        width: 0%;
+        background: var(--chess-primary);
+        border-radius: 99px;
+        transition: width 1s linear, background 0.4s;
+    }
+
+    #timer-bar.urgent { background: var(--chess-red); }
+
+    #board {
+        width: 100%;
+        height: auto;
+        aspect-ratio: 1/1;
+        border: 2px solid #ddd;
+    }
+
+    /* Controls */
+    #controls-container { width: 100%; }
+
+    .phase-badge {
+        display: inline-block;
+        padding: 4px 12px;
+        border-radius: 99px;
+        font-size: 0.72rem;
+        font-weight: 700;
+        letter-spacing: 1px;
+        text-transform: uppercase;
+        width: fit-content;
+    }
+
+    .badge-idle     { background: var(--card-color);           color: var(--color-gray-400); }
+    .badge-memorize { background: rgba(96,165,250,0.15);       color: #60a5fa; }
+    .badge-solve    { background: rgba(245,158,11,0.15);       color: #f59e0b; }
+    .badge-correct  { background: rgba(119,149,86,0.2);        color: var(--chess-primary); }
+    .badge-revealed { background: rgba(168,85,247,0.15);       color: #a855f7; }
+
+    #memory-status {
+        font-weight: bold;
+        margin: 10px 0;
+        min-height: 24px;
+        padding: 5px;
+        border-radius: 4px;
+        color: var(--status);
+        background-color: #f0faf0;
+    }
+
+    .score-row {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 8px;
+        margin-top: 8px;
+    }
+
+    .score-box {
+        background: var(--card-color);
+        border: 1px solid var(--border);
+        border-radius: 8px;
+        padding: 10px 8px;
+        text-align: center;
+    }
+
+    .score-box .num {
+        font-size: 1.5rem;
+        font-weight: 800;
+        color: var(--chess-light);
+    }
+
+    .score-box .lbl {
+        font-size: 0.65rem;
+        letter-spacing: 1.5px;
+        text-transform: uppercase;
+        color: var(--color-gray-400);
+        margin-top: 2px;
+    }
+
+    .score-box.s-correct .num { color: var(--chess-primary); }
+    .score-box.s-time .num    { color: #60a5fa; }
+
+    .meta-row {
+        display: flex;
+        flex-direction: column;
+        gap: 3px;
+        margin-top: 10px;
+    }
+
+    .meta-label {
+        font-size: 0.62rem;
+        font-weight: 700;
+        letter-spacing: 2px;
+        text-transform: uppercase;
+        color: var(--color-gray-400);
+    }
+
+    .meta-value {
+        font-size: 0.95rem;
+        font-weight: 700;
+        color: var(--chess-light);
+    }
+
+    /* Action buttons — Reveal / Next */
+    .action-btn-row {
+        display: flex;
+        gap: 8px;
+        margin-top: 12px;
+    }
+
+    #reveal-btn, #next-btn {
+        display: none;
+        flex: 1;
+        align-items: center;
+        justify-content: center;
+        font-weight: 600;
+        font-size: 0.88rem;
+        color: var(--chess-secondary);
+        border: 1px solid var(--border);
+        border-radius: 8px;
+        padding: 9px 12px;
+        cursor: pointer;
+        transition: background-color 0.2s ease, transform 0.15s ease;
+        background: var(--card-color);
+        gap: 6px;
+    }
+
+    #reveal-btn {
+        border-color: #a855f7;
+        color: #a855f7;
+    }
+
+    #reveal-btn:hover {
+        background: rgba(168,85,247,0.12);
+        transform: translateY(-1px);
+    }
+
+    #next-btn {
+        border-color: var(--chess-primary);
+        color: var(--chess-primary);
+    }
+
+    #next-btn:hover {
+        background: rgba(119,149,86,0.12);
+        transform: translateY(-1px);
+    }
+</style>
+
+<div id="main-layout">
+
+    <!-- LEFT: Config -->
+    <div id="config-panel">
+        <p class="section-label">⏱ Memorization Time</p>
+        <div class="btn-grid-2" id="time-btns">
+            <button class="ctrl-btn selected" onclick="setTime(25,this)">25s</button>
+            <button class="ctrl-btn" onclick="setTime(50,this)">50s</button>
+            <button class="ctrl-btn" onclick="setTime(70,this)">70s</button>
+            <button class="ctrl-btn" onclick="setTime(120,this)">120s</button>
+        </div>
+        <hr>
+        <div id="puzzle-counter" style="text-align:center;margin-bottom:8px;color:var(--chess-secondary);font-size:0.85rem;"></div>
+        <p class="section-label">🎯 Training Mode</p>
+        <div class="btn-grid-2" id="mode-btns">
+            <button class="mode-btn selected" onclick="setMode('easy',this)">Easy<br><span style="opacity:.55;font-size:.72em">(3–6)</span></button>
+            <button class="mode-btn" onclick="setMode('medium',this)">Medium<br><span style="opacity:.55;font-size:.72em">(7–14)</span></button>
+            <button class="mode-btn" onclick="setMode('hard',this)">Hard<br><span style="opacity:.55;font-size:.72em">(15–32)</span></button>
+            <button class="mode-btn progressive" onclick="setMode('progressive',this)">⭐ Progressive</button>
+        </div>
+        <hr>
+        <button id="start-btn" onclick="startGame()">▶ Start Training</button>
+    </div>
+
+    <!-- CENTER: Board -->
+    <div id="board-container">
+        <div class="timer-track">
+            <div id="timer-bar"></div>
+        </div>
+        <div id="board" class="mx-auto"></div>
+    </div>
+
+    <!-- RIGHT: Info & Stats -->
+    <div id="controls-container">
+        <h4 id="puzzle-title" style="font-weight:600;color:var(--chess-light);font-size:1.1rem;text-align:center;">
+            🧠 Memory Trainer
+        </h4>
+        <hr>
+        <div style="text-align:center;">
+            <span class="phase-badge badge-idle" id="phase-badge">Idle</span>
+        </div>
+        <div id="memory-status" class="text-center mt-2 d-none"></div>
+
+        <!-- Reveal + Next buttons -->
+        <div class="action-btn-row">
+            <button id="reveal-btn" onclick="revealPosition()">
+                👁 Reveal
+            </button>
+            <button id="next-btn" onclick="goNext()">
+                Next ›
+            </button>
+        </div>
+
+        <hr>
+        <div class="score-row">
+            <div class="score-box s-correct">
+                <div class="num" id="score-correct">0</div>
+                <div class="lbl">Solved</div>
+            </div>
+            <div class="score-box s-time">
+                <div class="num" id="score-time">—</div>
+                <div class="lbl">Last (s)</div>
+            </div>
+        </div>
+        <hr>
+        <div class="meta-row">
+            <span class="meta-label">Mode</span>
+            <span class="meta-value" id="meta-mode">Easy</span>
+        </div>
+        <div class="meta-row">
+            <span class="meta-label">Time Limit</span>
+            <span class="meta-value" id="meta-time">25s</span>
+        </div>
+    </div>
+
+</div>
+
+<script src="{% static 'jquery.min.js' %}"></script>
+<script src="{% static 'chessboardjs-1.0.0/js/chessboard-1.0.0.min.js' %}"></script>
+
+<script>
+    let board,
+        currentIndex = 0,
+        targetFen    = "",
+        selectedMode = "easy",
+        selectedTime = 25,
+        solving      = false,
+        solveStart,
+        timerInterval,
+        solvedCount  = 0,
+        positions    = [];
+
+    board = Chessboard('board', {
+        draggable:    true,
+        sparePieces:  true,
+        dropOffBoard: 'trash',
+        pieceTheme:   "{% static 'chessboardjs-1.0.0/img/chesspieces/wikipedia/' %}{piece}.png",
+        onDrop:       onDrop
+    });
+
+    $(window).resize(board.resize);
+
+    // ── UI helpers ─────────────────────────────────────────────
+    function setBadge(phase) {
+        const el = document.getElementById('phase-badge');
+        el.className = 'phase-badge badge-' + phase;
+        const labels = { idle:'Idle', memorize:'Memorize', solve:'Solve!', correct:'Correct ✅', revealed:'Revealed' };
+        el.textContent = labels[phase] || phase;
+    }
+
+    function showStatus(msg, type) {
+        const el = document.getElementById('memory-status');
+        el.classList.remove('d-none','correct','wrong','info','solved');
+        el.classList.add(type || 'info');
+        el.textContent = msg;
+    }
+
+    function setTimerBar(pct) {
+        const bar = document.getElementById('timer-bar');
+        bar.style.width = pct + '%';
+        bar.classList.toggle('urgent', pct < 25);
+    }
+
+    function showBtn(id) { document.getElementById(id).style.display = 'flex'; }
+    function hideBtn(id) { document.getElementById(id).style.display = 'none'; }
+
+    // ── Selection ──────────────────────────────────────────────
+    function setMode(mode, btn) {
+        selectedMode = mode;
+        document.querySelectorAll('#mode-btns .mode-btn').forEach(b => b.classList.remove('selected'));
+        btn.classList.add('selected');
+        document.getElementById('meta-mode').textContent = btn.firstChild.textContent.trim();
+    }
+
+    function setTime(t, btn) {
+        selectedTime = t;
+        document.querySelectorAll('#time-btns .ctrl-btn').forEach(b => b.classList.remove('selected'));
+        btn.classList.add('selected');
+        document.getElementById('meta-time').textContent = t + 's';
+    }
+
+    // ── Load from API ──────────────────────────────────────────
+    async function loadPositions() {
+        try {
+            const res = await fetch(`/api/memory/?mode=${selectedMode}`);
+            positions = await res.json();
+            if (positions.length === 0) {
+                showStatus('No positions for this mode.', 'wrong');
+                return false;
+            }
+            return true;
+        } catch (err) {
+            showStatus('Error loading positions.', 'wrong');
+            console.error(err);
+            return false;
+        }
+    }
+
+    // ── Game flow ──────────────────────────────────────────────
+    async function startGame() {
+        document.getElementById('start-btn').disabled = true;
+        showStatus('Loading positions…', 'info');
+        const ok = await loadPositions();
+        if (!ok) { document.getElementById('start-btn').disabled = false; return; }
+
+        currentIndex = 0;
+        solvedCount  = 0;
+        document.getElementById('score-correct').textContent = '0';
+        document.getElementById('score-time').textContent    = '—';
+        hideBtn('reveal-btn');
+        hideBtn('next-btn');
+        nextPosition();
+    }
+
+    function nextPosition() {
+        if (currentIndex >= positions.length) {
+            setBadge('idle');
+            showStatus('🎉 All ' + solvedCount + ' positions completed!', 'solved');
+            board.clear();
+            setTimerBar(0);
+            document.getElementById('puzzle-counter').textContent = 'Completed!';
+            document.getElementById('start-btn').disabled = false;
+            hideBtn('reveal-btn');
+            hideBtn('next-btn');
+            return;
+        }
+
+        solving = false;
+        hideBtn('reveal-btn');
+        hideBtn('next-btn');
+
+        // Pick FEN based on mode
+        if (selectedMode === 'progressive') {
+            let pool;
+            if (solvedCount < 3)      pool = positions.filter(p => p.difficulty === 'easy');
+            else if (solvedCount < 6) pool = positions.filter(p => p.difficulty === 'medium');
+            else                      pool = positions.filter(p => p.difficulty === 'hard');
+            if (!pool.length) pool = positions;
+            targetFen = pool[Math.floor(Math.random() * pool.length)].fen;
+        } else {
+            targetFen = positions[currentIndex].fen;
+        }
+
+        document.getElementById('puzzle-counter').textContent =
+            'Puzzle ' + (currentIndex + 1) + ' of ' + positions.length;
+
+        board.position(targetFen);
+        setBadge('memorize');
+        showStatus('Memorize the position…', 'info');
+
+        startTimerBar(selectedTime, () => {
+            board.clear();
+            startSolvePhase();
+        });
+    }
+
+    function startTimerBar(sec, onComplete) {
+        clearInterval(timerInterval);
+        let elapsed = 0;
+        setTimerBar(100);
+
+        timerInterval = setInterval(() => {
+            elapsed++;
+            setTimerBar(Math.max(0, ((sec - elapsed) / sec) * 100));
+            if (elapsed >= sec) {
+                clearInterval(timerInterval);
+                onComplete();
+            }
+        }, 1000);
+    }
+
+    function startSolvePhase() {
+        solving    = true;
+        solveStart = Date.now();
+        setBadge('solve');
+        showStatus('Rebuild the position from memory!', 'info');
+        setTimerBar(0);
+        // Show Reveal button so player can peek if stuck
+        showBtn('reveal-btn');
+    }
+
+    // ── Reveal ─────────────────────────────────────────────────
+    function revealPosition() {
+        solving = false;
+        clearInterval(timerInterval);
+        board.position(targetFen);
+        setBadge('revealed');
+        hideBtn('reveal-btn');
+
+        let remaining = 5;
+        showStatus('Position revealed — hiding in ' + remaining + 's…', 'info');
+
+        const countdown = setInterval(() => {
+            remaining--;
+            if (remaining > 0) {
+                showStatus('Position revealed — hiding in ' + remaining + 's…', 'info');
+            } else {
+                clearInterval(countdown);
+                board.clear();
+                showStatus('Board hidden. Move on when ready.', 'info');
+                showBtn('next-btn');
+            }
+        }, 1000);
+    }
+
+    // ── Next (manual) ──────────────────────────────────────────
+    function goNext() {
+        currentIndex++;
+        nextPosition();
+    }
+
+    // ── Drop ───────────────────────────────────────────────────
+    function onDrop(source, target, piece) {
+        if (!solving) return 'snapback';
+
+        const pos = board.position();
+        if (source !== 'spare') delete pos[source];
+        pos[target] = piece;
+        board.position(pos, false);
+
+        checkPosition();
+    }
+
+    // ── Check ──────────────────────────────────────────────────
+    function checkPosition() {
+        const current = fenPieces(board.position());
+        const target  = fenPieces(targetFen);
+
+        if (current === target) {
+            const elapsed = ((Date.now() - solveStart) / 1000).toFixed(1);
+            solving = false;
+            solvedCount++;
+            clearInterval(timerInterval);
+
+            document.getElementById('score-correct').textContent = solvedCount;
+            document.getElementById('score-time').textContent    = elapsed;
+
+            setBadge('correct');
+            showStatus('✅ Correct! Solved in ' + elapsed + 's.', 'correct');
+
+            hideBtn('reveal-btn');
+            showBtn('next-btn');
+        }
+    }
+
+    function fenPieces(input) {
+        if (typeof input === 'string') return input.split(' ')[0];
+        return Chessboard.objToFen(input).split(' ')[0];
+    }
+</script>
+
+{% endblock %}

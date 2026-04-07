@@ -1,0 +1,502 @@
+[
+    {
+        "fen": "1k6/8/8/3N4/8/4r3/2r3b1/7K w - - 0 1",
+        "difficulty": "easy",
+        "game_name": "Random Drill #1"
+    },
+    {
+        "fen": "k7/p5B1/8/3R4/7Q/2p5/6P1/3K4 w - - 0 1",
+        "difficulty": "easy",
+        "game_name": "Random Drill #2"
+    },
+    {
+        "fen": "k7/8/8/Q6R/8/1N6/5p2/3K4 w - - 0 1",
+        "difficulty": "easy",
+        "game_name": "Random Drill #3"
+    },
+    {
+        "fen": "7k/5Q2/2q1n3/1p6/1p1q4/p4p2/8/7K w - - 0 1",
+        "difficulty": "easy",
+        "game_name": "Random Drill #4"
+    },
+    {
+        "fen": "5k2/8/4b3/7Q/8/5nP1/8/5K2 w - - 0 1",
+        "difficulty": "easy",
+        "game_name": "Random Drill #5"
+    },
+    {
+        "fen": "7k/8/1BR5/p1R4p/2P3P1/8/5R2/6K1 w - - 0 1",
+        "difficulty": "easy",
+        "game_name": "Random Drill #6"
+    },
+    {
+        "fen": "4k3/5n2/8/8/8/3np3/5NR1/2K5 w - - 0 1",
+        "difficulty": "easy",
+        "game_name": "Random Drill #7"
+    },
+    {
+        "fen": "7k/6B1/1r4p1/4B3/8/Q1P1n3/4b3/K7 w - - 0 1",
+        "difficulty": "easy",
+        "game_name": "Random Drill #8"
+    },
+    {
+        "fen": "3k4/8/3P1q2/2b5/3N2q1/3R2n1/1N6/7K w - - 0 1",
+        "difficulty": "easy",
+        "game_name": "Random Drill #9"
+    },
+    {
+        "fen": "1k6/2p5/3pr2n/6N1/2P5/8/3r4/4K3 w - - 0 1",
+        "difficulty": "easy",
+        "game_name": "Random Drill #10"
+    },
+    {
+        "fen": "5k2/2b4P/8/7n/N1B1n3/8/8/4K3 w - - 0 1",
+        "difficulty": "easy",
+        "game_name": "Random Drill #11"
+    },
+    {
+        "fen": "1k6/8/8/3n3r/p4N2/7n/8/5K2 w - - 0 1",
+        "difficulty": "easy",
+        "game_name": "Random Drill #12"
+    },
+    {
+        "fen": "6k1/4n3/2B1q3/5n2/rr6/1P6/8/7K w - - 0 1",
+        "difficulty": "easy",
+        "game_name": "Random Drill #13"
+    },
+    {
+        "fen": "7k/2q4R/8/1p6/b7/8/2b5/3K4 w - - 0 1",
+        "difficulty": "easy",
+        "game_name": "Random Drill #14"
+    },
+    {
+        "fen": "k7/5N2/8/6P1/5p2/8/4p3/5K2 w - - 0 1",
+        "difficulty": "easy",
+        "game_name": "Random Drill #15"
+    },
+    {
+        "fen": "5k2/7N/3P2B1/3Pp3/p4Q2/8/8/6K1 w - - 0 1",
+        "difficulty": "easy",
+        "game_name": "Random Drill #16"
+    },
+    {
+        "fen": "3k4/7p/1p6/2bq4/3n4/8/1P6/1K6 w - - 0 1",
+        "difficulty": "easy",
+        "game_name": "Random Drill #17"
+    },
+    {
+        "fen": "1k6/8/1B6/2n5/4n1r1/4n3/1b6/6K1 w - - 0 1",
+        "difficulty": "easy",
+        "game_name": "Random Drill #18"
+    },
+    {
+        "fen": "4k3/5P2/3N4/3p2Pn/b7/2p5/8/2K5 w - - 0 1",
+        "difficulty": "easy",
+        "game_name": "Random Drill #19"
+    },
+    {
+        "fen": "6k1/p3q3/4B3/8/8/6q1/6p1/7K w - - 0 1",
+        "difficulty": "easy",
+        "game_name": "Random Drill #20"
+    },
+    {
+        "fen": "1k6/1q3q2/1B1R4/5P2/5r2/2N5/4B3/2K5 w - - 0 1",
+        "difficulty": "easy",
+        "game_name": "Random Drill #21"
+    },
+    {
+        "fen": "3k4/8/1R6/8/3B4/qn6/6b1/5K2 w - - 0 1",
+        "difficulty": "easy",
+        "game_name": "Random Drill #22"
+    },
+    {
+        "fen": "k7/2p5/2B4B/Q7/8/2b5/4R3/1K6 w - - 0 1",
+        "difficulty": "easy",
+        "game_name": "Random Drill #23"
+    },
+    {
+        "fen": "2k5/2R5/1P6/1R5n/3n2R1/6p1/2p5/2K5 w - - 0 1",
+        "difficulty": "easy",
+        "game_name": "Random Drill #24"
+    },
+    {
+        "fen": "6k1/8/NP5N/8/P7/8/8/1K6 w - - 0 1",
+        "difficulty": "easy",
+        "game_name": "Random Drill #25"
+    },
+    {
+        "fen": "k7/8/8/3P4/4P3/N7/3b4/2K5 w - - 0 1",
+        "difficulty": "easy",
+        "game_name": "Random Drill #26"
+    },
+    {
+        "fen": "5k2/5pB1/8/8/8/8/2P2B1P/2K5 w - - 0 1",
+        "difficulty": "easy",
+        "game_name": "Random Drill #27"
+    },
+    {
+        "fen": "7k/8/r1BN2Q1/2P5/8/8/4b3/K7 w - - 0 1",
+        "difficulty": "easy",
+        "game_name": "Random Drill #28"
+    },
+    {
+        "fen": "2k5/2q5/2bB4/n2R4/5n1r/8/6q1/2K5 w - - 0 1",
+        "difficulty": "easy",
+        "game_name": "Random Drill #29"
+    },
+    {
+        "fen": "3k4/7N/8/q7/8/6n1/4P3/1K6 w - - 0 1",
+        "difficulty": "easy",
+        "game_name": "Random Drill #30"
+    },
+    {
+        "fen": "4k3/8/8/6r1/6Q1/4P3/2q3q1/5K2 w - - 0 1",
+        "difficulty": "easy",
+        "game_name": "Random Drill #31"
+    },
+    {
+        "fen": "3k4/Q1n5/4b2n/8/2b5/3B4/8/2K5 w - - 0 1",
+        "difficulty": "easy",
+        "game_name": "Random Drill #32"
+    },
+    {
+        "fen": "2k5/3Pq3/6qP/8/8/2Q3Q1/1R5B/6K1 w - - 0 1",
+        "difficulty": "easy",
+        "game_name": "Random Drill #33"
+    },
+    {
+        "fen": "3k4/3q4/4p3/4n2r/1Q6/4P3/3P4/4K3 w - - 0 1",
+        "difficulty": "easy",
+        "game_name": "Random Drill #34"
+    },
+    {
+        "fen": "1k6/p7/R7/8/2p5/8/1b6/1K6 w - - 0 1",
+        "difficulty": "easy",
+        "game_name": "Random Drill #35"
+    },
+    {
+        "fen": "7k/7Q/r7/4P1r1/8/8/2q1nN2/2K5 w - - 0 1",
+        "difficulty": "easy",
+        "game_name": "Random Drill #36"
+    },
+    {
+        "fen": "5k2/5rP1/8/8/8/8/p3p3/2K5 w - - 0 1",
+        "difficulty": "easy",
+        "game_name": "Random Drill #37"
+    },
+    {
+        "fen": "6k1/1p6/8/1rP5/6P1/1N6/QR6/K7 w - - 0 1",
+        "difficulty": "easy",
+        "game_name": "Random Drill #38"
+    },
+    {
+        "fen": "7k/5q2/4P3/1r1b1N1q/8/8/p4q2/4K3 w - - 0 1",
+        "difficulty": "easy",
+        "game_name": "Random Drill #39"
+    },
+    {
+        "fen": "2k5/6r1/4R3/1pn1Pp2/8/1N6/7p/3K4 w - - 0 1",
+        "difficulty": "easy",
+        "game_name": "Random Drill #40"
+    },
+    {
+        "fen": "4k3/1n6/8/8/8/P1n5/5p2/K7 w - - 0 1",
+        "difficulty": "easy",
+        "game_name": "Random Drill #41"
+    },
+    {
+        "fen": "1k6/8/7b/8/6n1/6b1/Bb5b/2K5 w - - 0 1",
+        "difficulty": "easy",
+        "game_name": "Random Drill #42"
+    },
+    {
+        "fen": "2k5/3Q3b/8/4q3/8/8/3P4/K7 w - - 0 1",
+        "difficulty": "easy",
+        "game_name": "Random Drill #43"
+    },
+    {
+        "fen": "7k/2r5/5N2/4r3/8/8/3P3N/2K5 w - - 0 1",
+        "difficulty": "easy",
+        "game_name": "Random Drill #44"
+    },
+    {
+        "fen": "3k4/2B4b/8/8/2n5/2R5/2P5/1K6 w - - 0 1",
+        "difficulty": "easy",
+        "game_name": "Random Drill #45"
+    },
+    {
+        "fen": "5k2/1P6/8/5P1b/1b6/6QR/2p5/4K3 w - - 0 1",
+        "difficulty": "easy",
+        "game_name": "Random Drill #46"
+    },
+    {
+        "fen": "7k/1Qq5/5P2/3N4/8/b5Q1/8/K7 w - - 0 1",
+        "difficulty": "easy",
+        "game_name": "Random Drill #47"
+    },
+    {
+        "fen": "k7/6p1/2b5/8/8/1q6/1p6/6K1 w - - 0 1",
+        "difficulty": "easy",
+        "game_name": "Random Drill #48"
+    },
+    {
+        "fen": "1k6/2b2pP1/1PR5/8/8/p7/1P6/6K1 w - - 0 1",
+        "difficulty": "easy",
+        "game_name": "Random Drill #49"
+    },
+    {
+        "fen": "1k6/8/2P5/r3P3/8/3nP3/3r4/7K w - - 0 1",
+        "difficulty": "easy",
+        "game_name": "Random Drill #50"
+    },
+    {
+        "fen": "3k4/7P/8/4r3/8/P5q1/4P3/6K1 w - - 0 1",
+        "difficulty": "easy",
+        "game_name": "Random Drill #51"
+    },
+    {
+        "fen": "1k6/8/Q4R2/8/1Q6/3QP3/4p3/2K5 w - - 0 1",
+        "difficulty": "easy",
+        "game_name": "Random Drill #52"
+    },
+    {
+        "fen": "2k5/2QN4/7q/8/3B4/Pr6/8/K7 w - - 0 1",
+        "difficulty": "easy",
+        "game_name": "Random Drill #53"
+    },
+    {
+        "fen": "k7/3N4/3n4/1R2r3/8/8/8/7K w - - 0 1",
+        "difficulty": "easy",
+        "game_name": "Random Drill #54"
+    },
+    {
+        "fen": "2k5/1b6/8/3P4/8/4B3/4P3/5K2 w - - 0 1",
+        "difficulty": "easy",
+        "game_name": "Random Drill #55"
+    },
+    {
+        "fen": "1k6/4p2P/7N/8/2P5/R1P5/Q6P/7K w - - 0 1",
+        "difficulty": "easy",
+        "game_name": "Random Drill #56"
+    },
+    {
+        "fen": "5k2/4P3/8/8/8/b2Rq3/1N6/5K2 w - - 0 1",
+        "difficulty": "easy",
+        "game_name": "Random Drill #57"
+    },
+    {
+        "fen": "2k5/B7/P7/8/2B5/q7/1b4n1/6K1 w - - 0 1",
+        "difficulty": "easy",
+        "game_name": "Random Drill #58"
+    },
+    {
+        "fen": "1k6/8/Pp1P3B/7P/6r1/8/8/5K2 w - - 0 1",
+        "difficulty": "easy",
+        "game_name": "Random Drill #59"
+    },
+    {
+        "fen": "5k2/8/1N6/8/8/b7/4B1b1/7K w - - 0 1",
+        "difficulty": "easy",
+        "game_name": "Random Drill #60"
+    },
+    {
+        "fen": "3k4/5br1/Q1r5/8/2p5/2B5/Q4P2/4K3 w - - 0 1",
+        "difficulty": "easy",
+        "game_name": "Random Drill #61"
+    },
+    {
+        "fen": "6k1/1b3q2/r4NQ1/8/B1r5/q7/8/1K6 w - - 0 1",
+        "difficulty": "easy",
+        "game_name": "Random Drill #62"
+    },
+    {
+        "fen": "1k6/4b3/1R6/8/8/2P5/1r6/7K w - - 0 1",
+        "difficulty": "easy",
+        "game_name": "Random Drill #63"
+    },
+    {
+        "fen": "2k5/4pQ2/P7/2n2B2/2P5/2P5/5r2/3K4 w - - 0 1",
+        "difficulty": "easy",
+        "game_name": "Random Drill #64"
+    },
+    {
+        "fen": "6k1/4P3/8/2PN4/8/r6B/8/6K1 w - - 0 1",
+        "difficulty": "easy",
+        "game_name": "Random Drill #65"
+    },
+    {
+        "fen": "2k5/6p1/3b4/rp5B/5b2/2q5/1Q6/1K6 w - - 0 1",
+        "difficulty": "easy",
+        "game_name": "Random Drill #66"
+    },
+    {
+        "fen": "6k1/5B1P/3B4/6b1/6R1/3B4/8/2K5 w - - 0 1",
+        "difficulty": "easy",
+        "game_name": "Random Drill #67"
+    },
+    {
+        "fen": "6k1/1n2p3/6P1/1N5q/4Rq2/8/p7/2K5 w - - 0 1",
+        "difficulty": "easy",
+        "game_name": "Random Drill #68"
+    },
+    {
+        "fen": "k7/p7/1P1p1Qp1/2p2P2/2B5/8/8/2K5 w - - 0 1",
+        "difficulty": "easy",
+        "game_name": "Random Drill #69"
+    },
+    {
+        "fen": "2k5/5q2/8/2P5/4r3/8/3p3p/2K5 w - - 0 1",
+        "difficulty": "easy",
+        "game_name": "Random Drill #70"
+    },
+    {
+        "fen": "2k5/8/2n4r/4p3/8/3p1p2/6P1/6K1 w - - 0 1",
+        "difficulty": "easy",
+        "game_name": "Random Drill #71"
+    },
+    {
+        "fen": "6k1/7N/1p1b4/8/7r/Q7/1PP5/1K6 w - - 0 1",
+        "difficulty": "easy",
+        "game_name": "Random Drill #72"
+    },
+    {
+        "fen": "2k5/8/n7/4P1n1/8/7R/8/4K3 w - - 0 1",
+        "difficulty": "easy",
+        "game_name": "Random Drill #73"
+    },
+    {
+        "fen": "3k4/1q6/1N6/8/2p4p/6b1/1N6/6K1 w - - 0 1",
+        "difficulty": "easy",
+        "game_name": "Random Drill #74"
+    },
+    {
+        "fen": "4k3/4b1Q1/4n3/2qRB3/4P3/8/8/3K4 w - - 0 1",
+        "difficulty": "easy",
+        "game_name": "Random Drill #75"
+    },
+    {
+        "fen": "6k1/7n/7r/r2P3B/8/4P3/8/4K3 w - - 0 1",
+        "difficulty": "easy",
+        "game_name": "Random Drill #76"
+    },
+    {
+        "fen": "4k3/6p1/2n5/5P2/1b1n4/1B6/7q/1K6 w - - 0 1",
+        "difficulty": "easy",
+        "game_name": "Random Drill #77"
+    },
+    {
+        "fen": "4k3/8/8/5Pn1/8/8/1NP1rP2/K7 w - - 0 1",
+        "difficulty": "easy",
+        "game_name": "Random Drill #78"
+    },
+    {
+        "fen": "2k5/2r5/1pQ4p/8/2pB4/6P1/P7/2K5 w - - 0 1",
+        "difficulty": "easy",
+        "game_name": "Random Drill #79"
+    },
+    {
+        "fen": "3k4/6Bp/8/8/N3b1p1/8/8/6K1 w - - 0 1",
+        "difficulty": "easy",
+        "game_name": "Random Drill #80"
+    },
+    {
+        "fen": "6k1/8/8/2n5/3Pq3/N7/8/5K2 w - - 0 1",
+        "difficulty": "easy",
+        "game_name": "Random Drill #81"
+    },
+    {
+        "fen": "k7/6P1/8/4q3/6RB/3qp3/3p1B2/6K1 w - - 0 1",
+        "difficulty": "easy",
+        "game_name": "Random Drill #82"
+    },
+    {
+        "fen": "2k5/8/N6P/2B5/1Q6/5q2/4P2P/K7 w - - 0 1",
+        "difficulty": "easy",
+        "game_name": "Random Drill #83"
+    },
+    {
+        "fen": "4k3/6P1/B1n5/8/1r6/3q4/2P5/5K2 w - - 0 1",
+        "difficulty": "easy",
+        "game_name": "Random Drill #84"
+    },
+    {
+        "fen": "4k3/4b3/8/8/3pP3/8/2P1Q3/6K1 w - - 0 1",
+        "difficulty": "easy",
+        "game_name": "Random Drill #85"
+    },
+    {
+        "fen": "1k6/N2R4/1q6/8/8/2Q3n1/1N3n2/6K1 w - - 0 1",
+        "difficulty": "easy",
+        "game_name": "Random Drill #86"
+    },
+    {
+        "fen": "4k3/5B2/1R6/3p4/2b1Q3/7P/1P2q3/3K4 w - - 0 1",
+        "difficulty": "easy",
+        "game_name": "Random Drill #87"
+    },
+    {
+        "fen": "3k4/8/8/n5p1/8/8/1Q3r2/K7 w - - 0 1",
+        "difficulty": "easy",
+        "game_name": "Random Drill #88"
+    },
+    {
+        "fen": "2k5/8/2n5/1Q6/7N/8/5B2/2K5 w - - 0 1",
+        "difficulty": "easy",
+        "game_name": "Random Drill #89"
+    },
+    {
+        "fen": "4k3/8/r7/2N5/8/1b5r/1p6/6K1 w - - 0 1",
+        "difficulty": "easy",
+        "game_name": "Random Drill #90"
+    },
+    {
+        "fen": "7k/2BpN3/P7/7B/2R5/8/7p/2K5 w - - 0 1",
+        "difficulty": "easy",
+        "game_name": "Random Drill #91"
+    },
+    {
+        "fen": "6k1/4B3/2r5/1P1Q4/1qB5/8/6B1/4K3 w - - 0 1",
+        "difficulty": "easy",
+        "game_name": "Random Drill #92"
+    },
+    {
+        "fen": "2k5/2nN3b/8/8/2r5/2Q5/2P5/2K5 w - - 0 1",
+        "difficulty": "easy",
+        "game_name": "Random Drill #93"
+    },
+    {
+        "fen": "7k/3pP3/8/8/7r/8/P7/7K w - - 0 1",
+        "difficulty": "easy",
+        "game_name": "Random Drill #94"
+    },
+    {
+        "fen": "2k5/8/p7/8/4rB1B/8/6q1/1K6 w - - 0 1",
+        "difficulty": "easy",
+        "game_name": "Random Drill #95"
+    },
+    {
+        "fen": "5k2/8/3p2n1/1N4Q1/8/8/8/5K2 w - - 0 1",
+        "difficulty": "easy",
+        "game_name": "Random Drill #96"
+    },
+    {
+        "fen": "1k6/3n4/3P4/8/NQ6/P7/R7/1K6 w - - 0 1",
+        "difficulty": "easy",
+        "game_name": "Random Drill #97"
+    },
+    {
+        "fen": "1k6/6p1/2B3B1/2B3r1/8/4PQ2/4P3/5K2 w - - 0 1",
+        "difficulty": "easy",
+        "game_name": "Random Drill #98"
+    },
+    {
+        "fen": "7k/8/pp4p1/1r2P3/8/1Pn5/8/K7 w - - 0 1",
+        "difficulty": "easy",
+        "game_name": "Random Drill #99"
+    },
+    {
+        "fen": "1k6/3r1Pp1/2q5/4N3/5N2/8/6qp/2K5 w - - 0 1",
+        "difficulty": "easy",
+        "game_name": "Random Drill #100"
+    }
+]

@@ -6,6 +6,8 @@
 
 {% load nw_filter %}
 {% load static %}
+{% load online_status %}
+
 <style>
 	@media (max-width: 768px) {
 		.player-headline {
@@ -27,6 +29,23 @@
 			justify-content: center;
 		}
 	}
+
+	hr {
+		border: 1px solid #EBECD0;
+	}
+
+	a {
+		text-decoration: none;
+		color: #EBECD0;
+	}
+	.is_online {
+		display: inline-block;
+		width: 10px;
+		height: 10px;
+		background-color: #28a745;
+		border-radius: 50%;
+		margin-left: 8px;
+	}
 </style>
 
 {% if user.is_authenticated %}
@@ -41,7 +60,14 @@
 		{% endif %}
 	</div>
 	<div class="col-auto">
-		<a href="{% url 'progress' %}" class="text-decoration-none"><span class="text-white fw-bold username">{{ user.username }}</span></a>
+		<a href="{% url 'progress' %}" class="text-decoration-none">
+			<span class="text-white fw-bold username">{{ user.username }}</span>
+		</a>
+		{% if user|is_online %}
+		<span class="is_online"></span>
+		{% else %}
+		<span class="badge bg-secondary ms-2">Offline</span>
+		{% endif %}
 	</div>
 </div>
 {% endif %}
@@ -114,17 +140,27 @@
 
 		<div class="card border-0 shadow-sm mb-2 overflow-hidden">
 			<div class="card-header bg-danger text-white py-3">
-				<h3 class="h5 mb-0 fw-bold"><i class="bi bi-trophy-fill me-2"></i> Tournaments</h3>
+				<div class="row">
+					<div class="col">
+						<h3 class="h5 mb-0 fw-bold"><i class="bi bi-trophy-fill me-2"></i> Tournaments</h3>
+					</div>
+					<div class="col-auto">
+						<a href="{% url 'all_events' %}">
+							<i class="bi bi-calendar-plus-fill"></i>
+						</a>
+					</div>
+				</div>
 			</div>
-			<div class="card-body">
+			<div class="card-body tournament-scroll" style="max-height: 100px; overflow-y: auto;">
 				{% for tournament in tournaments %}
 				<div class="mb-3">
 					<h5 class="fw-bold mb-1">{{ tournament.title }}</h5>
 					<p class="small mb-2">
 						<i class="bi bi-calendar-event me-1"></i>
-						{{ tournament.start_date|date:"M d" }} – {{ tournament.end_date|date:"M d, Y" }}
+						{{ tournament.start|date:"M d" }} – {{ tournament.end|date:"M d, Y" }}
 					</p>
 				</div>
+				<hr>
 				{% empty %}
 				<p>No tournaments available at the moment.</p>
 				{% endfor %}

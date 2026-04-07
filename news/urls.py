@@ -66,6 +66,12 @@ urlpatterns = [
     path('event/', views.all_events, name='all_events'),
     path("events/", views.events_json, name="events_json"),
     path("add-event/", views.add_event, name="add_event"),
-
+    path("memory-test/", views.memory_view, name="memory_test"),
+    path('api/memory/', views.memory_api, name='memory_api'),
+    ############################ Chat system ##########################################
+    path("chat/", views.chat, name="chat_home"),
+    path("chat/<str:username>/", views.chat, name="chat"),
+    path("api/messages/<str:username>/", views.get_messages, name="get_messages"),
+    ###################################################################################
 ]
 

@@ -3,7 +3,7 @@ from django.urls import reverse
 from .models import Article, TopPlayerImg, \
     TournamentBanner, BangladeshiTopPlayer, Book, \
         Puzzle, EmailOTP, PuzzleSolve, UserProfile, \
-            BoardVision, Tournament, UploadedGame, GameComment, Events
+            BoardVision, UploadedGame, GameComment, Events, Message, MemoryPosition
 from django.contrib.auth.models import User
 from django.contrib.auth import logout
 import requests, random, json
@@ -49,8 +49,7 @@ def home(request):
     # Tournament banner
     banner = TournamentBanner.objects.filter(show_banner=True).order_by('-created_at').first()
     home_banner = TournamentBanner.objects.filter(inside_home=True).order_by('-created_at').first()
-    tournaments = Tournament.objects.all()
-
+    tournamets = Events.objects.all().order_by('start')
     profile = None
     if request.user.is_authenticated and hasattr(request.user, 'userprofile'):
         profile = request.user.userprofile
@@ -62,9 +61,9 @@ def home(request):
         'players': players,
         'banner': banner,
         'top_bd_players': top_bd_players,
-        'tournaments': tournaments,
         'profile': profile,  
         'home_banner': home_banner,
+        'tournaments': tournamets,
     })
 
 
@@ -723,3 +722,87 @@ def add_event(request):
         )
         return JsonResponse({'status': 'success', 'event_id': event.id})
     return JsonResponse({'status': 'error'}, status=400)
+
+
+import json
+from django.core.serializers.json import DjangoJSONEncoder
+
+def memory_view(request):
+    positions = MemoryPosition.objects.all().values('fen')
+
+    positions_json = json.dumps(list(positions), cls=DjangoJSONEncoder)
+
+    return render(request, "news/memory.html", {
+        "positions_json": positions_json
+    })
+
+def memory_api(request):
+    mode = request.GET.get('mode', 'easy')
+
+    if mode == 'progressive':
+        positions = MemoryPosition.objects.all()
+    else:
+        positions = MemoryPosition.objects.filter(difficulty=mode)
+
+    data = list(positions.values('fen', 'difficulty'))
+
+    return JsonResponse(data, safe=False)
+
+
+############################## Chat system (will be implemented) ##########################################
+from django.shortcuts import render
+from django.contrib.auth.decorators import login_required
+from django.contrib.auth.models import User
+from django.http import JsonResponse
+from django.db.models import Q
+from .models import Message
+
+
+# 🔹 Main Chat Page
+@login_required
+def chat(request, username=None):
+    users = User.objects.exclude(id=request.user.id)
+    other_user = None
+
+    if username:
+        other_user = User.objects.get(username=username)
+
+    # 🔥 Send message (AJAX)
+    if request.method == "POST":
+        content = request.POST.get("content")
+
+        if other_user and content:
+            Message.objects.create(
+                sender=request.user,
+                receiver=other_user,
+                content=content
+            )
+
+        return JsonResponse({"status": "ok"})
+
+    return render(request, "news/chat/chat.html", {
+        "users": users,
+        "other_user": other_user
+    })
+
+
+# 🔹 API for realtime messages
+@login_required
+def get_messages(request, username):
+    other_user = User.objects.get(username=username)
+
+    messages = Message.objects.filter(
+        Q(sender=request.user, receiver=other_user) |
+        Q(sender=other_user, receiver=request.user)
+    ).order_by("timestamp")
+
+    data = []
+
+    for msg in messages:
+        data.append({
+            "content": msg.content,
+            "is_me": msg.sender == request.user
+        })
+
+    return JsonResponse({"messages": data})
+###########################################################################################

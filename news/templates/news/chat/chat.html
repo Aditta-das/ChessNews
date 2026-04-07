@@ -1,0 +1,181 @@
+{% extends 'news/base.html' %}
+{% block content %}
+
+<style>
+.chat-container {
+    display: flex;
+    height: 85vh;
+}
+
+/* Sidebar */
+.chat-sidebar {
+    width: 30%;
+    background: #020617;
+    overflow-y: auto;
+}
+
+.chat-user {
+    display: flex;
+    gap: 10px;
+    padding: 12px;
+    cursor: pointer;
+}
+
+.chat-user:hover { background: #1e293b; }
+.chat-user.active { background: #2563eb; }
+
+.avatar {
+    width: 40px;
+    border-radius: 50%;
+}
+
+/* Chat */
+.chat-main {
+    width: 70%;
+    display: flex;
+    flex-direction: column;
+}
+
+.chat-header {
+    padding: 15px;
+    background: #020617;
+    color: white;
+}
+
+.chat-messages {
+    flex: 1;
+    padding: 15px;
+    overflow-y: auto;
+}
+
+.message {
+    padding: 10px;
+    margin: 5px 0;
+    border-radius: 10px;
+    max-width: 60%;
+}
+
+.sent {
+    background: #2563eb;
+    color: white;
+    margin-left: auto;
+}
+
+.received {
+    background: #1e293b;
+    color: white;
+}
+
+.chat-input {
+    display: flex;
+}
+
+.chat-input input {
+    flex: 1;
+    padding: 10px;
+}
+
+.chat-input button {
+    padding: 10px;
+}
+</style>
+
+
+<div class="chat-container">
+
+    <!-- Sidebar -->
+    <div class="chat-sidebar">
+        {% for user in users %}
+        <div class="chat-user {% if other_user and user.username == other_user.username %}active{% endif %}"
+             onclick="window.location.href='/chat/{{ user.username }}/'">
+
+            <img src="https://i.pravatar.cc/40?u={{ user.username }}" class="avatar">
+
+            <div>
+                <b>{{ user.username }}</b>
+            </div>
+
+        </div>
+        {% endfor %}
+    </div>
+
+
+    <!-- Chat -->
+    <div class="chat-main">
+
+        <div class="chat-header">
+            {% if other_user %}
+                Chat with {{ other_user.username }}
+            {% else %}
+                Select a user
+            {% endif %}
+        </div>
+
+        <div class="chat-messages" id="chat-box"></div>
+
+        {% if other_user %}
+        <form id="chat-form" class="chat-input">
+            {% csrf_token %}
+            <input type="text" id="message-input" placeholder="Type message..." required>
+            <button type="submit">Send</button>
+        </form>
+        {% endif %}
+
+    </div>
+
+</div>
+
+
+<script>
+const chatBox = document.getElementById("chat-box");
+const username = "{{ other_user.username|default:'' }}";
+
+// 🔄 Load messages
+function loadMessages() {
+    fetch(`/api/messages/${username}/`)
+    .then(res => res.json())
+    .then(data => {
+        chatBox.innerHTML = "";
+
+        data.messages.forEach(msg => {
+            let div = document.createElement("div");
+            div.classList.add("message");
+            div.classList.add(msg.is_me ? "sent" : "received");
+            div.innerText = msg.content;
+            chatBox.appendChild(div);
+        });
+
+        chatBox.scrollTop = chatBox.scrollHeight;
+    });
+}
+
+if (username) {
+    setInterval(loadMessages, 2000);
+    loadMessages();
+}
+
+
+// 📤 Send message
+const form = document.getElementById("chat-form");
+
+if (form) {
+    form.addEventListener("submit", function(e){
+        e.preventDefault();
+
+        fetch("", {
+            method: "POST",
+            headers: {
+                "X-CSRFToken": document.querySelector('[name=csrfmiddlewaretoken]').value,
+                "Content-Type": "application/x-www-form-urlencoded"
+            },
+            body: `content=${document.getElementById("message-input").value}`
+        })
+        .then(() => {
+            document.getElementById("message-input").value = "";
+            loadMessages();
+        });
+    });
+}
+</script>
+
+{% endblock %}

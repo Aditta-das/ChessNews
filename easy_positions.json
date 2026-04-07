@@ -1,0 +1,502 @@
+[
+    {
+        "fen": "8/8/8/6k1/8/8/q5K1/8 w - - 0 1",
+        "difficulty": "easy",
+        "game_name": "Easy Memory Drill #1"
+    },
+    {
+        "fen": "8/5k2/8/5n2/8/3q4/b3K3/8 w - - 0 1",
+        "difficulty": "easy",
+        "game_name": "Easy Memory Drill #2"
+    },
+    {
+        "fen": "8/8/K7/8/8/8/2nk4/3Br3 w - - 0 1",
+        "difficulty": "easy",
+        "game_name": "Easy Memory Drill #3"
+    },
+    {
+        "fen": "3K4/8/8/5k2/8/8/8/6q1 w - - 0 1",
+        "difficulty": "easy",
+        "game_name": "Easy Memory Drill #4"
+    },
+    {
+        "fen": "3R4/8/3k4/8/2K1B2n/4Q3/8/8 w - - 0 1",
+        "difficulty": "easy",
+        "game_name": "Easy Memory Drill #5"
+    },
+    {
+        "fen": "8/7N/1K1R4/6k1/8/7r/8/7b w - - 0 1",
+        "difficulty": "easy",
+        "game_name": "Easy Memory Drill #6"
+    },
+    {
+        "fen": "4K3/8/5n2/p5k1/8/8/6p1/8 w - - 0 1",
+        "difficulty": "easy",
+        "game_name": "Easy Memory Drill #7"
+    },
+    {
+        "fen": "8/8/8/k7/8/8/R7/2K5 w - - 0 1",
+        "difficulty": "easy",
+        "game_name": "Easy Memory Drill #8"
+    },
+    {
+        "fen": "2k5/2K5/8/8/8/8/8/5n2 w - - 0 1",
+        "difficulty": "easy",
+        "game_name": "Easy Memory Drill #9"
+    },
+    {
+        "fen": "8/1K6/8/1B6/3k4/8/8/8 w - - 0 1",
+        "difficulty": "easy",
+        "game_name": "Easy Memory Drill #10"
+    },
+    {
+        "fen": "8/8/6K1/4Q3/8/8/5k2/8 w - - 0 1",
+        "difficulty": "easy",
+        "game_name": "Easy Memory Drill #11"
+    },
+    {
+        "fen": "8/8/1R5R/8/4k3/5K2/8/8 w - - 0 1",
+        "difficulty": "easy",
+        "game_name": "Easy Memory Drill #12"
+    },
+    {
+        "fen": "5R2/4K3/1n6/6k1/8/8/8/8 w - - 0 1",
+        "difficulty": "easy",
+        "game_name": "Easy Memory Drill #13"
+    },
+    {
+        "fen": "4k3/8/8/8/4p1r1/4Q3/6K1/8 w - - 0 1",
+        "difficulty": "easy",
+        "game_name": "Easy Memory Drill #14"
+    },
+    {
+        "fen": "5k2/2N5/Q7/6K1/B7/8/8/7B w - - 0 1",
+        "difficulty": "easy",
+        "game_name": "Easy Memory Drill #15"
+    },
+    {
+        "fen": "8/8/3K4/p7/8/8/4n3/7k w - - 0 1",
+        "difficulty": "easy",
+        "game_name": "Easy Memory Drill #16"
+    },
+    {
+        "fen": "6NK/4Q3/8/p7/8/8/3k4/2n5 w - - 0 1",
+        "difficulty": "easy",
+        "game_name": "Easy Memory Drill #17"
+    },
+    {
+        "fen": "8/8/8/1K6/8/k7/6n1/8 w - - 0 1",
+        "difficulty": "easy",
+        "game_name": "Easy Memory Drill #18"
+    },
+    {
+        "fen": "8/3rK3/8/8/p7/7k/8/r7 w - - 0 1",
+        "difficulty": "easy",
+        "game_name": "Easy Memory Drill #19"
+    },
+    {
+        "fen": "6n1/5k2/4K3/8/5p2/8/8/8 w - - 0 1",
+        "difficulty": "easy",
+        "game_name": "Easy Memory Drill #20"
+    },
+    {
+        "fen": "8/3k4/8/8/5qK1/8/4N3/8 w - - 0 1",
+        "difficulty": "easy",
+        "game_name": "Easy Memory Drill #21"
+    },
+    {
+        "fen": "8/8/7K/8/k7/1R6/2p2b2/8 w - - 0 1",
+        "difficulty": "easy",
+        "game_name": "Easy Memory Drill #22"
+    },
+    {
+        "fen": "8/8/Q2N2k1/8/B7/8/8/7K w - - 0 1",
+        "difficulty": "easy",
+        "game_name": "Easy Memory Drill #23"
+    },
+    {
+        "fen": "7k/pK4R1/8/8/4B3/8/2R5/8 w - - 0 1",
+        "difficulty": "easy",
+        "game_name": "Easy Memory Drill #24"
+    },
+    {
+        "fen": "8/2N5/8/8/8/8/2KQ4/6k1 w - - 0 1",
+        "difficulty": "easy",
+        "game_name": "Easy Memory Drill #25"
+    },
+    {
+        "fen": "4B3/8/3k1R2/8/1K6/8/8/8 w - - 0 1",
+        "difficulty": "easy",
+        "game_name": "Easy Memory Drill #26"
+    },
+    {
+        "fen": "8/N7/4Q3/7B/5k1K/8/8/6Q1 w - - 0 1",
+        "difficulty": "easy",
+        "game_name": "Easy Memory Drill #27"
+    },
+    {
+        "fen": "2Q5/8/3Q4/8/8/3Nk3/3Q4/5K2 w - - 0 1",
+        "difficulty": "easy",
+        "game_name": "Easy Memory Drill #28"
+    },
+    {
+        "fen": "8/5p2/4N3/8/K2k4/8/8/8 w - - 0 1",
+        "difficulty": "easy",
+        "game_name": "Easy Memory Drill #29"
+    },
+    {
+        "fen": "8/8/1k2p3/8/8/8/6K1/8 w - - 0 1",
+        "difficulty": "easy",
+        "game_name": "Easy Memory Drill #30"
+    },
+    {
+        "fen": "8/4r3/8/6k1/1r2BK2/8/8/8 w - - 0 1",
+        "difficulty": "easy",
+        "game_name": "Easy Memory Drill #31"
+    },
+    {
+        "fen": "5Q2/8/1r6/8/3K1p2/8/5b2/4k3 w - - 0 1",
+        "difficulty": "easy",
+        "game_name": "Easy Memory Drill #32"
+    },
+    {
+        "fen": "1k6/5q2/7K/4B3/r7/8/8/8 w - - 0 1",
+        "difficulty": "easy",
+        "game_name": "Easy Memory Drill #33"
+    },
+    {
+        "fen": "8/K7/3k4/8/8/R7/5qB1/1B6 w - - 0 1",
+        "difficulty": "easy",
+        "game_name": "Easy Memory Drill #34"
+    },
+    {
+        "fen": "8/8/8/6k1/8/5nK1/8/8 w - - 0 1",
+        "difficulty": "easy",
+        "game_name": "Easy Memory Drill #35"
+    },
+    {
+        "fen": "1K6/4b2k/8/8/n4B2/7n/8/8 w - - 0 1",
+        "difficulty": "easy",
+        "game_name": "Easy Memory Drill #36"
+    },
+    {
+        "fen": "8/8/1Q6/2p5/2K5/1q6/3k4/8 w - - 0 1",
+        "difficulty": "easy",
+        "game_name": "Easy Memory Drill #37"
+    },
+    {
+        "fen": "K7/8/8/2k2q2/2p5/8/8/8 w - - 0 1",
+        "difficulty": "easy",
+        "game_name": "Easy Memory Drill #38"
+    },
+    {
+        "fen": "k7/6K1/8/n3R3/8/8/8/8 w - - 0 1",
+        "difficulty": "easy",
+        "game_name": "Easy Memory Drill #39"
+    },
+    {
+        "fen": "8/B7/8/4K3/8/8/8/3k4 w - - 0 1",
+        "difficulty": "easy",
+        "game_name": "Easy Memory Drill #40"
+    },
+    {
+        "fen": "7b/2P4K/4k3/8/4R3/8/8/8 w - - 0 1",
+        "difficulty": "easy",
+        "game_name": "Easy Memory Drill #41"
+    },
+    {
+        "fen": "8/n1p2K1k/8/8/8/8/8/8 w - - 0 1",
+        "difficulty": "easy",
+        "game_name": "Easy Memory Drill #42"
+    },
+    {
+        "fen": "2k2K2/8/6Q1/8/8/3n2p1/8/8 w - - 0 1",
+        "difficulty": "easy",
+        "game_name": "Easy Memory Drill #43"
+    },
+    {
+        "fen": "4N3/8/2r5/4p3/8/8/5Kk1/8 w - - 0 1",
+        "difficulty": "easy",
+        "game_name": "Easy Memory Drill #44"
+    },
+    {
+        "fen": "R7/8/3k4/1K6/8/4b1N1/5B2/8 w - - 0 1",
+        "difficulty": "easy",
+        "game_name": "Easy Memory Drill #45"
+    },
+    {
+        "fen": "8/3r2K1/R7/7k/B5n1/8/8/8 w - - 0 1",
+        "difficulty": "easy",
+        "game_name": "Easy Memory Drill #46"
+    },
+    {
+        "fen": "8/8/5k2/4r2K/8/8/8/8 w - - 0 1",
+        "difficulty": "easy",
+        "game_name": "Easy Memory Drill #47"
+    },
+    {
+        "fen": "2Q5/3p3K/5rk1/8/8/8/8/8 w - - 0 1",
+        "difficulty": "easy",
+        "game_name": "Easy Memory Drill #48"
+    },
+    {
+        "fen": "8/8/8/1b6/2K2kq1/8/8/8 w - - 0 1",
+        "difficulty": "easy",
+        "game_name": "Easy Memory Drill #49"
+    },
+    {
+        "fen": "8/3Q4/8/8/6k1/8/2K5/8 w - - 0 1",
+        "difficulty": "easy",
+        "game_name": "Easy Memory Drill #50"
+    },
+    {
+        "fen": "8/4N3/r7/2N5/2q5/4k3/3K4/8 w - - 0 1",
+        "difficulty": "easy",
+        "game_name": "Easy Memory Drill #51"
+    },
+    {
+        "fen": "8/8/3K4/8/8/k7/8/4R3 w - - 0 1",
+        "difficulty": "easy",
+        "game_name": "Easy Memory Drill #52"
+    },
+    {
+        "fen": "r7/1r6/6K1/8/8/5p2/5k2/8 w - - 0 1",
+        "difficulty": "easy",
+        "game_name": "Easy Memory Drill #53"
+    },
+    {
+        "fen": "8/1k6/3K4/4N1B1/2N5/4Q3/8/8 w - - 0 1",
+        "difficulty": "easy",
+        "game_name": "Easy Memory Drill #54"
+    },
+    {
+        "fen": "8/3R2K1/2k5/1q6/8/8/8/6q1 w - - 0 1",
+        "difficulty": "easy",
+        "game_name": "Easy Memory Drill #55"
+    },
+    {
+        "fen": "7k/8/8/8/8/2K2R2/8/8 w - - 0 1",
+        "difficulty": "easy",
+        "game_name": "Easy Memory Drill #56"
+    },
+    {
+        "fen": "8/8/k7/8/8/8/2Kb4/nN6 w - - 0 1",
+        "difficulty": "easy",
+        "game_name": "Easy Memory Drill #57"
+    },
+    {
+        "fen": "8/8/4K3/7r/4k3/8/2p3Q1/8 w - - 0 1",
+        "difficulty": "easy",
+        "game_name": "Easy Memory Drill #58"
+    },
+    {
+        "fen": "8/8/3B4/8/2K5/8/1b5k/3N4 w - - 0 1",
+        "difficulty": "easy",
+        "game_name": "Easy Memory Drill #59"
+    },
+    {
+        "fen": "3N4/8/6K1/2R5/7k/8/8/1n3q2 w - - 0 1",
+        "difficulty": "easy",
+        "game_name": "Easy Memory Drill #60"
+    },
+    {
+        "fen": "K7/5k2/8/8/4P3/5n2/2R5/5N2 w - - 0 1",
+        "difficulty": "easy",
+        "game_name": "Easy Memory Drill #61"
+    },
+    {
+        "fen": "8/2k5/8/3P4/8/8/K5pN/8 w - - 0 1",
+        "difficulty": "easy",
+        "game_name": "Easy Memory Drill #62"
+    },
+    {
+        "fen": "6K1/8/2k5/8/5n2/8/8/4R3 w - - 0 1",
+        "difficulty": "easy",
+        "game_name": "Easy Memory Drill #63"
+    },
+    {
+        "fen": "8/8/8/8/2Kk4/8/8/4b3 w - - 0 1",
+        "difficulty": "easy",
+        "game_name": "Easy Memory Drill #64"
+    },
+    {
+        "fen": "8/3Q4/2K1k3/8/8/8/3q4/8 w - - 0 1",
+        "difficulty": "easy",
+        "game_name": "Easy Memory Drill #65"
+    },
+    {
+        "fen": "8/8/K3k1Q1/8/8/8/7N/8 w - - 0 1",
+        "difficulty": "easy",
+        "game_name": "Easy Memory Drill #66"
+    },
+    {
+        "fen": "K7/7r/6k1/8/1r6/N7/8/8 w - - 0 1",
+        "difficulty": "easy",
+        "game_name": "Easy Memory Drill #67"
+    },
+    {
+        "fen": "8/1b2r3/p7/8/7K/7q/8/4k3 w - - 0 1",
+        "difficulty": "easy",
+        "game_name": "Easy Memory Drill #68"
+    },
+    {
+        "fen": "b7/7k/3K4/3p4/8/Q7/8/6B1 w - - 0 1",
+        "difficulty": "easy",
+        "game_name": "Easy Memory Drill #69"
+    },
+    {
+        "fen": "8/4K2b/1r6/8/8/8/6P1/2k4B w - - 0 1",
+        "difficulty": "easy",
+        "game_name": "Easy Memory Drill #70"
+    },
+    {
+        "fen": "k5n1/8/8/r7/1Q6/8/p7/2K5 w - - 0 1",
+        "difficulty": "easy",
+        "game_name": "Easy Memory Drill #71"
+    },
+    {
+        "fen": "2R5/1K6/1k1N1r2/8/8/5N2/8/8 w - - 0 1",
+        "difficulty": "easy",
+        "game_name": "Easy Memory Drill #72"
+    },
+    {
+        "fen": "8/8/2K5/3k4/1p6/8/8/8 w - - 0 1",
+        "difficulty": "easy",
+        "game_name": "Easy Memory Drill #73"
+    },
+    {
+        "fen": "8/8/8/1N1Kk3/6q1/8/r1r5/8 w - - 0 1",
+        "difficulty": "easy",
+        "game_name": "Easy Memory Drill #74"
+    },
+    {
+        "fen": "8/1k5K/8/8/8/2b1p3/5n2/8 w - - 0 1",
+        "difficulty": "easy",
+        "game_name": "Easy Memory Drill #75"
+    },
+    {
+        "fen": "8/1K6/8/8/7b/2k5/8/8 w - - 0 1",
+        "difficulty": "easy",
+        "game_name": "Easy Memory Drill #76"
+    },
+    {
+        "fen": "8/8/8/8/8/4p3/1k6/2K5 w - - 0 1",
+        "difficulty": "easy",
+        "game_name": "Easy Memory Drill #77"
+    },
+    {
+        "fen": "8/7K/8/4RBr1/8/5k2/8/8 w - - 0 1",
+        "difficulty": "easy",
+        "game_name": "Easy Memory Drill #78"
+    },
+    {
+        "fen": "4qB2/8/4q3/k7/8/2R5/7K/8 w - - 0 1",
+        "difficulty": "easy",
+        "game_name": "Easy Memory Drill #79"
+    },
+    {
+        "fen": "K1B5/4k3/8/8/8/4N3/8/5B2 w - - 0 1",
+        "difficulty": "easy",
+        "game_name": "Easy Memory Drill #80"
+    },
+    {
+        "fen": "8/8/6K1/q7/8/2k5/8/8 w - - 0 1",
+        "difficulty": "easy",
+        "game_name": "Easy Memory Drill #81"
+    },
+    {
+        "fen": "8/8/1k2Q3/8/N7/7n/8/5K2 w - - 0 1",
+        "difficulty": "easy",
+        "game_name": "Easy Memory Drill #82"
+    },
+    {
+        "fen": "4n3/8/k7/K7/8/2R4R/4b3/8 w - - 0 1",
+        "difficulty": "easy",
+        "game_name": "Easy Memory Drill #83"
+    },
+    {
+        "fen": "6K1/8/1r3k2/Q7/6p1/1N6/8/8 w - - 0 1",
+        "difficulty": "easy",
+        "game_name": "Easy Memory Drill #84"
+    },
+    {
+        "fen": "1N6/8/8/8/8/4K1k1/8/3R4 w - - 0 1",
+        "difficulty": "easy",
+        "game_name": "Easy Memory Drill #85"
+    },
+    {
+        "fen": "8/3Q4/7N/2k5/5K2/8/2Q5/3R4 w - - 0 1",
+        "difficulty": "easy",
+        "game_name": "Easy Memory Drill #86"
+    },
+    {
+        "fen": "8/7R/1Q6/3k2b1/8/8/4K3/1q6 w - - 0 1",
+        "difficulty": "easy",
+        "game_name": "Easy Memory Drill #87"
+    },
+    {
+        "fen": "8/3B4/8/8/8/6K1/8/1k6 w - - 0 1",
+        "difficulty": "easy",
+        "game_name": "Easy Memory Drill #88"
+    },
+    {
+        "fen": "4n2R/7k/4q3/8/8/6n1/8/7K w - - 0 1",
+        "difficulty": "easy",
+        "game_name": "Easy Memory Drill #89"
+    },
+    {
+        "fen": "8/4P3/1Q6/8/8/5k2/8/2K5 w - - 0 1",
+        "difficulty": "easy",
+        "game_name": "Easy Memory Drill #90"
+    },
+    {
+        "fen": "8/7p/6n1/3nR3/8/1k6/4K3/8 w - - 0 1",
+        "difficulty": "easy",
+        "game_name": "Easy Memory Drill #91"
+    },
+    {
+        "fen": "3k4/6Q1/7p/8/4R3/8/3K4/3Q4 w - - 0 1",
+        "difficulty": "easy",
+        "game_name": "Easy Memory Drill #92"
+    },
+    {
+        "fen": "8/8/2K5/8/5P2/3N4/3nkr2/8 w - - 0 1",
+        "difficulty": "easy",
+        "game_name": "Easy Memory Drill #93"
+    },
+    {
+        "fen": "3K4/4R3/2k5/8/8/8/8/1r6 w - - 0 1",
+        "difficulty": "easy",
+        "game_name": "Easy Memory Drill #94"
+    },
+    {
+        "fen": "K7/3r4/8/3N1k2/r3n3/8/8/8 w - - 0 1",
+        "difficulty": "easy",
+        "game_name": "Easy Memory Drill #95"
+    },
+    {
+        "fen": "4N3/8/8/5N2/8/8/6k1/K7 w - - 0 1",
+        "difficulty": "easy",
+        "game_name": "Easy Memory Drill #96"
+    },
+    {
+        "fen": "8/8/8/8/5kb1/8/8/K7 w - - 0 1",
+        "difficulty": "easy",
+        "game_name": "Easy Memory Drill #97"
+    },
+    {
+        "fen": "8/4K3/8/4Q2B/8/4n3/Rk6/8 w - - 0 1",
+        "difficulty": "easy",
+        "game_name": "Easy Memory Drill #98"
+    },
+    {
+        "fen": "4K3/8/7k/8/1q6/6P1/7N/R7 w - - 0 1",
+        "difficulty": "easy",
+        "game_name": "Easy Memory Drill #99"
+    },
+    {
+        "fen": "8/5k2/8/3B4/2K4R/8/3q4/8 w - - 0 1",
+        "difficulty": "easy",
+        "game_name": "Easy Memory Drill #100"
+    }
+]

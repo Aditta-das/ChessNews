@@ -5,217 +5,422 @@
 
 {% block content %}
 <link rel="stylesheet" href="{% static 'chessboardjs-1.0.0/css/chessboard-1.0.0.min.css' %}">
-<link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600&display=swap" rel="stylesheet">
 
 <style>
-  body {
-    font-family: 'Poppins', sans-serif;
-  }
+    /* ── Mobile ───────────────────────────────────────────────── */
+    @media (max-width: 767px) {
+        #main-layout {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            margin: 0 auto;
+        }
 
-  .trainer-container {
-    padding: 1rem;
-  }
+        #board-container {
+            width: 100% !important;
+            justify-content: center;
+            order: 2;
+        }
 
-  /* Responsive Chessboard */
-  #board-container {
-    position: relative;
-    width: 100%;
-    aspect-ratio: 1 / 1;
-  }
+        #board {
+            width: 100% !important;
+            height: auto !important;
+            aspect-ratio: 1/1;
+        }
 
-  #board {
-    width: 100% !important;
-    height: 100% !important;
-  }
+        #controls-container {
+            order: 3;
+            width: 100% !important;
+        }
 
-  /* Floating target overlay */
-  #target-overlay {
-    position: absolute;
-    top: 50%;
-    left: 50%;
-    transform: translate(-50%, -50%);
-    background: rgba(0, 0, 0, 0.75);
-    color: #fff;
-    font-weight: 600;
-    font-size: 2rem;
-    padding: 0.5rem 1rem;
-    border-radius: 8px;
-    display: none;
-    z-index: 999;
-    pointer-events: none;
-  }
-
-  .stats-panel {
-    flex: 1;
-    min-width: 250px;
-    max-width: 400px;
-  }
-
-  .stat-item {
-    font-size: 1rem;
-    padding: 0.3rem;
-    border-radius: 0.4rem;
-  }
-
-  .timer-box {
-    margin-top: 0.5rem;
-    font-size: 1.1rem;
-    
-  }
-
-  .leaderboard {
-    overflow-x: auto;
-  }
-
-  .custom-leaderboard th,
-  .custom-leaderboard td {
-    white-space: nowrap;
-    font-size: 0.9rem;
-  }
-
-  /* Mobile adjustments */
-  @media (max-width: 768px) {
-    .stats-panel {
-      max-width: 100%;
-      margin-top: 1rem;
+        #config-panel {
+            order: 1;
+            width: 100% !important;
+        }
     }
 
-    .stat-item {
-      font-size: 0.9rem;
+    /* ── Left panel ───────────────────────────────────────────── */
+    #config-panel { width: 100%; }
+
+    .section-label {
+        font-size: 0.62rem;
+        font-weight: 700;
+        letter-spacing: 2px;
+        text-transform: uppercase;
+        color: var(--color-gray-400);
+        margin-bottom: 8px;
     }
-  }
 
-  /* Square highlights */
-  .highlight-correct {
-    background-color: #d4edda !important;
-  }
+    /* ── Start button ─────────────────────────────────────────── */
+    #start-btn {
+        width: 100%;
+        padding: 10px;
+        font-size: 0.85rem;
+        font-weight: 700;
+        letter-spacing: 1px;
+        text-transform: uppercase;
+        border-radius: 8px;
+        border: none;
+        background: var(--chess-primary);
+        color: #fff;
+        cursor: pointer;
+        transition: all 0.2s ease;
+    }
 
-  .highlight-wrong {
-    background-color: #f8d7da !important;
-  }
+    #start-btn:hover {
+        background: #67804a;
+        transform: translateY(-1px);
+        box-shadow: 0 4px 12px rgba(119,149,86,0.35);
+    }
+
+    /* ── Board ────────────────────────────────────────────────── */
+    #board-container {
+        width: 100%;
+        max-width: 600px;
+        margin: 0 auto;
+        position: relative;
+    }
+
+    #board {
+        width: 100%;
+        height: auto;
+        aspect-ratio: 1/1;
+        border: 2px solid #ddd;
+    }
+
+    /* Target square floating overlay */
+    #target-overlay {
+        position: absolute;
+        top: 50%;
+        left: 50%;
+        transform: translate(-50%, -50%);
+        background: rgba(0,0,0,0.82);
+        color: #fff;
+        font-weight: 800;
+        font-size: 2.2rem;
+        padding: 0.4rem 1.1rem;
+        border-radius: 10px;
+        display: none;
+        z-index: 999;
+        pointer-events: none;
+        letter-spacing: 3px;
+        border: 2px solid rgba(255,255,255,0.15);
+    }
+
+    /* ── Right panel ──────────────────────────────────────────── */
+    #controls-container { width: 100%; }
+
+    /* Timer display */
+    .timer-display {
+        text-align: center;
+        font-size: 2.6rem;
+        font-weight: 800;
+        font-family: 'Courier New', monospace;
+        color: var(--chess-light);
+        letter-spacing: 2px;
+        margin: 4px 0 8px;
+    }
+
+    .timer-display.danger { color: var(--chess-red); }
+
+    .timer-label {
+        font-size: 0.62rem;
+        font-weight: 700;
+        letter-spacing: 2px;
+        text-transform: uppercase;
+        color: var(--color-gray-400);
+        text-align: center;
+    }
+
+    /* Score boxes */
+    .score-row {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 8px;
+        margin-top: 8px;
+    }
+
+    .score-box {
+        background: var(--card-color);
+        border: 1px solid var(--border);
+        border-radius: 8px;
+        padding: 12px 8px;
+        text-align: center;
+    }
+
+    .score-box .num {
+        font-size: 1.8rem;
+        font-weight: 800;
+    }
+
+    .score-box .lbl {
+        font-size: 0.65rem;
+        letter-spacing: 1.5px;
+        text-transform: uppercase;
+        color: var(--color-gray-400);
+        margin-top: 2px;
+    }
+
+    .score-box.s-correct .num { color: var(--chess-primary); }
+    .score-box.s-wrong .num   { color: var(--chess-red); }
+
+    /* Feedback pill */
+    #feedback {
+        text-align: center;
+        min-height: 28px;
+        font-size: 0.88rem;
+        font-weight: 700;
+        padding: 5px 12px;
+        border-radius: 99px;
+        letter-spacing: 0.5px;
+        transition: all 0.2s ease;
+    }
+
+    #feedback.correct { background: rgba(119,149,86,0.2);  color: var(--chess-primary); }
+    #feedback.wrong   { background: rgba(200,75,75,0.15);  color: var(--chess-red); }
+
+    /* Target square pill */
+    #target-square-display {
+        text-align: center;
+        font-size: 1.6rem;
+        font-weight: 800;
+        letter-spacing: 3px;
+        color: var(--chess-light);
+        background: var(--card-color);
+        border: 1px solid var(--border);
+        border-radius: 10px;
+        padding: 10px;
+        margin-bottom: 4px;
+        min-height: 52px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+    }
+
+    /* Leaderboard */
+    .leaderboard-title {
+        font-size: 0.62rem;
+        font-weight: 700;
+        letter-spacing: 2px;
+        text-transform: uppercase;
+        color: var(--color-gray-400);
+        margin-bottom: 8px;
+        text-align: center;
+    }
+
+    .leaderboard-table {
+        width: 100%;
+        border-collapse: collapse;
+        font-size: 0.82rem;
+    }
+
+    .leaderboard-table thead tr {
+        background: var(--card-color);
+    }
+
+    .leaderboard-table th {
+        padding: 7px 10px;
+        font-size: 0.65rem;
+        letter-spacing: 1.5px;
+        text-transform: uppercase;
+        color: var(--color-gray-400);
+        font-weight: 700;
+        border-bottom: 1px solid var(--border);
+    }
+
+    .leaderboard-table td {
+        padding: 7px 10px;
+        color: var(--chess-secondary);
+        border-bottom: 1px solid var(--border);
+    }
+
+    .leaderboard-table tbody tr:last-child td { border-bottom: none; }
+
+    .leaderboard-table tbody tr:hover td {
+        background: var(--card-color);
+        color: var(--chess-light);
+    }
+
+    .rank-badge {
+        display: inline-block;
+        width: 22px;
+        height: 22px;
+        border-radius: 50%;
+        background: var(--card-color);
+        border: 1px solid var(--border);
+        font-size: 0.72rem;
+        font-weight: 700;
+        line-height: 22px;
+        text-align: center;
+        color: var(--color-gray-400);
+    }
+
+    .rank-badge.gold   { background: rgba(212,175,55,0.2);  border-color: #d4af37; color: #d4af37; }
+    .rank-badge.silver { background: rgba(192,192,192,0.2); border-color: #c0c0c0; color: #c0c0c0; }
+    .rank-badge.bronze { background: rgba(205,127,50,0.2);  border-color: #cd7f32; color: #cd7f32; }
+
+    /* Square highlight classes */
+    .highlight-correct { background-color: rgba(119,149,86,0.5) !important; }
+    .highlight-wrong   { background-color: rgba(200,75,75,0.4)  !important; }
+
+    /* Not-started state */
+    .idle-hint {
+        text-align: center;
+        color: var(--color-gray-400);
+        font-size: 0.82rem;
+        font-weight: 600;
+        padding: 8px 0;
+    }
 </style>
 
 <audio id="correctSound" src="{% static 'sound/puzzle-correct.mp3' %}"></audio>
 <audio id="wrongSound" src="{% static 'sound/puzzle-wrong.mp3' %}"></audio>
 
-<div class="trainer-container">
-  {% if not request.user.is_authenticated %}
-  <div class="alert alert-warning text-center">
+{% if not request.user.is_authenticated %}
+<div class="alert alert-warning text-center mb-3">
     You must <a href="{% url 'login' %}">log in</a> to save results.
-  </div>
-  {% endif %}
+</div>
+{% endif %}
 
-  <div class="d-flex justify-content-center flex-wrap gap-3 align-items-start">
-    <!-- Board -->
-    <div id="board-container" class="flex-shrink-0">
-      <div id="target-overlay"></div>
-      <div id="board" class="mx-auto"></div>
+<div id="main-layout">
+
+    <!-- ── LEFT: controls ──────────────────────────────────── -->
+    <div id="config-panel">
+
+        <p class="section-label">⏱ Time Remaining</p>
+        <div class="timer-display" id="timer">2:00</div>
+
+        <hr>
+
+        <p class="section-label">🎯 Find This Square</p>
+        <div id="target-square-display">—</div>
+
+        <div id="feedback"></div>
+
+        <hr>
+
+        <button id="start-btn">▶ Start Training</button>
+
     </div>
 
-    <!-- Stats -->
-    <div class="stats-panel d-flex flex-column align-items-center gap-2">
-      <div class="d-flex w-100 flex-column flex-md-row gap-2">
-        <div class="stat-item bg-light text-success flex-fill text-center">
-          <strong>Correct:</strong> <span id="correct-count">0</span>
+    <!-- ── CENTER: board ───────────────────────────────────── -->
+    <div id="board-container">
+        <div id="target-overlay"></div>
+        <div id="board" class="mx-auto"></div>
+    </div>
+
+    <!-- ── RIGHT: scores + leaderboard ────────────────────── -->
+    <div id="controls-container">
+
+        <h4 style="font-weight:700;color:var(--chess-light);font-size:1.1rem;text-align:center;margin-bottom:4px;">
+            Vision Trainer
+        </h4>
+        <p class="idle-hint" id="status-hint">Click squares to find the target</p>
+
+        <hr>
+
+        <p class="section-label" style="text-align:center;">Score</p>
+        <div class="score-row">
+            <div class="score-box s-correct">
+                <div class="num" id="correct-count">0</div>
+                <div class="lbl">Correct</div>
+            </div>
+            <div class="score-box s-wrong">
+                <div class="num" id="wrong-count">0</div>
+                <div class="lbl">Wrong</div>
+            </div>
         </div>
-        <div class="stat-item bg-light text-danger flex-fill text-center">
-          <strong>Wrong:</strong> <span id="wrong-count">0</span>
-        </div>
-      </div>
 
-      <div class="timer-box w-100 text-center justify-content-center">
-        <strong>⏱ Time:</strong> <span id="timer" class="text-primary mx-1">2:00</span>
-      </div>
+        <hr>
 
-      <div id="feedback" class="text-center w-100"></div>
-
-      <div class="text-center w-100 mt-auto">
-        <button id="start-btn" class="btn btn-success w-100">Start Training</button>
-      </div>
-      <!-- Leaderboard -->
-      <div class="leaderboard mt-5 w-100">
-        <div class="table-responsive">
-          <table class="table table-striped custom-leaderboard text-center mt-3">
-            <thead class="table-primary">
-              <tr>
-                <th>Rank</th>
-                <th>Username</th>
-                <th>Score</th>
-              </tr>
+        <!-- Leaderboard -->
+        <p class="leaderboard-title">🏆 Leaderboard</p>
+        <table class="leaderboard-table">
+            <thead>
+                <tr>
+                    <th>#</th>
+                    <th>Player</th>
+                    <th>Score</th>
+                </tr>
             </thead>
             <tbody>
-              {% for player in top_players %}
-              <tr>
-                <td>{{ forloop.counter }}</td>
-                <td>{{ player.user__username }}</td>
-                <td>{{ player.score }}</td>
-              </tr>
-              {% endfor %}
+                {% for player in top_players %}
+                <tr>
+                    <td>
+                        <span class="rank-badge {% if forloop.counter == 1 %}gold{% elif forloop.counter == 2 %}silver{% elif forloop.counter == 3 %}bronze{% endif %}">
+                            {{ forloop.counter }}
+                        </span>
+                    </td>
+                    <td>{{ player.user__username }}</td>
+                    <td style="font-weight:700;color:var(--chess-light);">{{ player.score }}</td>
+                </tr>
+                {% empty %}
+                <tr>
+                    <td colspan="3" style="text-align:center;color:var(--color-gray-400);padding:12px;">
+                        No scores yet
+                    </td>
+                </tr>
+                {% endfor %}
             </tbody>
-          </table>
-        </div>
-      </div>
+        </table>
+
     </div>
-  </div>
+
 </div>
-
-
 
 <script src="{% static 'jquery.min.js' %}"></script>
 <script src="{% static 'chessboardjs-1.0.0/js/chessboard-1.0.0.min.js' %}"></script>
 
 <script>
 $(document).ready(function () {
-    const $feedback = $('#feedback');
-    const $correct = $('#correct-count');
-    const $wrong = $('#wrong-count');
-    const $timer = $('#timer');
-    const $startBtn = $('#start-btn');
-    const $overlay = $('#target-overlay');
+    const $feedback        = $('#feedback');
+    const $correct         = $('#correct-count');
+    const $wrong           = $('#wrong-count');
+    const $timer           = $('#timer');
+    const $startBtn        = $('#start-btn');
+    const $overlay         = $('#target-overlay');
+    const $targetDisplay   = $('#target-square-display');
+    const $statusHint      = $('#status-hint');
 
     const correctSound = document.getElementById('correctSound');
-    const wrongSound = document.getElementById('wrongSound');
+    const wrongSound   = document.getElementById('wrongSound');
 
-    // Initialize board
     let board = Chessboard('board', {
-        position: 'empty',
-        draggable: false,
+        position:   'empty',
+        draggable:  false,
         pieceTheme: '',
     });
 
-    // Function to dynamically resize the board based on screen width
     function autoResizeBoard() {
-        const container = $('#board-container');
-        const screenWidth = window.innerWidth;
-        let boardSize;
-
-        if (screenWidth >= 1920) boardSize = 650;
-        else if (screenWidth >= 1600) boardSize = 600;
-        else if (screenWidth >= 1370) boardSize = 600; // large laptops / desktops
-        else if (screenWidth >= 1200) boardSize = 488;
-        else if (screenWidth >= 992) boardSize = 450;
-        else if (screenWidth >= 768) boardSize = 400;
-        else boardSize = Math.min(screenWidth * 0.95, 330); // mobile
-
-        container.css('max-width', boardSize + 'px');
-
-        if (board) board.resize(); // update Chessboard size
+        if (board) board.resize();
     }
-
-    // Initial board resize and on window resize
     autoResizeBoard();
     $(window).on('resize', autoResizeBoard);
 
-    // Game variables
-    let correctCount = 0;
-    let wrongCount = 0;
-    let targetSquare = '';
+    // State
+    let correctCount  = 0;
+    let wrongCount    = 0;
+    let targetSquare  = '';
     let timerInterval = null;
     let timeRemaining = 120;
+    let gameActive    = false;
+
+    function formatTime(sec) {
+        const m = Math.floor(sec / 60);
+        const s = sec % 60;
+        return m + ':' + (s < 10 ? '0' : '') + s;
+    }
+
+    function updateTimerDisplay() {
+        $timer.text(formatTime(timeRemaining));
+        if (timeRemaining <= 30) {
+            $timer.addClass('danger');
+        }
+    }
 
     function getRandomSquare() {
-        const files = ['a', 'b', 'c', 'd', 'e', 'f', 'g', 'h'];
-        const ranks = ['1', '2', '3', '4', '5', '6', '7', '8'];
+        const files = ['a','b','c','d','e','f','g','h'];
+        const ranks = ['1','2','3','4','5','6','7','8'];
         return files[Math.floor(Math.random() * 8)] + ranks[Math.floor(Math.random() * 8)];
     }
 
@@ -224,31 +429,29 @@ $(document).ready(function () {
         board.orientation(orientation);
         targetSquare = getRandomSquare();
 
-        // Show floating overlay inside board
+        // Update the persistent display in left panel
+        $targetDisplay.text(targetSquare.toUpperCase());
+
+        // Floating overlay on board
         $overlay
             .stop(true, true)
             .text(targetSquare.toUpperCase())
-            .fadeIn(200)
-            .delay(1000)
-            .fadeOut(500);
+            .fadeIn(150)
+            .delay(900)
+            .fadeOut(400);
 
-        $feedback.text('').removeClass('alert-success alert-danger');
-    }
-
-    function updateTimerDisplay() {
-        const mins = Math.floor(timeRemaining / 60);
-        const secs = timeRemaining % 60;
-        $timer.text(`${mins}:${secs < 10 ? '0' : ''}${secs}`);
-        if (timeRemaining <= 30 && !$timer.hasClass('text-danger')) {
-            $timer.addClass('text-danger').removeClass('text-primary');
-        }
+        $feedback.text('').removeClass('correct wrong');
     }
 
     function endGame() {
+        gameActive = false;
         clearInterval(timerInterval);
         $overlay.hide();
-        $startBtn.text('Play Again').show();
-        $('#timer').removeClass('text-danger');
+        $targetDisplay.text('—');
+        $startBtn.text('▶ Play Again').show();
+        $timer.text('0:00');
+        $statusHint.text('Game over! Press Play Again to retry.');
+        $feedback.text('').removeClass('correct wrong');
 
         $.ajax({
             type: 'POST',
@@ -257,21 +460,25 @@ $(document).ready(function () {
             data: {
                 csrfmiddlewaretoken: '{{ csrf_token }}',
                 correct: correctCount,
-                wrong: wrongCount
+                wrong:   wrongCount
             }
         });
     }
 
     function startGame() {
-        correctCount = 0;
-        wrongCount = 0;
+        correctCount  = 0;
+        wrongCount    = 0;
         timeRemaining = 120;
+        gameActive    = true;
 
         $correct.text(0);
         $wrong.text(0);
-        $timer.text('2:00').removeClass('text-danger').addClass('text-primary');
-        newTargetSquare();
+        $timer.text('2:00').removeClass('danger');
+        $feedback.text('').removeClass('correct wrong');
+        $statusHint.text('Click the highlighted square!');
         $startBtn.hide();
+
+        newTargetSquare();
 
         timerInterval = setInterval(() => {
             timeRemaining--;
@@ -286,7 +493,7 @@ $(document).ready(function () {
     }
 
     $(document).on('click', '.square-55d63', function () {
-        if (timeRemaining <= 0 || !targetSquare) return;
+        if (!gameActive || timeRemaining <= 0 || !targetSquare) return;
 
         const clicked = $(this).attr('data-square');
         const $square = $(this);
@@ -294,20 +501,20 @@ $(document).ready(function () {
         if (clicked === targetSquare) {
             correctCount++;
             $correct.text(correctCount);
-            $feedback.text('Correct!').addClass('alert alert-success');
+            $feedback.text('✓ Correct!').removeClass('wrong').addClass('correct');
             playSound(correctSound);
             $square.addClass('highlight-correct');
-            setTimeout(() => $square.removeClass('highlight-correct'), 500);
+            setTimeout(() => $square.removeClass('highlight-correct'), 450);
         } else {
             wrongCount++;
             $wrong.text(wrongCount);
-            $feedback.text('Wrong!').addClass('alert alert-danger');
+            $feedback.text('✗ Wrong!').removeClass('correct').addClass('wrong');
             playSound(wrongSound);
             $square.addClass('highlight-wrong');
-            setTimeout(() => $square.removeClass('highlight-wrong'), 500);
+            setTimeout(() => $square.removeClass('highlight-wrong'), 450);
         }
 
-        setTimeout(newTargetSquare, 800);
+        setTimeout(newTargetSquare, 750);
     });
 
     $startBtn.on('click', startGame);

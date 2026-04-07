@@ -72,66 +72,6 @@ class TopPlayerImg(models.Model):
         return self.name
 
 
-
-
-class Tournament(models.Model):
-    title = models.CharField(max_length=255)
-    link = models.URLField(max_length=500)
-    start_date = models.DateField()
-    end_date = models.DateField()
-
-    class Meta:
-        ordering = ['start_date']
-
-    def __str__(self):
-        return self.title
-
-
-class Ticket(models.Model):
-    TOURNAMENT_TICKET_TYPES = [
-        ('Participant', 'Participant'),
-        ('VIP', 'VIP'),
-        ('ONLINE', 'Online Viewer'),
-    ]
-
-    PAYMENT_STATUS = [
-        ('PENDING', 'Pending'),
-        ('PAID', 'Paid'),
-        ('CANCELLED', 'Cancelled'),
-    ]
-
-    tournament = models.ForeignKey(
-        Tournament, on_delete=models.CASCADE, related_name='tickets'
-    )
-    user = models.ForeignKey(
-        User, on_delete=models.CASCADE, related_name='tournament_tickets'
-    )
-    ticket_type = models.CharField(
-        max_length=20, choices=TOURNAMENT_TICKET_TYPES, default='REGULAR'
-    )
-    price = models.DecimalField(max_digits=8, decimal_places=2)
-    purchase_date = models.DateTimeField(auto_now_add=True)
-    payment_status = models.CharField(
-        max_length=20, choices=PAYMENT_STATUS, default='PENDING'
-    )
-    ticket_code = models.CharField(
-        max_length=12, unique=True, editable=False
-    )
-    is_checked_in = models.BooleanField(default=False)
-
-    class Meta:
-        unique_together = ('user', 'tournament', 'ticket_type')
-        ordering = ['-purchase_date']
-
-    def __str__(self):
-        return f"{self.user.username} - {self.tournament.title} ({self.ticket_type})"
-
-    def save(self, *args, **kwargs):
-        if not self.ticket_code:
-            self.ticket_code = str(uuid.uuid4()).split('-')[0].upper()
-        super().save(*args, **kwargs)
-
-
     
 class TournamentBanner(models.Model):
     title = models.CharField(max_length=200)
@@ -226,7 +166,7 @@ class Puzzle(models.Model):
             parts[1] = self.turn
             self.fen = ' '.join(parts)
         else:
-            print(f"⚠️ Warning: FEN is invalid: {self.fen}")
+            print(f"Warning: FEN is invalid: {self.fen}")
         super().save(*args, **kwargs)     
     
     
@@ -274,6 +214,7 @@ class EmailOTP(models.Model):
 class UserProfile(models.Model):
     user = models.OneToOneField(User, on_delete=models.CASCADE)
     is_premium = models.BooleanField(default=False)  # Paid premium
+    last_seen = models.DateTimeField(null=True, blank=True)
 
     # Free trial start date
     free_premium_start = models.DateTimeField(blank=True, null=True)
@@ -370,7 +311,84 @@ class Events(models.Model):
     description = models.TextField(null=True, blank=True)
     start = models.DateTimeField()
     end = models.DateTimeField()
-    
+    url = models.URLField(blank=True, null=True)
     
     def __str__(self):
         return self.title
+
+class MemoryPosition(models.Model):
+    DIFFICULTY_CHOICES = [
+        ('easy', 'Easy'),
+        ('medium', 'Medium'),
+        ('hard', 'Hard'),
+    ]
+
+    fen = models.TextField()
+    difficulty = models.CharField(
+        max_length=10,
+        choices=DIFFICULTY_CHOICES,
+        null=True,
+        blank=True
+    )
+    game_name = models.CharField(max_length=255, blank=True, null=True)
+
+    def __str__(self):
+        return f"{self.game_name} ({self.difficulty})"
+
+    
+class Message(models.Model):
+    sender = models.ForeignKey(User, on_delete=models.CASCADE, related_name='sent_messages')
+    receiver = models.ForeignKey(User, on_delete=models.CASCADE, related_name='received_messages')
+    content = models.TextField()
+    timestamp = models.DateTimeField(auto_now_add=True)
+    is_read = models.BooleanField(default=False)
+
+    def __str__(self):
+        return f"{self.sender} -> {self.receiver}"
+    
+    
+    
+################################################# Extra ####################################################
+class Ticket(models.Model):
+    TOURNAMENT_TICKET_TYPES = [
+        ('Participant', 'Participant'),
+        ('VIP', 'VIP'),
+        ('ONLINE', 'Online Viewer'),
+    ]
+
+    PAYMENT_STATUS = [
+        ('PENDING', 'Pending'),
+        ('PAID', 'Paid'),
+        ('CANCELLED', 'Cancelled'),
+    ]
+
+    tournament = models.ForeignKey(
+        Events, on_delete=models.CASCADE, related_name='tickets'
+    )
+    user = models.ForeignKey(
+        User, on_delete=models.CASCADE, related_name='tournament_tickets'
+    )
+    ticket_type = models.CharField(
+        max_length=20, choices=TOURNAMENT_TICKET_TYPES, default='REGULAR'
+    )
+    price = models.DecimalField(max_digits=8, decimal_places=2)
+    purchase_date = models.DateTimeField(auto_now_add=True)
+    payment_status = models.CharField(
+        max_length=20, choices=PAYMENT_STATUS, default='PENDING'
+    )
+    ticket_code = models.CharField(
+        max_length=12, unique=True, editable=False
+    )
+    is_checked_in = models.BooleanField(default=False)
+
+    class Meta:
+        unique_together = ('user', 'tournament', 'ticket_type')
+        ordering = ['-purchase_date']
+
+    def __str__(self):
+        return f"{self.user.username} - {self.tournament.title} ({self.ticket_type})"
+
+    def save(self, *args, **kwargs):
+        if not self.ticket_code:
+            self.ticket_code = str(uuid.uuid4()).split('-')[0].upper()
+        super().save(*args, **kwargs)

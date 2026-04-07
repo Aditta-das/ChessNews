@@ -4,450 +4,380 @@
 {% block content %}
 
 <link rel="stylesheet" href="{% static 'chessboardjs-1.0.0/css/chessboard-1.0.0.min.css' %}">
-<link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
 <script src="{% static 'jquery.min.js' %}"></script>
 <script src="{% static 'chessboardjs-1.0.0/js/chessboard-1.0.0.min.js' %}"></script>
 <script src="{% static 'chess.min.js' %}"></script>
 
 <style>
-    .page-title {
-        font-weight: 700;
-        margin-bottom: 2.5rem;
+    /* ── Page header ──────────────────────────────────────────── */
+    .page-header {
         text-align: center;
-        background: linear-gradient(135deg, #fff 0%, #aaa 100%);
-        -webkit-background-clip: text;
-        -webkit-text-fill-color: transparent;
-        background-clip: text;
-        position: relative;
-        padding-bottom: 15px;
+        margin-bottom: 2rem;
     }
 
-    .page-title:after {
-        content: '';
-        position: absolute;
-        bottom: 0;
-        left: 50%;
-        transform: translateX(-50%);
-        width: 100px;
-        height: 4px;
-        background: rgba(26, 163, 123, 1);
-        border-radius: 2px;
+    .page-title {
+        font-size: 1.7rem;
+        font-weight: 800;
+        color: var(--chess-light);
+        margin: 0 0 6px;
+        letter-spacing: 0.5px;
     }
 
+    .page-subtitle {
+        font-size: 0.85rem;
+        color: var(--color-gray-400);
+    }
+
+    /* ── Search bar ───────────────────────────────────────────── */
+    .search-wrap {
+        display: flex;
+        align-items: center;
+        max-width: 420px;
+        margin: 0 auto 2rem;
+        background: var(--card-color);
+        border: 1px solid var(--border);
+        border-radius: 99px;
+        padding: 6px 16px;
+        gap: 8px;
+        transition: border-color 0.2s;
+    }
+
+    .search-wrap:focus-within {
+        border-color: var(--chess-primary);
+    }
+
+    .search-wrap i {
+        color: var(--color-gray-400);
+        font-size: 0.9rem;
+        flex-shrink: 0;
+    }
+
+    #game-search {
+        background: transparent;
+        border: none;
+        outline: none;
+        color: var(--chess-light);
+        width: 100%;
+        font-size: 0.9rem;
+        font-family: inherit;
+    }
+
+    #game-search::placeholder { color: var(--color-gray-400); }
+
+    /* ── Game grid ────────────────────────────────────────────── */
     .game-grid {
         display: grid;
-        grid-template-columns: repeat(auto-fill, minmax(350px, 1fr));
-        gap: 1.5rem;
-        padding: 1rem 0;
+        grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+        gap: 20px;
+        padding-bottom: 2rem;
     }
 
+    /* ── Game card ────────────────────────────────────────────── */
     .game-card {
-        background: linear-gradient(145deg, rgba(30, 30, 40, 0.8), rgba(20, 20, 30, 0.9));
-        border-radius: 20px;
+        background: var(--card-color);
+        border: 1px solid var(--border);
+        border-radius: 14px;
         overflow: hidden;
-        transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
-        border: 1px solid rgba(100, 126, 234, 0.1);
-        position: relative;
-        cursor: pointer;
-        height: 100%;
+        text-decoration: none !important;
+        color: var(--chess-light) !important;
         display: flex;
         flex-direction: column;
-        text-decoration: none !important;
-        color: white !important;
+        position: relative;
+        transition: transform 0.22s ease, box-shadow 0.22s ease, border-color 0.22s ease;
+        animation: fadeInUp 0.5s ease-out both;
+    }
+
+    .game-card::before {
+        content: '';
+        position: absolute;
+        top: 0; left: 0; right: 0;
+        height: 3px;
+        background: var(--chess-primary);
+        border-radius: 14px 14px 0 0;
     }
 
     .game-card:hover {
-        transform: translateY(-10px);
-        box-shadow: 0 15px 35px rgba(26, 163, 123, 0.2),
-            0 5px 15px rgba(0, 0, 0, 0.3);
-        border-color: rgba(26, 163, 123, 0.3);
+        transform: translateY(-6px);
+        border-color: var(--chess-primary);
+        box-shadow: 0 12px 32px rgba(119,149,86,0.18), 0 4px 12px rgba(0,0,0,0.3);
     }
 
-    .game-card:before {
-        content: '';
-        position: absolute;
-        top: 0;
-        left: 0;
-        right: 0;
-        height: 4px;
-        background: #1aa37b;
-        border-radius: 20px 20px 0 0;
+    /* Staggered animation */
+    .game-card:nth-child(1)  { animation-delay: 0.05s; }
+    .game-card:nth-child(2)  { animation-delay: 0.10s; }
+    .game-card:nth-child(3)  { animation-delay: 0.15s; }
+    .game-card:nth-child(4)  { animation-delay: 0.20s; }
+    .game-card:nth-child(5)  { animation-delay: 0.25s; }
+    .game-card:nth-child(6)  { animation-delay: 0.30s; }
+    .game-card:nth-child(7)  { animation-delay: 0.35s; }
+    .game-card:nth-child(8)  { animation-delay: 0.40s; }
+    .game-card:nth-child(9)  { animation-delay: 0.45s; }
+
+    @keyframes fadeInUp {
+        from { opacity: 0; transform: translateY(18px); }
+        to   { opacity: 1; transform: translateY(0); }
     }
 
-    .game-header {
-        padding: 1.5rem 1.5rem 1rem;
-        position: relative;
-        z-index: 1;
+    /* ── Card header ──────────────────────────────────────────── */
+    .card-header-content {
+        padding: 16px 18px 10px;
     }
 
-    .game-title {
-        font-size: 1.4rem;
-        font-weight: 600;
-        margin: 0 0 0.5rem 0;
-        color: #fff;
-        line-height: 1.3;
+    .card-game-title {
+        font-size: 1rem;
+        font-weight: 700;
+        color: var(--chess-light);
+        margin: 0 0 6px;
+        line-height: 1.4;
         display: -webkit-box;
         -webkit-line-clamp: 2;
         -webkit-box-orient: vertical;
         overflow: hidden;
     }
 
-    .game-meta {
+    .card-meta {
         display: flex;
-        align-items: center;
-        gap: 0.5rem;
-        font-size: 0.85rem;
-        color: #aaa;
+        flex-wrap: wrap;
+        gap: 10px;
+        font-size: 0.75rem;
+        color: var(--color-gray-400);
+        font-weight: 600;
     }
 
-    .game-meta i {
-        color: #667eea;
-    }
-
-    .game-board-container {
-        padding: 0.5rem 1.5rem;
-        flex-grow: 1;
+    .card-meta span {
         display: flex;
         align-items: center;
+        gap: 4px;
+    }
+
+    .card-meta i { color: var(--chess-accent); }
+
+    /* ── Mini board ───────────────────────────────────────────── */
+    .card-board-wrap {
+        padding: 8px 18px;
+        display: flex;
         justify-content: center;
     }
 
-    .mini-board {
+    .mini-board-outer {
         width: 100%;
-        max-width: 200px;
-        border-radius: 10px;
+        max-width: 190px;
+        border-radius: 8px;
         overflow: hidden;
-        box-shadow: 0 5px 15px rgba(0, 0, 0, 0.3);
-        transition: transform 0.3s ease;
+        box-shadow: 0 4px 14px rgba(0,0,0,0.35);
+        transition: transform 0.25s ease;
     }
 
-    .mini-board .white-1e1d7 {
-        background-color: #eeeed2 !important;
-    }
+    .game-card:hover .mini-board-outer { transform: scale(1.04); }
 
-    .mini-board .black-3c85d {
-        background-color: #769656 !important;
-    }
-
-    .game-card:hover .mini-board {
-        transform: scale(1.05);
-    }
-
-    .game-footer {
-        padding: 1rem 1.5rem 1.5rem;
+    /* ── Card footer ──────────────────────────────────────────── */
+    .card-footer-content {
+        padding: 10px 18px 16px;
+        margin-top: auto;
         display: flex;
         justify-content: space-between;
         align-items: center;
-        border-top: 1px solid rgba(255, 255, 255, 0.1);
-        margin-top: auto;
+        border-top: 1px solid var(--border);
     }
 
-    .view-game-btn {
-        background: #1aa37b;
-        color: white;
-        border: none;
-        padding: 0.5rem 1.2rem;
-        border-radius: 50px;
-        font-size: 0.9rem;
-        font-weight: 500;
+    .view-btn {
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
+        font-size: 0.8rem;
+        font-weight: 700;
+        color: var(--chess-primary);
+        background: rgba(119,149,86,0.12);
+        border: 1px solid rgba(119,149,86,0.3);
+        border-radius: 99px;
+        padding: 5px 14px;
+        transition: all 0.18s ease;
+        letter-spacing: 0.3px;
+    }
+
+    .view-btn:hover {
+        background: var(--chess-primary);
+        color: #fff;
+        border-color: var(--chess-primary);
+        transform: translateX(3px);
+    }
+
+    .comment-badge {
         display: flex;
         align-items: center;
-        gap: 0.5rem;
-        transition: all 0.3s ease;
-        text-decoration: none;
-    }
-
-    .view-game-btn:hover {
-        transform: translateX(5px);
-        box-shadow: #1aa37b;
-        color: white;
-    }
-
-    .game-stats {
-        display: flex;
-        gap: 1rem;
-    }
-
-    .stat-item {
-        display: flex;
-        flex-direction: column;
-        align-items: center;
-        gap: 0.2rem;
-    }
-
-    .stat-value {
-        font-weight: 600;
-        color: rgba(26, 163, 123, 1);
-        font-size: 1.1rem;
-    }
-
-    .stat-label {
+        gap: 5px;
         font-size: 0.75rem;
-        color: #aaa;
-        text-transform: uppercase;
-        letter-spacing: 0.5px;
+        color: var(--color-gray-400);
+        font-weight: 600;
     }
 
+    .comment-badge i { color: var(--cool-accent); }
+
+    /* ── Empty state ──────────────────────────────────────────── */
     .empty-state {
-        text-align: center;
-        padding: 4rem 2rem;
         grid-column: 1 / -1;
+        text-align: center;
+        padding: 5rem 2rem;
+        color: var(--color-gray-400);
     }
 
     .empty-state-icon {
-        font-size: 4rem;
-        color: #667eea;
-        margin-bottom: 1.5rem;
+        font-size: 3.5rem;
+        margin-bottom: 1.2rem;
+        color: var(--chess-accent);
     }
 
     .empty-state h3 {
-        font-size: 1.8rem;
-        margin-bottom: 1rem;
-        color: #fff;
+        font-size: 1.5rem;
+        font-weight: 700;
+        color: var(--chess-light);
+        margin-bottom: 0.6rem;
     }
 
     .empty-state p {
-        color: #aaa;
-        max-width: 500px;
-        margin: 0 auto 2rem;
+        max-width: 440px;
+        margin: 0 auto 1.8rem;
+        font-size: 0.9rem;
     }
 
     .upload-btn {
-        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-        color: white;
-        border: none;
-        padding: 0.8rem 2rem;
-        border-radius: 50px;
-        font-size: 1rem;
-        font-weight: 500;
         display: inline-flex;
         align-items: center;
-        gap: 0.5rem;
-        transition: all 0.3s ease;
+        gap: 8px;
+        background: var(--chess-primary);
+        color: #fff;
+        border: none;
+        padding: 10px 24px;
+        border-radius: 99px;
+        font-size: 0.9rem;
+        font-weight: 700;
         text-decoration: none;
+        transition: all 0.2s ease;
     }
 
     .upload-btn:hover {
-        transform: translateY(-3px);
-        box-shadow: 0 10px 25px rgba(100, 126, 234, 0.4);
-        color: white;
+        background: #67804a;
+        color: #fff;
+        transform: translateY(-2px);
+        box-shadow: 0 6px 18px rgba(119,149,86,0.35);
     }
 
-    /* Responsive adjustments */
-    @media (max-width: 768px) {
-        .game-grid {
-            grid-template-columns: 1fr;
-            gap: 1rem;
-        }
-
-        .game-card {
-            max-width: 100%;
-        }
-    }
-
-    /* Animation for card loading */
-    @keyframes fadeInUp {
-        from {
-            opacity: 0;
-            transform: translateY(20px);
-        }
-
-        to {
-            opacity: 1;
-            transform: translateY(0);
-        }
-    }
-
-    .game-card {
-        animation: fadeInUp 0.6s ease-out;
-        animation-fill-mode: both;
-    }
-
-    .game-card:nth-child(1) {
-        animation-delay: 0.1s;
-    }
-
-    .game-card:nth-child(2) {
-        animation-delay: 0.2s;
-    }
-
-    .game-card:nth-child(3) {
-        animation-delay: 0.3s;
-    }
-
-    .game-card:nth-child(4) {
-        animation-delay: 0.4s;
-    }
-
-    .game-card:nth-child(5) {
-        animation-delay: 0.5s;
-    }
-
-    .game-card:nth-child(6) {
-        animation-delay: 0.6s;
+    /* ── Responsive ───────────────────────────────────────────── */
+    @media (max-width: 600px) {
+        .game-grid { grid-template-columns: 1fr; }
     }
 </style>
 
-<div class="container py-4 text-white">
-    <h4 class="page-title">Chess Game Library</h4>
-    <div class="mb-4 text-center">
-        <div style="
-        display:flex;
-        align-items:center;
-        max-width:400px;
-        margin:auto;
-        background:rgba(30,30,40,.8);
-        border-radius:40px;
-        padding:6px 15px;
-        border:1px solid rgba(100,126,234,.2);
-    ">
-            <input type="text" id="game-search" placeholder="Search games..." style="
-                    background:transparent;
-                    border:none;
-                    outline:none;
-                    color:white;
-                    width:100%;
-                    padding:8px;
-               ">
-        </div>
+<div class="container py-4">
+
+    <div class="page-header">
+        <h4 class="page-title">♟ Game Library</h4>
+        <p class="page-subtitle">Browse and analyze shared chess games</p>
     </div>
+
+    <!-- Search -->
+    <div class="search-wrap">
+        <i class="fas fa-search"></i>
+        <input type="text" id="game-search" placeholder="Search games…" autocomplete="off">
+    </div>
+
+    <!-- Grid -->
     {% if games %}
     <div class="game-grid" id="game-container">
         {% for game in games %}
-        <a href="{% url 'game_detail' game.slug_link %}" class="game-card" data-pgn="{{ game.pgn|escapejs }}"
-            data-id="{{ game.id }}">
+        <a href="{% url 'game_detail' game.slug_link %}" class="game-card"
+           data-pgn="{{ game.pgn|escapejs }}" data-id="{{ game.id }}">
 
-            <div class="game-header">
-                <h3 class="game-title">{{ game.title }}</h3>
-                <div class="game-meta">
-                    <i class="fas fa-clock"></i>
-                    <span>{{ game.created_at|date:"M d, Y" }}</span>
+            <div class="card-header-content">
+                <h3 class="card-game-title">{{ game.title }}</h3>
+                <div class="card-meta">
+                    <span><i class="fas fa-clock"></i> {{ game.created_at|date:"M d, Y" }}</span>
                     {% if game.user %}
-                    <i class="fas fa-user ml-2"></i>
-                    <span>By {{ game.user.username }}</span>
+                    <span><i class="fas fa-user"></i> {{ game.user.username }}</span>
                     {% endif %}
                 </div>
             </div>
 
-            <div class="game-board-container">
-                <div class="mini-board" id="board-{{ game.id }}"></div>
+            <div class="card-board-wrap">
+                <div class="mini-board-outer" id="board-{{ game.id }}"></div>
             </div>
 
-            <div class="game-footer">
-                <span class="view-game-btn">
-                    <i class="fas fa-chess-board"></i>
-                    View Game
+            <div class="card-footer-content">
+                <span class="view-btn">
+                    <i class="fas fa-chess-board"></i> View Game
                 </span>
-
-                <div class="game-stats">
-                    {% if game.comments.count %}
-                    <div class="stat-item">
-                        <span class="stat-value">{{ game.comments.count }}</span>
-                        <span class="stat-label">Comments</span>
-                    </div>
-                    {% endif %}
-                </div>
+                {% if game.comments.count %}
+                <span class="comment-badge">
+                    <i class="fas fa-comment"></i> {{ game.comments.count }}
+                </span>
+                {% endif %}
             </div>
+
         </a>
         {% endfor %}
     </div>
 
     {% else %}
-    <div class="empty-state">
-        <div class="empty-state-icon">
-            <i class="fas fa-chess-board"></i>
+    <div class="game-grid">
+        <div class="empty-state">
+            <div class="empty-state-icon"><i class="fas fa-chess-board"></i></div>
+            <h3>No Games Yet</h3>
+            <p>Be the first to share a chess game. Upload your PGN to start analyzing and discussing with the community.</p>
+            {% if user.is_authenticated %}
+            <a href="{% url 'game_page' %}" class="upload-btn">
+                <i class="fas fa-upload"></i> Upload a Game
+            </a>
+            {% else %}
+            <a href="{% url 'login' %}" class="upload-btn">
+                <i class="fas fa-sign-in-alt"></i> Login to Upload
+            </a>
+            {% endif %}
         </div>
-        <h3>No Games Uploaded Yet</h3>
-        <p>Be the first to share a chess game! Upload your PGN file to start analyzing and discussing with the
-            community.</p>
-        {% if user.is_authenticated %}
-        <a href="{% url 'game_page' %}" class="upload-btn">
-            <i class="fas fa-upload"></i>
-            Upload Your First Game
-        </a>
-        {% else %}
-        <a href="{% url 'login' %}" class="upload-btn">
-            <i class="fas fa-sign-in-alt"></i>
-            Login to Upload Games
-        </a>
-        {% endif %}
     </div>
     {% endif %}
+
 </div>
 
-
 <script>
-    document.addEventListener('DOMContentLoaded', function () {
-        document.querySelectorAll(".game-card").forEach((card) => {
-            const gameId = card.getAttribute("data-id");
-            const boardId = "board-" + gameId;
+    function initBoards(container) {
+        container.querySelectorAll('.game-card').forEach(card => {
+            const gameId  = card.getAttribute('data-id');
+            const boardId = 'board-' + gameId;
+            const pgn     = card.getAttribute('data-pgn');
+            let position  = 'start';
 
-            // Initialize mini chessboard
-            Chessboard(boardId, {
-                position: "start",
-                draggable: false,
-                pieceTheme: "{% static 'chessboardjs-1.0.0/img/chesspieces/wikipedia/' %}{piece}.png",
-                orientation: "white",
-                showNotation: false,
-                pieceScale: 0.8,
-                sparePieces: false
-            });
-
-            // Try to load actual game position from PGN
-            try {
-                const pgn = card.getAttribute("data-pgn");
-                if (pgn && pgn.trim()) {
+            if (pgn && pgn.trim()) {
+                try {
                     const chess = new Chess();
                     chess.load_pgn(pgn);
-                    const moves = chess.history();
-                    if (moves.length > 0) {
-                        // Show the final position
-                        Chessboard(boardId, {
-                            position: chess.fen(),
-                            draggable: false,
-                            pieceTheme: "{% static 'chessboardjs-1.0.0/img/chesspieces/wikipedia/' %}{piece}.png",
-                            orientation: "white",
-                            showNotation: false,
-                            pieceScale: 0.8,
-                            sparePieces: false
-                        });
-                    }
-                }
-            } catch (error) {
-                console.log("Could not load PGN for game", gameId);
+                    if (chess.history().length > 0) position = chess.fen();
+                } catch (e) {}
             }
+
+            Chessboard(boardId, {
+                position:    position,
+                draggable:   false,
+                pieceTheme:  "{% static 'chessboardjs-1.0.0/img/chesspieces/wikipedia/' %}{piece}.png",
+                orientation: 'white',
+                showNotation: false,
+                sparePieces:  false,
+            });
         });
+    }
+
+    document.addEventListener('DOMContentLoaded', function () {
+        const container = document.getElementById('game-container');
+        if (container) initBoards(container);
     });
 
-    document.getElementById("game-search").addEventListener("keyup", function () {
-        let query = this.value;
-
-        fetch(`/search-games/?q=${query}`)
-            .then(res => res.json())
+    document.getElementById('game-search').addEventListener('keyup', function () {
+        const q = this.value;
+        fetch(`/search-games/?q=${encodeURIComponent(q)}`)
+            .then(r => r.json())
             .then(data => {
-                document.getElementById("game-container").innerHTML = data.html;
-
-                // reinitialize boards after reload
-                document.querySelectorAll(".game-card").forEach((card) => {
-                    const gameId = card.getAttribute("data-id");
-                    const boardId = "board-" + gameId;
-
-                    const pgn = card.getAttribute("data-pgn");
-                    let position = "start";
-
-                    if (pgn && pgn.trim()) {
-                        const chess = new Chess();
-                        chess.load_pgn(pgn);
-                        position = chess.fen();
-                    }
-
-                    Chessboard(boardId, {
-                        position: position,
-                        draggable: false,
-                        pieceTheme: "{% static 'chessboardjs-1.0.0/img/chesspieces/wikipedia/' %}{piece}.png",
-                        showNotation: false
-                    });
-                });
+                const container = document.getElementById('game-container');
+                container.innerHTML = data.html;
+                initBoards(container);
             });
     });
 </script>
