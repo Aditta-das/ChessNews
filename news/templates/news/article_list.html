@@ -3,326 +3,422 @@
 {% block content %}
 
 <style>
-    /* ---------- GLOBAL ---------- */
-    .page-title {
-        font-weight: 700;
-        font-size: 1.5rem;
-        margin-bottom: 2rem;
-        text-align: center;
-        background: linear-gradient(135deg, #fff 0%, #aaa 100%);
-        -webkit-background-clip: text;
-        -webkit-text-fill-color: transparent;
-        background-clip: text;
-        position: relative;
-        padding-bottom: 15px;
-    }
+  /* ── Layout ───────────────────────────────────────────────── */
+  .blogs-layout {
+    display: grid;
+    grid-template-columns: 220px 1fr;
+    gap: 20px;
+    align-items: start;
+  }
 
-    /* ---------- SIDEBAR ---------- */
-    .sidebar {
-        backdrop-filter: blur(14px);
-        background: rgba(25, 25, 35, 0.65);
-        border-radius: 22px;
-        border: 1px solid rgba(255, 255, 255, 0.05);
-        box-shadow: 0 8px 30px rgba(0, 0, 0, 0.35);
-        transition: .3s;
-    }
+  /* ── Sidebar ──────────────────────────────────────────────── */
+  .sidebar-panel {
+    background: var(--card-color);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    overflow: hidden;
+    position: sticky;
+    top: 16px;
+  }
 
-    .sidebar:hover {
-        transform: translateY(-4px);
-    }
+  .sidebar-header {
+    padding: 12px 16px;
+    border-bottom: 1px solid var(--border);
+    font-size: 0.78rem;
+    font-weight: 700;
+    letter-spacing: 1.5px;
+    text-transform: uppercase;
+    color: var(--chess-light);
+    display: flex;
+    align-items: center;
+    gap: 6px;
+  }
 
-    .sidebar h5 {
-        font-weight: 700;
-        color: #fff;
-    }
+  .sidebar-header i { color: var(--chess-primary); }
 
-    .sidebar a.blog {
-        display: flex;
-        align-items: center;
-        gap: 10px;
-        padding: 12px 16px;
-        border-radius: 12px;
-        color: #bdbdbd;
-        text-decoration: none;
-        transition: .25s;
-    }
+  .sidebar-links { padding: 8px; }
 
-    .sidebar a.blog:hover {
-        background: linear-gradient(90deg, #1aa37b22, #1aa37b05);
-        color: #fff;
-        transform: translateX(6px);
-    }
+  .sidebar-link {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 9px 12px;
+    border-radius: 8px;
+    font-size: 0.85rem;
+    font-weight: 600;
+    color: var(--chess-secondary);
+    text-decoration: none;
+    transition: all 0.15s;
+  }
 
-    .sidebar .btn {
-        border-radius: 40px;
-        font-weight: 600;
-    }
+  .sidebar-link i { color: var(--color-gray-400); font-size: 0.9rem; }
 
-    /* ---------- GRID ---------- */
-    .blog-grid {
-        display: grid;
-        grid-template-columns: repeat(auto-fill, minmax(340px, 1fr));
-        gap: 1.6rem;
-    }
+  .sidebar-link:hover {
+    background: oklch(22% 0.015 256);
+    color: var(--chess-light);
+  }
 
-    /* ---------- CARD ---------- */
-    .blog-card {
-        border-radius: 22px;
-        overflow: hidden;
-        text-decoration: none;
-        color: white;
-        background: rgba(25, 25, 35, 0.75);
-        backdrop-filter: blur(12px);
-        border: 1px solid rgba(255, 255, 255, 0.06);
-        box-shadow: 0 6px 25px rgba(0, 0, 0, 0.4);
-        transition: .35s cubic-bezier(.2, .8, .2, 1);
-        display: flex;
-        flex-direction: column;
-        position: relative;
-    }
+  .sidebar-link:hover i { color: var(--chess-primary); }
 
-    .blog-card::before {
-        content: "";
-        position: absolute;
-        inset: 0;
-        border-radius: 22px;
-        padding: 1px;
-        background: linear-gradient(130deg, #1aa37b55, transparent);
-        -webkit-mask:
-            linear-gradient(#000 0 0) content-box,
-            linear-gradient(#000 0 0);
-        -webkit-mask-composite: xor;
-        mask-composite: exclude;
-    }
+  .sidebar-divider { height: 1px; background: var(--border); margin: 6px 8px; }
 
-    .blog-card:hover {
-        transform: translateY(-12px) scale(1.01);
-        box-shadow: 0 18px 45px rgba(26, 163, 123, .25);
-    }
+  .create-post-btn {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 6px;
+    width: calc(100% - 16px);
+    margin: 8px;
+    padding: 9px;
+    border-radius: 8px;
+    border: none;
+    background: var(--chess-primary);
+    color: #fff;
+    font-size: 0.82rem;
+    font-weight: 700;
+    text-decoration: none;
+    transition: all 0.18s;
+    cursor: pointer;
+  }
 
-    /* ---------- IMAGE ---------- */
-    .blog-image {
-        height: 220px;
-        width: 100%;
-        object-fit: cover;
-        transition: .4s;
-    }
+  .create-post-btn:hover { background: #67804a; color: #fff; transform: translateY(-1px); }
 
-    .blog-card:hover .blog-image {
-        transform: scale(1.05);
-    }
+  .auth-btn {
+    display: block;
+    width: calc(100% - 16px);
+    margin: 4px 8px;
+    padding: 8px;
+    border-radius: 8px;
+    font-size: 0.82rem;
+    font-weight: 700;
+    text-align: center;
+    text-decoration: none;
+    transition: all 0.18s;
+  }
 
-    /* ---------- BODY ---------- */
-    .blog-body {
-        padding: 1.4rem;
-        flex: 1;
-        display: flex;
-        flex-direction: column;
-    }
+  .auth-btn-primary {
+    background: var(--chess-primary);
+    color: #fff;
+    border: none;
+  }
 
-    .blog-title {
-        font-size: 1.35rem;
-        font-weight: 700;
-        margin-bottom: .7rem;
-        line-height: 1.3;
-    }
+  .auth-btn-primary:hover { background: #67804a; color: #fff; }
 
-    .blog-meta {
-        font-size: .85rem;
-        color: #aaa;
-        margin-bottom: .8rem;
-    }
+  .auth-btn-outline {
+    background: transparent;
+    color: var(--chess-secondary);
+    border: 1px solid var(--border);
+  }
 
-    .blog-meta i {
-        color: #1aa37b;
-    }
+  .auth-btn-outline:hover { border-color: var(--chess-primary); color: var(--chess-primary); }
 
-    .blog-content {
-        color: #ddd;
-        line-height: 1.6;
-        flex-grow: 1;
-    }
+  /* ── Main content ─────────────────────────────────────────── */
+  .page-heading-row {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 16px;
+  }
 
-    /* ---------- FOOTER ---------- */
-    .blog-footer {
-        border-top: 1px solid rgba(255, 255, 255, 0.06);
-        padding: 1rem 1.4rem;
-        display: flex;
-        justify-content: space-between;
-        align-items: center;
-    }
+  .page-heading {
+    font-size: 1.15rem;
+    font-weight: 800;
+    color: var(--chess-light);
+    margin: 0;
+  }
 
-    .blog-stats {
-        display: flex;
-        gap: 18px;
-    }
+  /* ── Blog grid ────────────────────────────────────────────── */
+  .blog-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(290px, 1fr));
+    gap: 16px;
+  }
 
-    .blog-stat {
-        text-align: center;
-    }
+  /* ── Blog card ────────────────────────────────────────────── */
+  .blog-card {
+    background: var(--card-color);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    overflow: hidden;
+    display: flex;
+    flex-direction: column;
+    text-decoration: none;
+    color: var(--chess-light);
+    transition: transform 0.2s ease, border-color 0.2s ease, box-shadow 0.2s ease;
+    animation: fadeInUp 0.45s ease-out both;
+  }
 
-    .stat-value {
-        font-weight: 700;
-        color: #1aa37b;
-        font-size: 1.1rem;
-    }
+  @keyframes fadeInUp {
+    from { opacity: 0; transform: translateY(16px); }
+    to   { opacity: 1; transform: translateY(0); }
+  }
 
-    .stat-label {
-        font-size: .7rem;
-        letter-spacing: .5px;
-        color: #aaa;
-    }
+  .blog-card:nth-child(1) { animation-delay: 0.04s; }
+  .blog-card:nth-child(2) { animation-delay: 0.08s; }
+  .blog-card:nth-child(3) { animation-delay: 0.12s; }
+  .blog-card:nth-child(4) { animation-delay: 0.16s; }
+  .blog-card:nth-child(5) { animation-delay: 0.20s; }
+  .blog-card:nth-child(6) { animation-delay: 0.24s; }
 
-    /* ---------- EMPTY ---------- */
-    .empty-blogs {
-        text-align: center;
-        padding: 5rem 1rem;
-    }
+  .blog-card::before {
+    content: '';
+    display: block;
+    height: 2px;
+    background: var(--chess-primary);
+    opacity: 0;
+    transition: opacity 0.2s;
+  }
 
-    .empty-icon {
-        font-size: 4rem;
-        color: #1aa37b;
-        margin-bottom: 1rem;
-        opacity: .6;
-    }
+  .blog-card:hover {
+    transform: translateY(-5px);
+    border-color: var(--chess-primary);
+    box-shadow: 0 10px 28px rgba(119,149,86,0.16);
+    color: var(--chess-light);
+  }
 
-    .create-btn {
-        background: linear-gradient(90deg, #1aa37b, #22c89a);
-        padding: .8rem 2.2rem;
-        border-radius: 40px;
-        font-weight: 600;
-        color: white;
-        text-decoration: none;
-        transition: .3s;
-    }
+  .blog-card:hover::before { opacity: 1; }
 
-    .create-btn:hover {
-        transform: translateY(-3px);
-        box-shadow: 0 10px 30px rgba(26, 163, 123, .4);
-    }
+  .blog-card-img {
+    width: 100%;
+    height: 180px;
+    object-fit: cover;
+    display: block;
+    transition: transform 0.3s ease;
+  }
 
-    /* ---------- RESPONSIVE ---------- */
-    @media(max-width:768px) {
-        .blog-grid {
-            grid-template-columns: 1fr;
-        }
-    }
+  .blog-card:hover .blog-card-img { transform: scale(1.04); }
+
+  .blog-img-placeholder {
+    height: 180px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: oklch(20% 0.015 256);
+    color: var(--chess-primary);
+    font-size: 2.5rem;
+    opacity: 0.5;
+  }
+
+  .blog-card-body {
+    padding: 14px;
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+  }
+
+  .blog-card-title {
+    font-size: 0.98rem;
+    font-weight: 700;
+    color: var(--chess-light);
+    line-height: 1.4;
+    margin-bottom: 6px;
+  }
+
+  .blog-card-meta {
+    font-size: 0.73rem;
+    color: var(--color-gray-400);
+    font-weight: 600;
+    margin-bottom: 8px;
+    display: flex;
+    align-items: center;
+    gap: 4px;
+  }
+
+  .blog-card-meta i { color: var(--chess-primary); }
+
+  .blog-card-excerpt {
+    font-size: 0.83rem;
+    color: var(--chess-secondary);
+    line-height: 1.55;
+    flex: 1;
+  }
+
+  .blog-card-footer {
+    padding: 10px 14px;
+    border-top: 1px solid var(--border);
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+  }
+
+  .blog-card-stats {
+    display: flex;
+    gap: 14px;
+  }
+
+  .blog-stat {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 1px;
+  }
+
+  .blog-stat-value {
+    font-size: 0.95rem;
+    font-weight: 800;
+    color: var(--chess-primary);
+  }
+
+  .blog-stat-label {
+    font-size: 0.62rem;
+    letter-spacing: 1px;
+    text-transform: uppercase;
+    color: var(--color-gray-400);
+  }
+
+  .blog-card-arrow {
+    color: var(--color-gray-400);
+    font-size: 0.9rem;
+    transition: all 0.15s;
+  }
+
+  .blog-card:hover .blog-card-arrow { color: var(--chess-primary); transform: translateX(3px); }
+
+  /* ── Empty ────────────────────────────────────────────────── */
+  .empty-state {
+    text-align: center;
+    padding: 56px 20px;
+    color: var(--color-gray-400);
+  }
+
+  .empty-state i {
+    font-size: 3rem;
+    margin-bottom: 12px;
+    color: var(--chess-primary);
+    opacity: 0.4;
+  }
+
+  .empty-state h3 {
+    font-size: 1.2rem;
+    font-weight: 700;
+    color: var(--chess-light);
+    margin-bottom: 6px;
+  }
+
+  .empty-create-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    margin-top: 16px;
+    padding: 9px 22px;
+    border-radius: 99px;
+    font-size: 0.85rem;
+    font-weight: 700;
+    background: var(--chess-primary);
+    color: #fff;
+    text-decoration: none;
+    transition: all 0.18s;
+  }
+
+  .empty-create-btn:hover { background: #67804a; color: #fff; transform: translateY(-2px); }
+
+  /* ── Responsive ───────────────────────────────────────────── */
+  @media (max-width: 760px) {
+    .blogs-layout { grid-template-columns: 1fr; }
+    .sidebar-panel { position: static; }
+    .blog-grid { grid-template-columns: 1fr; }
+  }
 </style>
 
+<div class="blogs-layout">
 
-<div class="container my-4">
-    <h4 class="page-title">Blog Community</h4>
+  <!-- ── Sidebar ──────────────────────────────────────────── -->
+  <div class="sidebar-panel">
 
-    <div class="row g-4">
+    {% if request.user.is_authenticated %}
+    <div class="sidebar-header">
+      <i class="bi bi-journal-text"></i> {{ request.user.username }}'s Blog
+    </div>
+    <div class="sidebar-links">
+      <a href="{% url 'user_blogs' request.user.username %}" class="sidebar-link">
+        <i class="bi bi-person-lines-fill"></i> My Blogs
+      </a>
+      <a href="{% url 'all_blogs' %}" class="sidebar-link">
+        <i class="bi bi-collection"></i> All Blogs
+      </a>
+    </div>
+    <div class="sidebar-divider"></div>
+    <a href="{% url 'write_article' %}" class="create-post-btn">
+      <i class="bi bi-plus-circle"></i> Create Post
+    </a>
 
-        {% if request.user.is_authenticated %}
-        <div class="col-lg-3 col-md-4 order-1 order-md-2">
-            <div class="sidebar p-4">
-                <h5 class="mb-4"><i class="bi bi-journal-text"></i> {{request.user.username}}'s Blog</h5>
+    {% else %}
+    <div class="sidebar-header">
+      <i class="bi bi-people"></i> Join Community
+    </div>
+    <div style="padding:12px 8px 8px;">
+      <a href="{% url 'register' %}" class="auth-btn auth-btn-primary">Sign Up</a>
+      <a href="{% url 'login' %}"    class="auth-btn auth-btn-outline" style="margin-top:6px;display:block;text-align:center;text-decoration:none;padding:8px;border-radius:8px;border:1px solid var(--border);color:var(--chess-secondary);font-size:0.82rem;font-weight:700;">Login</a>
+    </div>
+    {% endif %}
 
-                <a href="{% url 'user_blogs' request.user.username %}" class="blog">
-                    <i class="bi bi-person-lines-fill"></i> My Blogs
-                </a>
+  </div>
 
-                <a href="{% url 'all_blogs' %}" class="blog">
-                    <i class="bi bi-collection"></i> All Blogs
-                </a>
+  <!-- ── Blogs ────────────────────────────────────────────── -->
+  <div>
+    <div class="page-heading-row">
+      <h2 class="page-heading">✍️ Blog Community</h2>
+    </div>
 
-                <a href="{% url 'write_article' %}" class="btn btn-success w-100 mt-4">
-                    <i class="bi bi-plus-circle"></i> Create Post
-                </a>
-            </div>
-        </div>
+    {% if blogs %}
+    <div class="blog-grid">
+      {% for blog in blogs %}
+      <a href="{% url 'article_detail' slug=blog.slug %}" class="blog-card">
+
+        {% if blog.image %}
+        <img src="{{ blog.image.url }}" class="blog-card-img" alt="{{ blog.title }}">
         {% else %}
-        <div class="col-lg-3 col-md-4 order-1 order-md-2">
-            <div class="sidebar p-4 text-center">
-                <h5 class="mb-4">Join Community</h5>
-                <a href="{% url 'register' %}" class="btn btn-success w-100 mb-2">Sign Up</a>
-                <a href="{% url 'login' %}" class="btn btn-outline-light w-100">Login</a>
-            </div>
+        <div class="blog-img-placeholder">
+          <i class="bi bi-journal-text"></i>
         </div>
         {% endif %}
 
-
-        <!-- BLOGS -->
-        <div class="col-lg-9 col-md-8 order-2 order-md-1">
-
-            {% if blogs %}
-            <div class="blog-grid">
-                {% for blog in blogs %}
-                <a href="{% url 'article_detail' slug=blog.slug %}" class="blog-card">
-
-                    {% if blog.image %}
-                    <img src="{{blog.image.url}}" class="blog-image">
-                    {% else %}
-                    <div class="blog-image d-flex align-items-center justify-content-center"
-                        style="background:linear-gradient(135deg,#1aa37b,#178f6b);">
-                        <i class="bi bi-journal-text" style="font-size:3rem;opacity:.7;"></i>
-                    </div>
-                    {% endif %}
-
-                    <div class="blog-body">
-                        <div class="blog-title">{{blog.title}}</div>
-
-                        <div class="blog-meta">
-                            <i class="bi bi-person-fill"></i> {{blog.author.username}}
-                        </div>
-
-                        <div class="blog-content">
-                            {{blog.content|remove_img_tags|truncatewords:30|safe}}
-                        </div>
-                    </div>
-
-                    <div class="blog-footer">
-                        <div class="blog-stats">
-                            {% if blog.comments.count %}
-                            <div class="blog-stat">
-                                <div class="stat-value">{{blog.comments.count}}</div>
-                                <div class="stat-label">Comments</div>
-                            </div>
-                            {% else %}
-                            <div class="blog-stat">
-                                <div class="stat-value">0</div>
-                                <div class="stat-label">Comments</div>
-                            </div>
-                            {% endif %}
-                            {% if blog.likes.count %}
-                            <div class="blog-stat">
-                                <div class="stat-value">{{blog.likes.count}}</div>
-                                <div class="stat-label">Likes</div>
-                            </div>
-                            {% else %}
-                            <div class="blog-stat">
-                                <div class="stat-value">0</div>
-                                <div class="stat-label">Likes</div>
-                            </div>
-                            {% endif %}
-
-                        </div>
-
-                        <i class="bi bi-arrow-right"></i>
-                    </div>
-
-                </a>
-                {% endfor %}
-            </div>
-
-            {% else %}
-            <div class="empty-blogs">
-                <div class="empty-icon"><i class="bi bi-journal-text"></i></div>
-                <h3>No Blogs Yet</h3>
-                <p>Start sharing your ideas with the community.</p>
-
-                {% if user.is_authenticated %}
-                <a href="{% url 'write_article' %}" class="create-btn">Write First Blog</a>
-                {% else %}
-                <a href="{% url 'register' %}" class="create-btn">Join to Write</a>
-                {% endif %}
-            </div>
-            {% endif %}
-
+        <div class="blog-card-body">
+          <div class="blog-card-title">{{ blog.title }}</div>
+          <div class="blog-card-meta">
+            <i class="bi bi-person-fill"></i> {{ blog.author.username }}
+          </div>
+          <div class="blog-card-excerpt">
+            {{ blog.content|remove_img_tags|truncatewords:28|safe }}
+          </div>
         </div>
+
+        <div class="blog-card-footer">
+          <div class="blog-card-stats">
+            <div class="blog-stat">
+              <span class="blog-stat-value">{{ blog.comments.count }}</span>
+              <span class="blog-stat-label">Comments</span>
+            </div>
+            <div class="blog-stat">
+              <span class="blog-stat-value">{{ blog.likes.count }}</span>
+              <span class="blog-stat-label">Likes</span>
+            </div>
+          </div>
+          <i class="bi bi-arrow-right blog-card-arrow"></i>
+        </div>
+
+      </a>
+      {% endfor %}
     </div>
+
+    {% else %}
+    <div class="empty-state">
+      <i class="bi bi-journal-text"></i>
+      <h3>No Blogs Yet</h3>
+      <p>Start sharing your ideas with the community.</p>
+      {% if user.is_authenticated %}
+      <a href="{% url 'write_article' %}" class="empty-create-btn">
+        <i class="bi bi-plus-circle"></i> Write First Blog
+      </a>
+      {% else %}
+      <a href="{% url 'register' %}" class="empty-create-btn">
+        <i class="bi bi-person-plus"></i> Join to Write
+      </a>
+      {% endif %}
+    </div>
+    {% endif %}
+
+  </div>
 </div>
 
 {% endblock %}

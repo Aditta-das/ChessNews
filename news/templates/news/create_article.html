@@ -1,174 +1,428 @@
 {% extends "news/base.html" %}
 {% block content %}
-{{ form.media }} <!-- CKEditor -->
+{{ form.media }}
+
 <style>
-    .btn-dark {
-        background-color: #373633 !important;
-        border: none !important;
-        color: #f9f9f9 !important;
-        font-weight: bold;
-    }
-    .ck.ck-editor__main>.ck-editor__editable {
-        background: #373737;
-    }
-    .ck.ck-toolbar__items {
-        background-color: #373737;
-        border: none !important;
-    }
-    .ck.ck-button.ck-on {
-        background-color: #4a4a4a !important;
-        color: #f9f9f9 !important;
-    }
-    .ck.ck-button.ck-on:hover {
-        background-color: #5a5a5a !important;
-        color: #f9f9f9 !important;
-    }
-    .ck.ck-button:hover {
-        background-color: #4a4a4a !important;
-        color: #f9f9f9 !important;  
-    }
-    .ck.ck-button:active {
-        background-color: #5a5a5a !important;
-        color: #f9f9f9 !important;  
-    }
-    .ck.ck-button {
-        color: #f9f9f9 !important;
-    }
-    .ck.ck-dropdown__panel {
-        background-color: #373737;
-        color: #f9f9f9 !important;
-    }
-    .ck.ck-dropdown__panel .ck-list .ck-list__item {
-        color: #f9f9f9 !important;
-    }
-    .ck.ck-dropdown__panel .ck-list .ck-list__item:hover {
-        background-color: #4a4a4a !important;
-        color: #f9f9f9 !important;
-    }
-    .ck.ck-dropdown__panel .ck-list .ck-list__item:active {
-        background-color: #5a5a5a !important;
-        color: #f9f9f9 !important;
-    }
-    .ck.ck-dropdown__panel .ck-list .ck-list__item.ck-list__item_selected {
-        background-color: #4a4a4a !important;
-        color: #f9f9f9 !important;
-    }
-    .ck.ck-dropdown__panel .ck-list .ck-list__item.ck-list__item_selected:hover {
-        background-color: #5a5a5a !important;
-        color: #f9f9f9 !important;
-    }
-    .ck.ck-dropdown__panel .ck-list .ck-list__item.ck-list__item_selected:active {
-        background-color: #6a6a6a !important;       
-        color: #f9f9f9 !important;
-    }
-    .ck.ck-editor__editable.ck-editor__editable_inline {
-        min-height: 300px;
-    }
-    .editor-header {
-        font-weight: 700;
-        font-size: 1.5rem;
-        margin-bottom: 2rem;
-        text-align: center;
-        background: linear-gradient(135deg, #fff 0%, #aaa 100%);
-        -webkit-background-clip: text;
-        -webkit-text-fill-color: transparent;
-        background-clip: text;
-        position: relative;
-        padding-bottom: 15px;
-    }
-    .editor-header:after {
-        content: '';
-        position: absolute;
-        bottom: 0;
-        left: 50%;
-        transform: translateX(-50%);
-        width: 100px;
-        height: 4px;
-        background: #1aa37b;
-        border-radius: 2px;
-    }
-    .editor-container {
-        padding: 1.5rem;
-        border-radius: 0.5rem;
-        box-shadow: 0 4px 6px rgba(0, 0,    0, 0.1);
-        border: 1px solid #444;
-    }
-    .form-group {
-        animation: fadeIn 0.5s ease;
-        animation-fill-mode: both;
-    }
-    
-    .form-group:nth-child(1) { animation-delay: 0.1s; }
-    .form-group:nth-child(2) { animation-delay: 0.2s; }
-    .form-group:nth-child(3) { animation-delay: 0.3s; }
+  /* ── Layout ───────────────────────────────────────────────── */
+  .editor-layout {
+    max-width: 820px;
+    margin: 0 auto;
+    padding-bottom: 48px;
+  }
+
+  /* ── Page heading ─────────────────────────────────────────── */
+  .editor-page-title {
+    font-size: 1.5rem;
+    font-weight: 800;
+    color: var(--chess-light);
+    margin-bottom: 4px;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+  }
+
+  .editor-page-title i { color: var(--chess-primary); }
+
+  .editor-page-sub {
+    font-size: 0.82rem;
+    color: var(--color-gray-400);
+    margin-bottom: 24px;
+  }
+
+  /* ── Form card ────────────────────────────────────────────── */
+  .form-card {
+    background: var(--card-color);
+    border: 1px solid var(--border);
+    border-radius: 14px;
+    overflow: hidden;
+    margin-bottom: 14px;
+  }
+
+  .form-card::before {
+    content: '';
+    display: block;
+    height: 3px;
+    background: var(--chess-primary);
+  }
+
+  .form-card-body { padding: 22px 24px; }
+
+  /* ── Field label ──────────────────────────────────────────── */
+  .field-label {
+    font-size: 0.72rem;
+    font-weight: 700;
+    letter-spacing: 2px;
+    text-transform: uppercase;
+    color: var(--color-gray-400);
+    margin-bottom: 8px;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+  }
+
+  .field-label i { color: var(--chess-primary); font-size: 0.8rem; }
+
+  /* ── Title input ──────────────────────────────────────────── */
+  .title-input {
+    width: 100%;
+    background: oklch(14% 0.008 256);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    color: var(--chess-light);
+    font-size: 1.05rem;
+    font-weight: 700;
+    padding: 12px 14px;
+    font-family: inherit;
+    transition: border-color 0.15s;
+    outline: none;
+  }
+
+  .title-input:focus { border-color: var(--chess-primary); }
+  .title-input::placeholder { color: var(--color-gray-400); font-weight: 400; }
+
+  /* ── Image upload ─────────────────────────────────────────── */
+  .image-upload-zone {
+    border: 2px dashed var(--border);
+    border-radius: 10px;
+    padding: 24px;
+    text-align: center;
+    cursor: pointer;
+    transition: all 0.2s;
+    background: oklch(14% 0.008 256);
+    position: relative;
+  }
+
+  .image-upload-zone:hover {
+    border-color: var(--chess-primary);
+    background: oklch(15% 0.012 256);
+  }
+
+  .image-upload-zone.has-image { padding: 8px; border-style: solid; }
+
+  .upload-icon {
+    font-size: 2rem;
+    color: var(--color-gray-400);
+    margin-bottom: 8px;
+    display: block;
+  }
+
+  .upload-text {
+    font-size: 0.85rem;
+    font-weight: 600;
+    color: var(--color-gray-400);
+    margin-bottom: 4px;
+  }
+
+  .upload-sub {
+    font-size: 0.75rem;
+    color: oklch(50% 0 0);
+  }
+
+  /* Hidden file input */
+  #image-file-input {
+    position: absolute;
+    inset: 0;
+    opacity: 0;
+    cursor: pointer;
+    width: 100%;
+    height: 100%;
+  }
+
+  /* Preview */
+  #preview-img {
+    width: 100%;
+    max-height: 260px;
+    object-fit: cover;
+    border-radius: 8px;
+    display: none;
+  }
+
+  .remove-image-btn {
+    position: absolute;
+    top: 10px; right: 10px;
+    width: 28px; height: 28px;
+    border-radius: 50%;
+    border: none;
+    background: rgba(200,75,75,0.85);
+    color: #fff;
+    font-size: 0.75rem;
+    cursor: pointer;
+    display: none;
+    align-items: center;
+    justify-content: center;
+    z-index: 5;
+    transition: background 0.15s;
+  }
+
+  .remove-image-btn:hover { background: var(--chess-red); }
+
+  /* ── CKEditor overrides ───────────────────────────────────── */
+  .ck.ck-editor__main > .ck-editor__editable {
+    background: oklch(16% 0.008 256) !important;
+    color: var(--chess-light) !important;
+    border: 1px solid var(--border) !important;
+    border-top: none !important;
+    min-height: 320px;
+    font-family: 'Montserrat', sans-serif;
+    font-size: 0.95rem;
+    line-height: 1.7;
+    caret-color: var(--chess-primary);
+  }
+
+  .ck.ck-editor__main > .ck-editor__editable:focus {
+    border-color: var(--chess-primary) !important;
+    box-shadow: none !important;
+  }
+
+  .ck.ck-toolbar {
+    background: oklch(20% 0.01 256) !important;
+    border: 1px solid var(--border) !important;
+    border-radius: 8px 8px 0 0 !important;
+  }
+
+  .ck.ck-toolbar__items { background: transparent !important; }
+
+  .ck.ck-button {
+    color: var(--chess-secondary) !important;
+    border-radius: 6px !important;
+    transition: all 0.12s !important;
+  }
+
+  .ck.ck-button:hover, .ck.ck-button.ck-on {
+    background: oklch(28% 0.015 256) !important;
+    color: var(--chess-light) !important;
+  }
+
+  .ck.ck-dropdown__panel {
+    background: oklch(18% 0.01 256) !important;
+    border: 1px solid var(--border) !important;
+    border-radius: 8px !important;
+  }
+
+  .ck.ck-list { background: transparent !important; }
+
+  .ck.ck-list__item .ck-button {
+    color: var(--chess-secondary) !important;
+  }
+
+  .ck.ck-list__item .ck-button:hover {
+    background: oklch(25% 0.015 256) !important;
+    color: var(--chess-light) !important;
+  }
+
+  .ck.ck-editor__editable.ck-focused { outline: none !important; }
+
+  /* ── Publish button ───────────────────────────────────────── */
+  .publish-btn {
+    width: 100%;
+    padding: 14px;
+    font-size: 0.9rem;
+    font-weight: 700;
+    letter-spacing: 1px;
+    text-transform: uppercase;
+    border-radius: 10px;
+    border: none;
+    background: var(--chess-primary);
+    color: #fff;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+  }
+
+  .publish-btn:hover {
+    background: #67804a;
+    transform: translateY(-2px);
+    box-shadow: 0 6px 20px rgba(119,149,86,0.35);
+  }
+
+  .publish-btn:active { transform: translateY(0); }
+
+  /* ── Tips sidebar card ────────────────────────────────────── */
+  .tips-card {
+    background: oklch(18% 0.01 256);
+    border: 1px solid rgba(119,149,86,0.2);
+    border-radius: 12px;
+    padding: 16px;
+  }
+
+  .tips-title {
+    font-size: 0.72rem;
+    font-weight: 700;
+    letter-spacing: 2px;
+    text-transform: uppercase;
+    color: var(--chess-primary);
+    margin-bottom: 12px;
+    display: flex;
+    align-items: center;
+    gap: 5px;
+  }
+
+  .tip-item {
+    display: flex;
+    align-items: flex-start;
+    gap: 8px;
+    margin-bottom: 10px;
+    font-size: 0.8rem;
+    color: var(--color-gray-400);
+    line-height: 1.45;
+  }
+
+  .tip-item i {
+    color: var(--chess-primary);
+    font-size: 0.75rem;
+    margin-top: 2px;
+    flex-shrink: 0;
+  }
+
+  /* Animation */
+  .form-card { animation: fadeInUp 0.4s ease-out both; }
+  .form-card:nth-child(1) { animation-delay: 0.05s; }
+  .form-card:nth-child(2) { animation-delay: 0.10s; }
+  .form-card:nth-child(3) { animation-delay: 0.15s; }
+
+  @keyframes fadeInUp {
+    from { opacity: 0; transform: translateY(14px); }
+    to   { opacity: 1; transform: translateY(0); }
+  }
+
+  @media (max-width: 600px) {
+    .form-card-body { padding: 16px; }
+  }
 </style>
-<div class="container py-4">
-    <div class="editor-header">
-        Edit & Create Blog
+
+<div class="editor-layout">
+
+  <div class="editor-page-title">
+    <i class="bi bi-pencil-square"></i> Write an Article
+  </div>
+  <p class="editor-page-sub">Share your chess knowledge with the GM Bangladesh community</p>
+
+  <form method="post" enctype="multipart/form-data" id="article-form">
+    {% csrf_token %}
+
+    <!-- ── Title ────────────────────────────────────────────── -->
+    <div class="form-card">
+      <div class="form-card-body">
+        <div class="field-label"><i class="bi bi-type"></i> Article Title</div>
+        <input
+          type="text"
+          name="{{ form.title.html_name }}"
+          id="{{ form.title.id_for_label }}"
+          class="title-input"
+          placeholder="Write a clear, engaging title…"
+          value="{{ form.title.value|default:'' }}"
+          required>
+        {% if form.title.errors %}
+        <p style="color:var(--chess-red);font-size:0.78rem;margin-top:6px;">{{ form.title.errors|join:", " }}</p>
+        {% endif %}
+      </div>
     </div>
-    <div class="row g-4">
-        <!-- Left side: Editor -->
-        <div class="col-lg-12 col-md-12">
-            <div class="editor-container bg-dark text-white">
-                <form method="post" enctype="multipart/form-data">
-                    {% csrf_token %}
-                    <div class="form-group mb-3">
-                        <label for="{{ form.title.id_for_label }}" class="form-label">
-                            <i class="bi bi-type me-1"></i> Title
-                        </label>
-                        {{ form.title }}
-                    </div>
-                    <div class="mb-3">
-                        <label for="{{ form.image.id_for_label }}" class="btn btn-dark mb-2">
-                            <i class="bi bi-upload me-1"></i> Cover Photo
-                        </label>
-                        {{ form.image }}
 
-                        <!-- Image Preview -->
-                        <div id="preview-container" class="mt-2 text-center d-none">
-                            <img id="preview" src="#" alt="Selected image" class="img-fluid rounded"
-                                style="max-height: 200px;" />
-                        </div>
-                    </div>
-
-                    <div class="mb-3">
-                        <label for="{{ form.content.id_for_label }}" class="form-label">
-                            <i class="bi bi-text-paragraph me-1"></i> Content
-                        </label>
-                        <div class="form-text text-muted mb-2">
-                            Use the editor below to write your blog post.
-                        </div>
-                        <!-- CKEditor will replace this textarea -->
-                        {{ form.content|safe }}
-                        <!-- This is where CKEditor will initialize -->
-                    </div>
-                    <button type="submit" class="btn btn-success btn-lg w-100 rounded-1 fw-medium">
-                        Publish Article
-                    </button>
-                </form>
-            </div>
+    <!-- ── Cover image ──────────────────────────────────────── -->
+    <div class="form-card">
+      <div class="form-card-body">
+        <div class="field-label"><i class="bi bi-image"></i> Cover Photo</div>
+        <div class="image-upload-zone" id="upload-zone">
+          <input type="file" name="{{ form.image.html_name }}" id="image-file-input"
+                 accept="image/*">
+          <button type="button" class="remove-image-btn" id="remove-img-btn">
+            <i class="bi bi-x"></i>
+          </button>
+          <img id="preview-img" alt="Preview">
+          <div id="upload-placeholder">
+            <i class="bi bi-cloud-arrow-up upload-icon"></i>
+            <div class="upload-text">Click or drag to upload a cover photo</div>
+            <div class="upload-sub">PNG, JPG, WEBP — max 5MB</div>
+          </div>
         </div>
+      </div>
     </div>
+
+    <!-- ── Content ──────────────────────────────────────────── -->
+    <div class="form-card">
+      <div class="form-card-body">
+        <div class="field-label" style="margin-bottom:12px;"><i class="bi bi-text-paragraph"></i> Article Content</div>
+        {{ form.content|safe }}
+        {% if form.content.errors %}
+        <p style="color:var(--chess-red);font-size:0.78rem;margin-top:6px;">{{ form.content.errors|join:", " }}</p>
+        {% endif %}
+      </div>
+    </div>
+
+    <!-- ── Writing tips ──────────────────────────────────────── -->
+    <div class="tips-card" style="margin-bottom:16px;">
+      <div class="tips-title"><i class="bi bi-lightbulb-fill"></i> Writing Tips</div>
+      <div class="tip-item"><i class="bi bi-check-circle-fill"></i> Start with a strong hook — grab attention in the first sentence.</div>
+      <div class="tip-item"><i class="bi bi-check-circle-fill"></i> Use headings (H2, H3) to break up long sections.</div>
+      <div class="tip-item"><i class="bi bi-check-circle-fill"></i> Include diagrams or images to illustrate positions.</div>
+      <div class="tip-item"><i class="bi bi-check-circle-fill"></i> Keep paragraphs short — 3-4 sentences is ideal.</div>
+    </div>
+
+    <!-- ── Publish ───────────────────────────────────────────── -->
+    <button type="submit" class="publish-btn">
+      <i class="bi bi-send-fill"></i> Publish Article
+    </button>
+
+  </form>
+
 </div>
 
 <script>
-    document.addEventListener("DOMContentLoaded", function () {
-        const fileInput = document.getElementById("{{ form.image.id_for_label }}"); // Django renders id
-        const previewContainer = document.getElementById("preview-container");
-        const preview = document.getElementById("preview");
+  /* ── Image upload preview ───────────────────────────────────── */
+  const fileInput    = document.getElementById('image-file-input');
+  const previewImg   = document.getElementById('preview-img');
+  const placeholder  = document.getElementById('upload-placeholder');
+  const removeBtn    = document.getElementById('remove-img-btn');
+  const uploadZone   = document.getElementById('upload-zone');
 
-        fileInput.addEventListener("change", function (event) {
-            const file = event.target.files[0];
-            if (file) {
-                const reader = new FileReader();
-                reader.onload = function (e) {
-                    preview.src = e.target.result;
-                    previewContainer.classList.remove("d-none");
-                }
-                reader.readAsDataURL(file);
-            }
-        });
-    });
+  fileInput.addEventListener('change', function(e) {
+    const file = e.target.files[0];
+    if (!file) return;
+    const reader = new FileReader();
+    reader.onload = function(ev) {
+      previewImg.src = ev.target.result;
+      previewImg.style.display = 'block';
+      placeholder.style.display = 'none';
+      removeBtn.style.display = 'flex';
+      uploadZone.classList.add('has-image');
+    };
+    reader.readAsDataURL(file);
+  });
+
+  removeBtn.addEventListener('click', function(e) {
+    e.stopPropagation();
+    fileInput.value = '';
+    previewImg.src = '';
+    previewImg.style.display = 'none';
+    placeholder.style.display = 'block';
+    removeBtn.style.display = 'none';
+    uploadZone.classList.remove('has-image');
+  });
+
+  /* ── Drag and drop ────────────────────────────────────────────── */
+  uploadZone.addEventListener('dragover', e => {
+    e.preventDefault();
+    uploadZone.style.borderColor = 'var(--chess-primary)';
+  });
+
+  uploadZone.addEventListener('dragleave', () => {
+    uploadZone.style.borderColor = '';
+  });
+
+  uploadZone.addEventListener('drop', e => {
+    e.preventDefault();
+    uploadZone.style.borderColor = '';
+    const file = e.dataTransfer.files[0];
+    if (file && file.type.startsWith('image/')) {
+      const dt = new DataTransfer();
+      dt.items.add(file);
+      fileInput.files = dt.files;
+      fileInput.dispatchEvent(new Event('change'));
+    }
+  });
 </script>
 
 {% endblock %}

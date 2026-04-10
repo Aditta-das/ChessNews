@@ -3,173 +3,250 @@
 
 <head>
     <meta charset="UTF-8">
-    <title>{% block title %}ChessNews{% endblock %}</title>
+    <title>{% block title %}GM Bangladesh{% endblock %}</title>
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <meta name="csrf-token" content="{{ csrf_token }}">
-    <!-- Bootstrap 5 CDN -->
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
-    <!-- Google Fonts -->
-    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.0/font/bootstrap-icons.css">
-    <link
-        href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;600;700&family=Playfair+Display:wght@700&display=swap"
-        rel="stylesheet">
 
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.0/font/bootstrap-icons.css">
+    <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;600;700;800&family=Playfair+Display:wght@700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/lipis/flag-icons@7.3.2/css/flag-icons.min.css" />
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
-
     <link rel="icon" type="image/png" href="/static/knight.png">
 
-
     <style>
+        /* ── CSS Variables ──────────────────────────────────────── */
         :root {
-            --chess-dark: oklch(14.5% 0 0);
-            --navbar-color: #09090b;
-            --chess-light: #f8f1e5;
-            --chess-primary: #779556;
+            --chess-dark:      oklch(14.5% 0 0);
+            --navbar-color:    #09090b;
+            --chess-light:     #f8f1e5;
+            --chess-primary:   #779556;
             --chess-secondary: #ebecd0;
-            --chess-accent: #b58863;
-            --chess-red: #c84b4b;
-            --dark-gray: #2a2a2a;
-            --slate-gray: #4b4b4b;
-            --light-gray: #a3a3a3;
-            --warm-accent: #d76a6a;
-            --cool-accent: #6aa8d7;
-            --warm-orange: #d87a2a;
-            --cool-teal: #2aa6a6;
-            --card-color: oklch(27.8% .033 256.848);
-            --color-gray-400: oklch(70.7% .022 261.325);
-            --border: oklch(26.9% 0 0);
-            --status: oklch(52.7% .154 150.069);
-            --box: #232323;
-            --move: #ebebeb;
-            --move-hover: #b9b9b9;
-            --move-active: #292b32b3;
-            --notation-box: #0f1013b3;
+            --chess-accent:    #b58863;
+            --chess-red:       #c84b4b;
+            --dark-gray:       #2a2a2a;
+            --slate-gray:      #4b4b4b;
+            --light-gray:      #a3a3a3;
+            --warm-accent:     #d76a6a;
+            --cool-accent:     #6aa8d7;
+            --warm-orange:     #d87a2a;
+            --cool-teal:       #2aa6a6;
+            --card-color:      oklch(27.8% .033 256.848);
+            --color-gray-400:  oklch(70.7% .022 261.325);
+            --border:          oklch(26.9% 0 0);
+            --status:          oklch(52.7% .154 150.069);
+            --box:             #232323;
+            --move:            #ebebeb;
+            --move-hover:      #b9b9b9;
+            --move-active:     #292b32b3;
+            --notation-box:    #0f1013b3;
         }
 
-        html,
-        body {
-            height: 100%;
-            font-family: 'Montserrat', sans-serif;
-        }
+        html, body { height: 100%; font-family: 'Montserrat', sans-serif; }
 
         body {
             display: flex;
             flex-direction: column;
             background-color: var(--chess-dark);
+            color: var(--chess-light);
         }
 
-        .content {
-            flex: 1 0 auto;
-        }
+        .content { flex: 1 0 auto; }
+        footer    { flex-shrink: 0; }
 
-        footer {
-            flex-shrink: 0;
-        }
-
+        /* ── Navbar ─────────────────────────────────────────────── */
         .navbar {
-            background: var(--navbar-color) !important;
-            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
-            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+            background: rgba(9,9,11,0.96) !important;
+            backdrop-filter: blur(12px);
+            border-bottom: 1px solid rgba(119,149,86,0.15);
+            padding: 0 0;
+            position: sticky;
+            top: 0;
+            z-index: 1030;
         }
 
-        .navbar-brand .logo-text {
-            display: flex;
-            flex-direction: column;
-            line-height: 1;
-        }
+        .navbar .container { padding-top: 10px; padding-bottom: 10px; }
 
-        .navbar-brand .logo-main {
+        /* Logo */
+        .navbar-brand { gap: 10px; text-decoration: none; }
+
+        .logo-text { display: flex; flex-direction: column; line-height: 1; }
+
+        .logo-main {
             font-family: 'Playfair Display', serif;
             font-weight: 700;
-            font-size: 1.5rem;
+            font-size: 1.3rem;
+            color: var(--chess-light);
             letter-spacing: 0.5px;
         }
 
-        .navbar-brand .logo-sub {
-            font-size: 0.8rem;
-            font-weight: 600;
-            letter-spacing: 1px;
-            margin-top: 2px;
-            color: #769656;
+        .logo-sub {
+            font-size: 0.65rem;
+            font-weight: 700;
+            letter-spacing: 2px;
+            text-transform: uppercase;
+            color: var(--chess-primary);
+            margin-top: 1px;
         }
+
+        /* Nav links */
+        .navbar-nav { gap: 2px; align-items: center; }
 
         .nav-link {
-            font-weight: 600;
+            font-size: 0.82rem;
+            font-weight: 700;
             letter-spacing: 0.5px;
-            transition: all 0.3s ease;
+            color: rgba(255,255,255,0.7) !important;
+            padding: 7px 12px !important;
+            border-radius: 8px;
+            transition: all 0.18s ease;
             position: relative;
-            color: rgba(255, 255, 255, 0.9) !important;
         }
 
         .nav-link:hover {
-            color: white !important;
-            transform: translateY(-2px);
+            color: var(--chess-light) !important;
+            background: rgba(255,255,255,0.06);
         }
 
-        .nav-link-underline {
-            position: absolute;
-            bottom: 0;
-            left: 50%;
-            transform: translateX(-50%);
-            width: 0;
-            height: 2px;
-            background-color: var(--chess-primary);
-            transition: width 0.3s ease;
+        .nav-link.active-nav {
+            color: var(--chess-primary) !important;
+            background: rgba(119,149,86,0.1);
         }
 
-        .nav-link:hover .nav-link-underline {
-            width: 60%;
+        /* Support Us special */
+        .nav-link.support-link {
+            color: var(--chess-accent) !important;
+            border: 1px solid rgba(181,136,99,0.25);
         }
 
-        .nav-item.active .nav-link-underline {
-            width: 60%;
+        .nav-link.support-link:hover {
+            background: rgba(181,136,99,0.1);
+            border-color: var(--chess-accent);
+            color: var(--chess-accent) !important;
         }
 
-        .btn-outline-light {
-            border-color: rgba(255, 255, 255, 0.3);
-            transition: all 0.3s ease;
+        /* Divider dot */
+        .nav-dot {
+            width: 4px; height: 4px;
+            border-radius: 50%;
+            margin: 0 4px;
+            display: none;
+            vertical-align: middle;
         }
 
-        .btn-outline-light:hover {
-            background-color: rgba(255, 255, 255, 0.1);
-            border-color: white;
+        /* Dropdown */
+        .dropdown-menu {
+            background: oklch(18% 0.01 256);
+            border: 1px solid var(--border);
+            border-radius: 12px;
+            padding: 6px;
+            box-shadow: 0 12px 32px rgba(0,0,0,0.5);
+            min-width: 200px;
+            margin-top: 8px !important;
+        }
+
+        .dropdown-item {
+            color: var(--chess-secondary);
+            font-size: 0.82rem;
+            font-weight: 600;
+            padding: 8px 12px;
+            border-radius: 8px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            transition: all 0.15s;
+        }
+
+        .dropdown-item:hover {
+            background: oklch(24% 0.015 256);
+            color: var(--chess-light);
+        }
+
+        .dropdown-item i { width: 16px; text-align: center; font-size: 0.85rem; }
+        .dropdown-item .bi-person-badge     { color: #60a5fa; }
+        .dropdown-item .bi-bullseye         { color: var(--chess-red); }
+        .dropdown-item .bi-journal-bookmark-fill { color: var(--chess-primary); }
+        .dropdown-item .bi-diagram-3-fill   { color: #f59e0b; }
+        .dropdown-item .bi-plus-circle-fill { color: #22d3ee; }
+        .dropdown-item .bi-box-arrow-right  { color: var(--chess-accent); }
+
+        .dropdown-divider { border-color: var(--border); margin: 4px 0; }
+
+        /* User avatar in nav */
+        .nav-user-avatar {
+            width: 28px; height: 28px;
+            border-radius: 6px;
+            background: var(--chess-primary);
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 0.72rem;
+            font-weight: 800;
+            color: #fff;
+            margin-right: 6px;
+            border: 1px solid rgba(119,149,86,0.4);
+        }
+
+        /* Login button */
+        .nav-login-btn {
+            font-size: 0.78rem;
+            font-weight: 700;
+            padding: 6px 16px;
+            border-radius: 99px;
+            border: 1px solid rgba(119,149,86,0.4);
+            color: var(--chess-primary) !important;
+            background: rgba(119,149,86,0.08);
+            transition: all 0.18s;
+        }
+
+        .nav-login-btn:hover {
+            background: var(--chess-primary) !important;
+            border-color: var(--chess-primary) !important;
+            color: #fff !important;
+        }
+
+        /* Toggler */
+        .navbar-toggler {
+            border: 1px solid var(--border);
+            padding: 6px 10px;
+            border-radius: 8px;
+        }
+
+        .navbar-toggler:focus { box-shadow: none; }
+
+        .navbar-toggler-icon {
+            background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 30 30'%3e%3cpath stroke='rgba%28248,241,229,0.7%29' stroke-linecap='round' stroke-miterlimit='10' stroke-width='2' d='M4 7h22M4 15h22M4 23h22'/%3e%3c/svg%3e");
         }
 
         @media (max-width: 991.98px) {
             .navbar-collapse {
-                padding-top: 1rem;
+                padding: 12px 0;
+                border-top: 1px solid var(--border);
+                margin-top: 10px;
             }
 
-            .nav-link {
-                padding: 0.5rem 0;
-            }
-
-            .nav-link-underline {
-                display: none;
-            }
-
-            .btn-outline-light {
-                margin-top: 0.5rem;
-                margin-bottom: 0.5rem;
-            }
+            .navbar-nav { gap: 2px; align-items: stretch; }
+            .nav-dot { display: none; }
+            .nav-link { padding: 10px 14px !important; }
+            .nav-login-btn { margin: 4px 0; display: block; text-align: center; }
         }
+
+        /* ── Global helpers ─────────────────────────────────────── */
+        a { text-decoration: none; color: var(--chess-light); }
+
+        hr { border: 1px solid var(--border); margin: 5px 0; }
 
         .username {
             color: var(--chess-light);
-            margin-bottom: 10px;
-            font-size: 1.2rem;
+            font-size: 1.1rem;
             font-weight: 800;
             overflow: hidden;
             text-overflow: ellipsis;
             white-space: nowrap;
         }
 
-        .ticker-container {
-            overflow: hidden;
-            white-space: nowrap;
-            position: relative;
-        }
+        /* Ticker */
+        .ticker-container { overflow: hidden; white-space: nowrap; }
 
         .ticker-text {
             display: inline-block;
@@ -183,230 +260,103 @@
             font-size: 1rem;
         }
 
-        .ticker-rating {
-            color: var(--chess-secondary);
-            font-weight: bold;
-            margin-left: 5px;
-        }
-
-        .hover-scale {
-            transition: transform 0.3s ease;
-        }
-
-        .hover-scale:hover {
-            transform: scale(1.03);
-        }
-
-        .hover-lift {
-            transition: all 0.3s ease;
-        }
-
-        .hover-lift:hover {
-            transform: translateY(-5px);
-            box-shadow: 0 10px 20px rgba(0, 0, 0, 0.1) !important;
-        }
-
-        .ticker-item {
-            display: inline-flex;
-            align-items: center;
-        }
-
-        .player-headline {
-            color: var(--chess-light);
-        }
-
-        .player-country {
-            position: absolute;
-            bottom: 100px;
-            left: 20px;
-            display: flex;
-            align-items: center;
-            font-size: 0.9rem;
-            text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.8);
-        }
-
-        .player-country img {
-            display: inline-block;
-            border-radius: 2px;
-        }
-
+        .ticker-rating { color: var(--chess-secondary); font-weight: bold; margin-left: 5px; }
+        .ticker-item { display: inline-flex; align-items: center; }
 
         @keyframes scroll-left {
-            0% {
-                transform: translateX(100%);
-            }
-
-            100% {
-                transform: translateX(-100%);
-            }
+            0%   { transform: translateX(100%); }
+            100% { transform: translateX(-100%); }
         }
 
+        /* Cards */
         .card {
             background-color: var(--card-color);
-        }
-
-        .card-title {
-            color: var(--chess-light);
-            font-weight: 800;
-        }
-
-        .card-text {
-            color: var(--chess-secondary);
-        }
-
-        .card-body {
-            color: var(--chess-secondary);
-        }
-
-        .author-name {
-            color: var(--color-gray-400);
-            font-weight: 600;
-            font-size: 0.875rem;
-            ;
-        }
-
-        .player-card {
-            width: 210px;
-            border-radius: 12px;
-            overflow: hidden;
-            box-shadow: 0 15px 30px rgba(0, 0, 0, 0.2);
-            margin-bottom: 20px;
-            position: relative;
-            color: white;
-            transition: transform 0.3s ease;
-            border: 1px solid rgba(255, 255, 255, 0.1);
-        }
-
-        .player-card:hover {
-            transform: translateY(-5px);
-            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.3);
-        }
-
-        .player-image {
-            width: 100%;
-            height: 220px;
-            object-fit: cover;
-            filter: brightness(0.9);
-        }
-
-        .image-overlay {
-            position: absolute;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            background: linear-gradient(to bottom, rgba(0, 0, 0, 0.1), rgba(0, 0, 0, 0.8));
-        }
-
-        .player-rank {
-            position: absolute;
-            top: 20px;
-            left: 20px;
-            background-color: var(--chess-primary);
-            padding: 0px 5px;
-            border-radius: 8px;
-            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.3);
-            font-size: 1.8rem;
-        }
-
-        .player-name {
-            position: absolute;
-            bottom: 80px;
-            left: 50%;
-            transform: translateX(-50%);
-            font-size: 20px;
-            text-shadow: 2px 2px 5px rgba(0, 0, 0, 0.8);
-            text-align: center;
-            font-weight: 600;
-            margin-top: 4px;
-        }
-
-        .rating-container {
-            display: flex;
-            justify-content: space-around;
-            padding: 20px 15px;
-            background-color: rgba(0, 0, 0, 0.9);
-            border-top: 2px solid var(--chess-primary);
-        }
-
-        .rating-box {
-            text-align: center;
-            position: relative;
-        }
-
-        .rating-box:not(:last-child)::after {
-            content: "";
-            position: absolute;
-            right: -10px;
-            top: 10%;
-            height: 80%;
-            width: 1px;
-            background-color: rgba(255, 255, 255, 0.2);
-        }
-
-        .rating-value {
-            font-size: 20px;
-            font-weight: bold;
-            color: white;
-        }
-
-        .rating-label {
-            font-size: 0.8rem;
-            opacity: 0.8;
-            text-transform: uppercase;
-            letter-spacing: 1px;
-            margin-top: 5px;
-        }
-
-        .card {
             border: none;
             border-radius: 10px;
             transition: all 0.3s ease;
         }
 
-        .card:hover {
-            transform: translateY(-5px);
-            box-shadow: 0 10px 20px rgba(0, 0, 0, 0.15);
-        }
+        .card:hover { transform: translateY(-5px); box-shadow: 0 10px 20px rgba(0,0,0,0.15); }
+        .card-title { color: var(--chess-light); font-weight: 800; }
+        .card-text  { color: var(--chess-secondary); }
+        .card-body  { color: var(--chess-secondary); }
+        .author-name { color: var(--color-gray-400); font-weight: 600; font-size: 0.875rem; }
 
-        .btn-unsolved {
-            background-color: var(--cool-teal);
-            border-color: var(--cool-teal);
+        /* Hover helpers */
+        .hover-scale { transition: transform 0.3s ease; }
+        .hover-scale:hover { transform: scale(1.03); }
+        .hover-lift { transition: all 0.3s ease; }
+        .hover-lift:hover { transform: translateY(-5px); box-shadow: 0 10px 20px rgba(0,0,0,0.1) !important; }
+
+        /* Player cards */
+        .player-card {
+            width: 210px;
+            border-radius: 12px;
+            overflow: hidden;
+            box-shadow: 0 15px 30px rgba(0,0,0,0.2);
+            margin-bottom: 20px;
+            position: relative;
             color: white;
+            transition: transform 0.3s ease;
+            border: 1px solid rgba(255,255,255,0.1);
         }
 
-        .bg-danger {
-            background-color: var(--chess-red) !important;
+        .player-card:hover { transform: translateY(-5px); box-shadow: 0 20px 40px rgba(0,0,0,0.3); }
+        .player-image { width: 100%; height: 220px; object-fit: cover; filter: brightness(0.9); }
+
+        .image-overlay {
+            position: absolute; top: 0; left: 0; width: 100%; height: 100%;
+            background: linear-gradient(to bottom, rgba(0,0,0,0.1), rgba(0,0,0,0.8));
         }
 
-        .bg-success {
-            background-color: var(--chess-primary) !important;
-        }
-
-        .btn-primary {
+        .player-rank {
+            position: absolute; top: 20px; left: 20px;
             background-color: var(--chess-primary);
-            border-color: var(--chess-primary);
+            padding: 0px 5px; border-radius: 8px;
+            box-shadow: 0 4px 8px rgba(0,0,0,0.3);
+            font-size: 1.8rem;
         }
 
-        .btn-primary:hover {
-            background-color: #67804a;
-            border-color: #67804a;
+        .player-name {
+            position: absolute; bottom: 80px; left: 50%;
+            transform: translateX(-50%);
+            font-size: 20px; text-shadow: 2px 2px 5px rgba(0,0,0,0.8);
+            text-align: center; font-weight: 600; margin-top: 4px;
         }
 
-        .book-cover {
-            height: 220px;
-            object-fit: cover;
-            border-top-left-radius: 10px;
-            border-top-right-radius: 10px;
+        .player-country {
+            position: absolute; bottom: 100px; left: 20px;
+            display: flex; align-items: center;
+            font-size: 0.9rem; text-shadow: 1px 1px 2px rgba(0,0,0,0.8);
         }
 
-        footer {
-            background-color: var(--chess-dark);
-            color: white;
-            padding: 1.5rem 0;
+        .player-country img { display: inline-block; border-radius: 2px; }
+
+        .rating-container {
+            display: flex; justify-content: space-around;
+            padding: 20px 15px; background-color: rgba(0,0,0,0.9);
+            border-top: 2px solid var(--chess-primary);
         }
 
-        /* puzzle.html */
+        .rating-box { text-align: center; position: relative; }
+        .rating-value { font-size: 20px; font-weight: bold; color: white; }
+        .rating-label { font-size: 0.8rem; opacity: 0.8; text-transform: uppercase; letter-spacing: 1px; margin-top: 5px; }
+
+        /* Buttons */
+        .bg-danger  { background-color: var(--chess-red) !important; }
+        .bg-success { background-color: var(--chess-primary) !important; }
+
+        .btn-primary { background-color: var(--chess-primary); border-color: var(--chess-primary); }
+        .btn-primary:hover { background-color: #67804a; border-color: #67804a; }
+
+        .btn-unsolved { background-color: var(--cool-teal); border-color: var(--cool-teal); color: white; }
+
+        .book-cover { height: 220px; object-fit: cover; border-top-left-radius: 10px; border-top-right-radius: 10px; }
+
+        /* Footer */
+        footer { background-color: var(--chess-dark); color: var(--color-gray-400); padding: 1.5rem 0; font-size: 0.82rem; }
+
+        /* Puzzle layout (#main-layout defined in base for puzzle/memory/find-square pages) */
         #main-layout {
             display: grid;
             grid-template-columns: 280px 1fr 300px;
@@ -416,764 +366,354 @@
             max-width: 1300px;
         }
 
-        #puzzle-list {
-            width: 100%;
-            max-height: 90vh;
-            overflow-y: auto;
-            overflow-x: hidden;
-        }
+        #puzzle-list { width: 100%; max-height: 90vh; overflow-y: auto; overflow-x: hidden; }
 
-        #puzzleTabs .nav-link {
-            font-weight: 600;
-            color: #fff;
-        }
+        #puzzleTabs .nav-link { font-weight: 600; color: #fff; }
 
-        #puzzleTabsContent {
-            max-height: 70vh;
-            overflow-y: auto;
-        }
+        #puzzleTabsContent { max-height: 70vh; overflow-y: auto; }
 
-        .puzzle-btn {
-            border-radius: 8px;
-            padding: 10px;
-            text-align: left;
-        }
+        .puzzle-btn { border-radius: 8px; padding: 10px; text-align: left; }
+        .puzzle-btn strong { font-size: 0.95rem; }
 
-        .puzzle-btn strong {
-            font-size: 0.95rem;
-        }
+        .solved-puzzle   { background-color: var(--color-gray-400) !important; border-color: var(--border) !important; color: var(--chess-secondary); }
+        .unsolved-puzzle { background-color: var(--card-color) !important; border-color: var(--border) !important; color: var(--chess-secondary); }
+        .unsolved-puzzle:hover { color: var(--chess-light) !important; }
 
-        .solved-puzzle {
-            background-color: var(--color-gray-400) !important;
-            border-color: var(--border) !important;
-            color: var(--chess-secondary);
-        }
-
-        .unsolved-puzzle {
-            background-color: var(--card-color) !important;
-            border-color: var(--border) !important;
-            color: var(--chess-secondary);
-        }
-
-        .unsolved-puzzle:hover {
-            color: var(--chess-light) !important;
-        }
-
-        #board-container {
-            width: 100%;
-            max-width: 600px;
-            margin: 0 auto;
-        }
+        #board-container { width: 100%; max-width: 600px; margin: 0 auto; }
 
         #board {
-            width: 100%;
-            height: auto;
-            aspect-ratio: 1/1;
+            width: 100%; height: auto; aspect-ratio: 1/1;
             border: 2px solid #ddd;
         }
 
-        #board .white-1e1d7 {
-            background-color: #eeeed2 !important;
-        }
+        #board .white-1e1d7 { background-color: #eeeed2 !important; }
+        #board .black-3c85d { background-color: #769656 !important; }
 
-        #board .black-3c85d {
-            background-color: #769656 !important;
-        }
+        .puzzle-info { text-align: center; color: var(--chess-light); }
 
-        .puzzle-info {
-            text-align: center;
-            color: var(--chess-light);
-        }
-
-        #puzzle-title {
-            font-size: 1.3rem;
-            color: var(--chess-primary);
-            text-align: center;
-        }
-
-        #puzzle-title-large {
-            font-weight: 600;
-            color: var(--chess-light);
-            font-size: 1.3rem;
-            text-align: center;
-        }
-
-        #puzzle-turn {
-            font-size: 1.188rem;
-            color: var(--chess-secondary);
-            text-align: center;
-        }
-
-        hr {
-            border: 1px solid var(--border);
-            margin: 5px 0;
-        }
+        #puzzle-title       { font-size: 1.3rem; color: var(--chess-primary); text-align: center; }
+        #puzzle-title-large { font-weight: 600; color: var(--chess-light); font-size: 1.3rem; text-align: center; }
+        #puzzle-turn        { font-size: 1.188rem; color: var(--chess-secondary); text-align: center; }
 
         #puzzle-status {
-            font-weight: bold;
-            margin: 10px 0;
-            min-height: 24px;
-            padding: 5px;
-            border-radius: 4px;
-            color: var(--status);
-            background-color: #f0faf0;
+            font-weight: bold; margin: 10px 0; min-height: 24px;
+            padding: 5px; border-radius: 4px;
+            color: var(--status); background-color: #f0faf0;
         }
 
-        .next-puzzle {
-            background-color: var(--status);
-            color: var(--chess-secondary);
-        }
+        .next-puzzle { background-color: var(--status); color: var(--chess-secondary); }
+        .controls-container { display: flex; justify-content: center; gap: 10px; margin-top: 10px; width: 100%; }
 
-        .controls-container {
-            display: flex;
-            justify-content: center;
-            gap: 10px;
-            margin-top: 10px;
-            width: 100%;
-        }
-
-        .correct {
-            color: #28a745;
-            background-color: #e6ffed;
-        }
-
-        .wrong {
-            color: #dc3545;
-            background-color: #ffe6e6;
-        }
-
-        .info {
-            color: #17a2b8;
-            background-color: #e6f9ff;
-        }
-
-        .solved {
-            color: #6f42c1;
-            background-color: #f0e6ff;
-            font-size: 1.1em;
-        }
+        .correct { color: #28a745; background-color: #e6ffed; }
+        .wrong   { color: #dc3545; background-color: #ffe6e6; }
+        .info    { color: #17a2b8; background-color: #e6f9ff; }
+        .solved  { color: #6f42c1; background-color: #f0e6ff; font-size: 1.1em; }
 
         #notation-box {
-            max-height: 80vh;
-            overflow-y: auto;
-            border: 1px solid var(--box);
-            border-radius: 5px;
-            padding: 10px;
-            background-color: var(--notation-box);
+            max-height: 80vh; overflow-y: auto;
+            border: 1px solid var(--box); border-radius: 5px;
+            padding: 10px; background-color: var(--notation-box);
         }
 
-        .move-pair {
-            padding: 5px;
-            text-align: left;
-            cursor: pointer;
-            display: inline-block;
-            display: flex;
-            align-items: center;
-        }
+        .move-pair { padding: 5px; text-align: left; cursor: pointer; display: flex; align-items: center; }
+        .move-number { font-weight: bold; color: #6c757d; width: 20px; text-align: left; opacity: .75; display: inline-block; }
+        .move-white, .move-black { color: var(--move); padding: 3px 8px; border-radius: 4px; width: 50%; cursor: pointer; }
+        .move-white:not(.active):hover, .move-black:not(.active):hover { background-color: #3d3d3db0; color: var(--cool-accent); cursor: pointer; }
+        .move-white.active, .move-black.active { background-color: var(--move-active); color: var(--move); cursor: pointer; }
 
-        .move-number {
-            font-weight: bold;
-            color: #6c757d;
-            width: 20px;
-            text-align: left;
-            opacity: .75;
-            display: inline-block;
-        }
+        .quote-none { display: none !important; }
 
+        .puzzle-timer { font-size: 1rem; font-weight: 600; color: var(--chess-secondary); margin-top: 10px; }
 
-        .move-white,
-        .move-black {
-            color: var(--move);
-            padding: 3px 8px;
-            border-radius: 4px;
-            width: 50%;
-            cursor: pointer;
-        }
-
-        /* Hover effect only if not active */
-        .move-white:not(.active):hover,
-        .move-black:not(.active):hover {
-            background-color: #3d3d3db0;
-            color: var(--cool-accent);
-            cursor: pointer;
-        }
-
-        /* Active move – no hover, different color */
-        .move-white.active,
-        .move-black.active {
-            background-color: var(--move-active);
-            color: var(--move);
-            cursor: pointer;
-        }
-
-        .quote-none {
-            display: none !important;
-        }
-
-        .puzzle-timer {
-            font-size: 1rem;
-            font-weight: 600;
-            color: var(--chess-secondary);
-            margin-top: 10px;
-        }
-
-        #reset-btn,
-        #hint-btn,
-        #next-btn {
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-weight: 600;
-            color: var(--chess-secondary);
-            /* background-color: var(--chess-dark); */
-            border: 1px solid var(--border);
-            border-radius: 5px;
+        #reset-btn, #hint-btn, #next-btn {
+            display: flex; align-items: center; justify-content: center;
+            font-weight: 600; color: var(--chess-secondary);
+            border: 1px solid var(--border); border-radius: 5px;
             transition: background-color 0.3s ease, transform 0.2s ease;
         }
 
-        .btn-icon {
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            height: auto;
-            border-radius: 50%;
-            color: white;
-        }
+        .btn-icon { display: flex; align-items: center; justify-content: center; height: auto; border-radius: 50%; color: white; }
+        .notation-btn-img { width: 20px; height: 20px; }
 
-        .notation-btn-img {
-            width: 20px;
-            height: 20px;
-        }
-
-        /* find square.html */
-        .stats-panel {
-            border-radius: 12px;
-            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
-            width: 300px;
-        }
+        /* Find square */
+        .stats-panel { border-radius: 12px; box-shadow: 0 4px 12px rgba(0,0,0,0.08); width: 300px; }
 
         #target-square {
-            font-size: 1.5rem;
-            font-weight: 600;
-            color: #fff;
+            font-size: 1.5rem; font-weight: 600; color: #fff;
             padding: 10px 20px;
             background: linear-gradient(135deg, #007bff, #0056b3);
-            border-radius: 8px;
-            margin-bottom: 1rem;
+            border-radius: 8px; margin-bottom: 1rem;
             transition: transform 0.2s ease-in-out;
         }
 
-        #target-square.highlight {
-            transform: scale(1.05);
+        .stat-item, .timer-box {
+            display: flex; justify-content: center; align-items: center;
+            padding: 5px; border-radius: 8px; font-size: 1.1rem; width: 100%; margin-bottom: 0.1rem;
         }
 
-        .stat-item,
-        .timer-box {
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            padding: 5px 5px;
-            border-radius: 8px;
-            font-size: 1.1rem;
-            width: 100%;
-            margin-bottom: 0.1rem;
-        }
+        .stat-item.text-success { background-color: #e9f7ef; color: #155724; }
+        .stat-item.text-danger  { background-color: #f8d7da; color: #721c24; }
+        #correct-count, #wrong-count { font-weight: bold; background-color: rgba(0,0,0,0.05); padding: 2px 8px; border-radius: 5px; }
+        .timer-box { background-color: #e7f3ff; }
 
-        .stat-item.text-success {
-            background-color: #e9f7ef;
-            color: #155724;
-        }
+        #timer { font-weight: bold; font-family: 'Courier New', monospace; font-size: 1.2rem; }
+        #timer.text-danger { color: #dc3545 !important; animation: pulse 1s infinite; }
 
-        .stat-item.text-danger {
-            background-color: #f8d7da;
-            color: #721c24;
-        }
+        @keyframes pulse { 0% { transform: scale(1); } 50% { transform: scale(1.05); } 100% { transform: scale(1); } }
 
-        .stat-item strong,
-        .timer-box strong {
-            font-weight: 600;
-        }
+        #start-btn { width: 100%; padding: 12px 10px; font-size: 1.2rem; font-weight: 600; letter-spacing: 0.5px; border-radius: 8px; transition: all 0.3s ease; }
+        #start-btn:hover { transform: translateY(-3px); box-shadow: 0 4px 10px rgba(40,167,69,0.4); }
+        #feedback { width: 100%; font-weight: 600; }
 
-        #correct-count,
-        #wrong-count {
-            font-weight: bold;
-            background-color: rgba(0, 0, 0, 0.05);
-            padding: 2px 8px;
-            border-radius: 5px;
-        }
+        /* Article editor */
+        .editor-container { border-radius: 12px; padding: 25px; box-shadow: 0 4px 15px rgba(0,0,0,0.08); }
+        .editor-header { font-size: 1.4rem; font-weight: bold; margin-bottom: 20px; color: #ffffff; text-align: left; }
+        .form-label { font-weight: 600; }
+        .form-control, .form-select { border-radius: 6px; padding: 0.75rem 1rem; }
+        .ck-editor__editable { min-height: 350px; border-radius: 6px; }
 
-        .timer-box {
-            background-color: #e7f3ff;
-        }
+        .btn-success { background: linear-gradient(45deg, #16a085, #27ae60); border: none; }
+        .btn-success:hover { background: linear-gradient(45deg, #138d75, #229954); }
 
-        #timer {
-            font-weight: bold;
-            font-family: 'Courier New', Courier, monospace;
-            font-size: 1.2rem;
-        }
-
-        #timer.text-danger {
-            color: #dc3545 !important;
-            animation: pulse 1s infinite;
-        }
-
-        @keyframes pulse {
-            0% {
-                transform: scale(1);
-            }
-
-            50% {
-                transform: scale(1.05);
-            }
-
-            100% {
-                transform: scale(1);
-            }
-        }
-
-        #start-btn {
-            width: 100%;
-            padding: 12px 10px;
-            font-size: 1.2rem;
-            font-weight: 600;
-            letter-spacing: 0.5px;
-            border-radius: 8px;
-            transition: all 0.3s ease;
-            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
-        }
-
-        #start-btn:hover {
-            transform: translateY(-3px);
-            box-shadow: 0 4px 10px rgba(40, 167, 69, 0.4);
-        }
-
-        #feedback {
-            width: 100%;
-            font-weight: 600;
-        }
-
-        /* --- Responsive Styles for Smaller Devices --- */
-        /* This block now comes AFTER the desktop styles to ensure it overrides them */
-        @media (max-width: 768px) {
-            .trainer-container {
-                padding: 10px;
-                margin: 0;
-                border-radius: 0;
-                box-shadow: none;
-            }
-
-            .d-flex.flex-wrap {
-                flex-direction: column;
-                /* Stack board and stats vertically */
-                gap: 1.5rem;
-            }
-
-            #board-container {
-                width: 100% !important;
-                /* Ensure container is full width */
-            }
-
-            #board {
-                width: 100% !important;
-                height: auto !important;
-                aspect-ratio: 1/1;
-                /* Maintain square shape */
-            }
-
-            /* THIS IS THE KEY FIX: Reset stats panel width for mobile */
-            .stats-panel {
-                width: 100% !important;
-                /* Override the 300px desktop width */
-            }
-
-            /* Adjust font size for smaller screens */
-            #target-square {
-                font-size: 1.3rem;
-                margin-bottom: 10px;
-                padding: 5px 8px;
-            }
-
-            #start-btn {
-                padding: 6px 12px;
-            }
-
-            /* Styles for the responsive leaderboard */
-            .custom-leaderboard {
-                width: 100%;
-            }
-
-            .custom-leaderboard thead {
-                display: none;
-            }
-
-            .custom-leaderboard tr {
-                display: block;
-                margin-bottom: 10px;
-                border: 1px solid #dee2e6;
-                border-radius: 8px;
-            }
-
-            .custom-leaderboard td {
-                display: flex;
-                justify-content: space-between;
-                text-align: right;
-                padding-left: 50%;
-                position: relative;
-            }
-
-            .custom-leaderboard td::before {
-                content: attr(data-label);
-                position: absolute;
-                left: 10px;
-                font-weight: 600;
-                color: #333;
-            }
-
-            .leaderboard {
-                display: none;
-                /* This was in your original code, keeping it */
-            }
-        }
-
-        /* article section create_article.html */
-        .editor-container {
-            border-radius: 12px;
-            padding: 25px;
-            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.08);
-        }
-
-        .editor-header {
-            font-size: 1.4rem;
-            font-weight: bold;
-            margin-bottom: 20px;
-            color: #ffffff;
-            text-align: left;
-        }
-
-        .form-label {
-            font-weight: 600;
-        }
-
-        .form-control,
-        .form-select {
-            border-radius: 6px;
-            padding: 0.75rem 1rem;
-        }
-
-        .ck-editor__editable {
-            min-height: 350px;
-            border-radius: 6px;
-        }
-
-        .btn-success {
-            background: linear-gradient(45deg, #16a085, #27ae60);
-            border: none;
-        }
-
-        .btn-success:hover {
-            background: linear-gradient(45deg, #138d75, #229954);
-        }
-
-        /* Sidebar */
-        .sidebar {
-            background: var(--chess-dark);
-            border-radius: 10px;
-            padding: 15px;
-            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
-        }
-
-        .sidebar h5 {
-            font-size: 1.1rem;
-            margin-bottom: 15px;
-            font-weight: 600;
-            color: var(--chess-secondary);
-        }
-
-        .sidebar a {
-            display: block;
-            border-radius: 6px;
-            margin-bottom: 4px;
-            text-decoration: none;
-            color: var(--chess-secondary);
-            font-weight: 600;
-            font-size: 1rem;
-        }
-
-        .sidebar a:hover {
-            color: var(--chess-light);
-        }
-
+        /* Banner modal */
         .banner-modal .modal-content {
-            background: linear-gradient(145deg, rgba(30, 30, 40, 0.98), rgba(20, 20, 30, 0.99));
-            border-radius: 15px;
-            border: 1px solid rgba(26, 163, 123, 0.2);
-            position: relative;
-            overflow: hidden;
+            background: oklch(18% 0.01 256);
+            border-radius: 14px;
+            border: 1px solid var(--border);
             color: white;
         }
 
-        .banner-modal .modal-content:before {
+        .banner-modal .modal-content::before {
             content: '';
-            position: absolute;
-            top: 0;
-            left: 0;
-            right: 0;
-            height: 5px;
-            background: linear-gradient(90deg, #1aa37b, #169168);
-            border-radius: 25px 25px 0 0;
+            position: absolute; top: 0; left: 0; right: 0;
+            height: 3px;
+            background: var(--chess-primary);
+            border-radius: 14px 14px 0 0;
         }
 
-        .banner-modal .modal-header {
-            padding: 2rem 2rem 1rem;
-            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
-        }
+        .banner-modal .modal-header { padding: 1.5rem 1.5rem 1rem; border-bottom: 1px solid var(--border); }
 
         .banner-modal .modal-title {
-            font-weight: 700;
-            font-size: 2rem;
-            background: linear-gradient(135deg, #fff 0%, #aaa 100%);
-            -webkit-background-clip: text;
-            -webkit-text-fill-color: transparent;
-            background-clip: text;
-            text-align: center;
-            width: 100%;
+            font-weight: 700; font-size: 1.4rem;
+            color: var(--chess-light);
+            text-align: center; width: 100%;
         }
 
-        .banner-modal .btn-close {
-            filter: invert(1) brightness(2);
-            opacity: 0.8;
-            position: absolute;
-            right: 1.5rem;
-            top: 1.5rem;
-        }
-
-        .banner-modal .btn-close:hover {
-            opacity: 1;
-        }
-
-        .banner-modal .modal-body {
-            padding: 1.5rem 2rem 2rem;
-        }
+        .banner-modal .btn-close { filter: invert(1) brightness(2); opacity: 0.7; position: absolute; right: 1.2rem; top: 1.2rem; }
+        .banner-modal .btn-close:hover { opacity: 1; }
+        .banner-modal .modal-body { padding: 1.2rem 1.5rem 1.5rem; }
 
         .banner-modal .banner-image {
-            width: 100%;
-            max-height: 400px;
-            object-fit: cover;
-            border-radius: 15px;
-            box-shadow: 0 8px 25px rgba(0, 0, 0, 0.3);
-            margin-bottom: 1.5rem;
-            border: 2px solid rgba(26, 163, 123, 0.3);
+            width: 100%; max-height: 360px; object-fit: cover;
+            border-radius: 10px; margin-bottom: 1.2rem;
+            border: 1px solid var(--border);
         }
 
-        .banner-modal .banner-description {
-            color: #e0e0e0;
-            font-size: 1.1rem;
-            line-height: 1.7;
-            margin-bottom: 2rem;
-            padding: 0 1rem;
-        }
+        .banner-modal .banner-description { color: var(--chess-secondary); font-size: 1rem; line-height: 1.65; margin-bottom: 1.5rem; }
 
         .banner-modal .action-button {
-            background: linear-gradient(135deg, #1aa37b, #169168);
-            color: white;
-            border: none;
-            padding: 12px 35px;
-            border-radius: 25px;
-            font-size: 1.1rem;
-            font-weight: 600;
-            display: inline-flex;
-            align-items: center;
-            gap: 10px;
-            transition: all 0.3s ease;
-            text-decoration: none;
+            background: var(--chess-primary); color: white; border: none;
+            padding: 10px 28px; border-radius: 99px; font-size: 0.92rem; font-weight: 700;
+            display: inline-flex; align-items: center; gap: 8px;
+            text-decoration: none; transition: all 0.2s ease;
         }
 
         .banner-modal .action-button:hover {
-            transform: translateY(-3px);
-            box-shadow: 0 10px 25px rgba(26, 163, 123, 0.4);
-            color: white;
+            background: #67804a; color: white;
+            transform: translateY(-2px); box-shadow: 0 6px 18px rgba(119,149,86,0.35);
         }
 
-        .modal-backdrop {
-            background-color: rgba(0, 0, 0, 0.7);
+        .modal-backdrop { background-color: rgba(0,0,0,0.7); }
+        .modal-backdrop.show { opacity: 0.9; }
+
+        /* Support modal */
+        #qrSupportModal .modal-content {
+            background: oklch(18% 0.01 256);
+            border: 1px solid var(--border);
+            border-radius: 14px;
+            color: var(--chess-light);
         }
 
-        .modal-backdrop.show {
-            opacity: 0.9;
+        #qrSupportModal .modal-header { border-bottom: 1px solid var(--border); }
+        #qrSupportModal .modal-title { color: var(--chess-light); }
+        #qrSupportModal .btn-close { filter: invert(1); }
+
+        /* Responsive mobile */
+        @media (max-width: 768px) {
+            .stats-panel { width: 100% !important; }
         }
-
-        /* Animation for modal */
-        @keyframes modalFadeIn {
-            from {
-                opacity: 0;
-                transform: translateY(-50px) scale(0.9);
-            }
-
-            to {
-                opacity: 1;
-                transform: translateY(0) scale(1);
-            }
-        }
-
-        /* .banner-modal .modal-dialog {
-            animation: modalFadeIn 0.5s ease-out;
-        } */
     </style>
 </head>
 
 <body>
-    <nav class="navbar navbar-expand-lg navbar-dark mb-3 py-2">
+
+    <!-- ── NAVBAR ─────────────────────────────────────────────── -->
+    <nav class="navbar navbar-expand-lg navbar-dark">
         <div class="container">
-            <a class="navbar-brand d-flex align-items-center" href="{% url 'home' %}">
-                <span class="logo-text">
+
+            <!-- Brand -->
+            <a class="navbar-brand d-flex align-items-center gap-2" href="{% url 'home' %}">
+                <div class="logo-text">
                     <span class="logo-main">GM</span>
                     <span class="logo-sub">Bangladesh</span>
-                </span>
+                </div>
             </a>
+
+            <!-- Toggler -->
             <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
                 <span class="navbar-toggler-icon"></span>
             </button>
+
+            <!-- Links -->
             <div class="collapse navbar-collapse" id="navbarNav">
-                <ul class="navbar-nav ms-auto">
-                    <li class="nav-item mx-1">
-                        <a class="nav-link position-relative px-3" href="{% url 'all_games' %}">
-                            Games
-                            <span class="nav-link-underline"></span>
+                <ul class="navbar-nav ms-auto align-items-center">
+
+                    <li class="nav-item">
+                        <a class="nav-link" href="{% url 'all_games' %}">
+                            <i class="bi bi-play-circle me-1" style="color:var(--chess-primary);"></i>Games
                         </a>
                     </li>
-                    <li class="nav-item mx-1">
-                        <a class="nav-link position-relative px-3" href="{% url 'all_events' %}">
-                            Events
-                            <span class="nav-link-underline"></span>
+
+                    <li class="nav-item">
+                        <a class="nav-link" href="{% url 'all_events' %}">
+                            <i class="bi bi-trophy me-1" style="color:#f59e0b;"></i>Events
                         </a>
                     </li>
-                    <li class="nav-item mx-1">
-                        <a class="nav-link position-relative px-3" href="{% url 'puzzle_list' %}">
-                            Tactics
-                            <span class="nav-link-underline"></span>
+
+                    <li class="nav-item">
+                        <a class="nav-link" href="{% url 'puzzle_list' %}">
+                            <i class="bi bi-grid-3x3 me-1" style="color:#60a5fa;"></i>Tactics
                         </a>
                     </li>
-                    <li class="nav-item mx-1">
-                        <a class="nav-link position-relative px-3" href="{% url 'all_blogs' %}">
-                            Blogs
-                            <span class="nav-link-underline"></span>
+
+                    <li class="nav-item">
+                        <a class="nav-link" href="{% url 'all_blogs' %}">
+                            <i class="bi bi-journal-text me-1" style="color:var(--chess-accent);"></i>Blogs
                         </a>
                     </li>
-                    <li class="nav-item mx-1">
-                        <a class="nav-link position-relative px-3" href="#" data-bs-toggle="modal"
-                            data-bs-target="#qrSupportModal">
-                            Support Us
-                            <span class="nav-link-underline"></span>
+
+                    <li class="nav-item">
+                        <a class="nav-link support-link" href="#" data-bs-toggle="modal" data-bs-target="#qrSupportModal">
+                            <i class="bi bi-heart-fill me-1"></i>Support
                         </a>
                     </li>
+
+                    <li><span class="nav-dot d-none d-lg-inline-block"></span></li>
+
                     {% if user.is_authenticated %}
-                    <li class="nav-item dropdown mx-1">
-                        <a class="nav-link dropdown-toggle px-3" href="#" id="userDropdown" role="button"
-                            data-bs-toggle="dropdown" aria-expanded="false">
-                            <i class="fas fa-user me-1"></i> {{ user.username }}
+                    <li class="nav-item dropdown">
+                        <a class="nav-link dropdown-toggle d-flex align-items-center" href="#"
+                           id="userDropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+                            <span class="nav-user-avatar">{{ user.username|first|upper }}</span>
+                            <span class="d-none d-lg-inline">{{ user.username }}</span>
                         </a>
                         <ul class="dropdown-menu dropdown-menu-end" aria-labelledby="userDropdown">
                             <li>
                                 <a class="dropdown-item" href="{% url 'progress' %}">
-                                    <i class="bi bi-person-badge text-primary me-2"></i>Profile
+                                    <i class="bi bi-person-circle"></i> Profile
                                 </a>
                             </li>
-                            <hr>
+                            <li><hr class="dropdown-divider"></li>
                             <li>
                                 <a class="dropdown-item" href="{% url 'find_the_square' %}">
-                                    <i class="bi bi-bullseye text-danger me-2"></i>Vision
+                                    <i class="bi bi-bullseye"></i> Vision Trainer
                                 </a>
                             </li>
-                            <hr>
+                            <li>
+                                <a class="dropdown-item" href="{% url 'memory_test' %}">
+                                    <i class="bi bi-sd-card-fill" style="color:#a855f7;"></i> Memory Trainer
+                                </a>
+                            </li>
+                            <li><hr class="dropdown-divider"></li>
                             <li>
                                 <a class="dropdown-item" href="{% url 'book_list' %}">
-                                    <i class="bi bi-journal-bookmark-fill text-success me-2"></i>Books
+                                    <i class="bi bi-journal-bookmark-fill"></i> Books
                                 </a>
                             </li>
-                            <hr>
                             <li>
                                 <a class="dropdown-item" href="{% url 'game_page' %}">
-                                    <i class="bi bi-diagram-3-fill text-warning me-2"></i>Lets analyze
+                                    <i class="bi bi-diagram-3-fill"></i> Analyze
                                 </a>
                             </li>
-                            <hr>
                             <li>
                                 <a class="dropdown-item" href="{% url 'write_article' %}">
-                                    <i class="bi bi-plus-circle-fill text-info me-2"></i>Create a post
+                                    <i class="bi bi-plus-circle-fill"></i> Create Post
                                 </a>
                             </li>
-                            <hr>
+                            <li><hr class="dropdown-divider"></li>
                             <li>
                                 <form action="{% url 'logout' %}" method="post">
                                     {% csrf_token %}
-                                    <button type="submit" class="dropdown-item"><i
-                                            class="bi bi-box-arrow-right me-2"></i>Logout</button>
+                                    <button type="submit" class="dropdown-item">
+                                        <i class="bi bi-box-arrow-right"></i> Logout
+                                    </button>
                                 </form>
                             </li>
                         </ul>
                     </li>
+
                     {% else %}
-                    <li class="nav-item mx-1">
-                        <a class="nav-link px-3" href="{% url 'login' %}">
-                            <i class="fas fa-sign-in-alt me-1"></i>
-                            Login
+                    <li class="nav-item">
+                        <a class="nav-link nav-login-btn" href="{% url 'login' %}">
+                            <i class="bi bi-box-arrow-in-right me-1"></i>Login
                         </a>
                     </li>
                     {% endif %}
+
                 </ul>
             </div>
         </div>
     </nav>
 
-    <div class="container content">
+    <!-- ── Content ────────────────────────────────────────────── -->
+    <div class="container content py-3">
         {% block content %}{% endblock %}
-        <footer class="footer-text text-center mt-4">
+
+        <footer class="footer-text text-center mt-5 pt-3" style="border-top: 1px solid var(--border);">
         </footer>
         <script>
-            const footer = document.querySelector('.footer-text');
-            const currentYear = new Date().getFullYear();
-            footer.textContent = `© ${currentYear} GM Bangladesh. All rights reserved.`;
+            document.querySelector('.footer-text').textContent =
+                `© ${new Date().getFullYear()} GM Bangladesh. All rights reserved.`;
         </script>
     </div>
 
-    <!-- Support Us QR Modal -->
+    <!-- ── Support QR Modal ───────────────────────────────────── -->
     {% load static %}
-    <div class="modal fade" id="qrSupportModal" tabindex="-1" aria-labelledby="qrSupportModalLabel" aria-hidden="true">
+    <div class="modal fade" id="qrSupportModal" tabindex="-1">
         <div class="modal-dialog modal-dialog-centered">
             <div class="modal-content text-center p-4">
                 <div class="modal-header border-0">
-                    <h5 class="modal-title w-100" id="qrSupportModalLabel">Support Us</h5>
-                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                    <h5 class="modal-title w-100">❤️ Support GM Bangladesh</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
                 </div>
                 <div class="modal-body">
-                    <p class="mb-3">Scan the QR code below to support GMBD!</p>
-                    <img src="{% static 'phone_qr.jpg' %}" alt="Support QR" class="img-fluid rounded shadow"
-                        style="max-width: 250px;">
-                    <p class="mt-3">Only Bkash Available</p>
+                    <p style="color:var(--chess-secondary);font-size:0.88rem;margin-bottom:16px;">
+                        Scan the QR code to support us. <strong>bKash only.</strong>
+                    </p>
+                    <img src="{% static 'phone_qr.jpg' %}" alt="Support QR"
+                         style="max-width:220px;border-radius:12px;border:1px solid var(--border);">
                 </div>
             </div>
         </div>
     </div>
+
+    <!-- ── Banner Modal ───────────────────────────────────────── -->
     {% if banner %}
     <div class="modal fade banner-modal" id="tournamentBannerModal" tabindex="-1"
-        aria-labelledby="tournamentBannerLabel" aria-hidden="true" data-bs-backdrop="static" data-bs-keyboard="false">
+         aria-hidden="true" data-bs-backdrop="static" data-bs-keyboard="false">
         <div class="modal-dialog modal-dialog-centered modal-lg">
             <div class="modal-content">
                 <div class="modal-header">
-                    <h2 class="modal-title" id="tournamentBannerLabel">{{ banner.title }}</h2>
-                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                    <h2 class="modal-title">{{ banner.title }}</h2>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
                 </div>
                 <div class="modal-body text-center">
                     {% if banner.image %}
                     <img src="{{ banner.image.url }}" alt="Tournament Banner" class="banner-image">
                     {% endif %}
-
                     {% if banner.description %}
-                    <div class="banner-description">
-                        {{ banner.description|linebreaks }}
-                    </div>
+                    <div class="banner-description">{{ banner.description|linebreaks }}</div>
                     {% endif %}
-
                     {% if banner.link %}
                     <a href="{{ banner.link }}" class="action-button" target="_blank">
                         <i class="bi bi-trophy"></i> View Tournament Details
@@ -1185,34 +725,39 @@
     </div>
 
     <script>
-
         window.addEventListener('DOMContentLoaded', function () {
-            // Check if banner has been shown in this session
             if (!sessionStorage.getItem('bannerShown_{{ banner.id|default:0 }}')) {
-                // Small delay for better user experience
                 setTimeout(function () {
-                    var bannerModal = new bootstrap.Modal(document.getElementById('tournamentBannerModal'));
-                    bannerModal.show();
+                    new bootstrap.Modal(document.getElementById('tournamentBannerModal')).show();
                     sessionStorage.setItem('bannerShown_{{ banner.id|default:0 }}', 'true');
-                }, 1000); // 1 second delay
+                }, 1000);
             }
-
-            document.addEventListener('keydown', function (event) {
-                if (event.key === 'Escape') {
-                    var modal = document.getElementById('tournamentBannerModal');
-                    if (modal.classList.contains('show')) {
-                        var modalInstance = bootstrap.Modal.getInstance(modal);
-                        modalInstance.hide();
-                    }
+            document.addEventListener('keydown', function (e) {
+                if (e.key === 'Escape') {
+                    const m = bootstrap.Modal.getInstance(document.getElementById('tournamentBannerModal'));
+                    if (m) m.hide();
                 }
             });
         });
     </script>
     {% endif %}
+
     <script src="{% static 'bootstrap.bundle.min.js' %}"></script>
     <script src="{% static 'index.global.min.js' %}"></script>
     <script src="{% static 'jquery.min.js' %}"></script>
     <script src="{% static 'chessboardjs-1.0.0/js/chessboard-1.0.0.min.js' %}"></script>
-</body>
 
+    <!-- Active nav highlight -->
+    <script>
+        document.addEventListener('DOMContentLoaded', function () {
+            const path = window.location.pathname;
+            document.querySelectorAll('.navbar-nav .nav-link').forEach(link => {
+                if (link.href && link.href !== '#' && path.startsWith(new URL(link.href, location.origin).pathname)) {
+                    link.classList.add('active-nav');
+                }
+            });
+        });
+    </script>
+
+</body>
 </html>

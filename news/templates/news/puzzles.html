@@ -28,7 +28,9 @@
       aspect-ratio: 1/1;
     }
 
-    .puzzle-timer { display: none; }
+    .puzzle-timer {
+      display: none;
+    }
 
     #notation-box {
       width: auto !important;
@@ -36,20 +38,36 @@
       margin: 0 auto;
     }
 
-    .puzzle-info { order: 1; }
+    .puzzle-info {
+      order: 1;
+    }
 
-    #puzzle-title-small { display: block; font-size: 1rem; }
+    #puzzle-title-small {
+      display: block;
+      font-size: 1rem;
+    }
 
     #controls-container {
       order: 3;
       width: 100% !important;
     }
 
-    .btn-icon { display: inline-block; }
-    .notation-btn-img { width: 24px; height: 24px; }
-    #puzzle-turn { display: none; }
+    .btn-icon {
+      display: inline-block;
+    }
 
-    #reset-btn, #hint-btn, #next-btn {
+    .notation-btn-img {
+      width: 24px;
+      height: 24px;
+    }
+
+    #puzzle-turn {
+      display: none;
+    }
+
+    #reset-btn,
+    #hint-btn,
+    #next-btn {
       width: 50% !important;
       margin: 0 auto;
       padding: 10px;
@@ -60,7 +78,9 @@
       gap: 8px;
     }
 
-    .modal-body { overflow-y: auto; }
+    .modal-body {
+      overflow-y: auto;
+    }
   }
 
   /* ── LEFT: Puzzle list ────────────────────────────────────── */
@@ -72,9 +92,18 @@
   }
 
   /* Scrollbar */
-  #puzzle-list::-webkit-scrollbar { width: 4px; }
-  #puzzle-list::-webkit-scrollbar-track { background: transparent; }
-  #puzzle-list::-webkit-scrollbar-thumb { background: var(--border); border-radius: 99px; }
+  #puzzle-list::-webkit-scrollbar {
+    width: 4px;
+  }
+
+  #puzzle-list::-webkit-scrollbar-track {
+    background: transparent;
+  }
+
+  #puzzle-list::-webkit-scrollbar-thumb {
+    background: var(--border);
+    border-radius: 99px;
+  }
 
   /* Difficulty tabs */
   .diff-tabs {
@@ -102,13 +131,28 @@
     border-right: 1px solid var(--border);
   }
 
-  .diff-tab:last-child { border-right: none; }
+  .diff-tab:last-child {
+    border-right: none;
+  }
 
-  .diff-tab:hover { color: var(--chess-light); }
+  .diff-tab:hover {
+    color: var(--chess-light);
+  }
 
-  .diff-tab.active-easy   { background: var(--chess-primary); color: #fff; }
-  .diff-tab.active-medium { background: #d97706; color: #fff; }
-  .diff-tab.active-hard   { background: var(--chess-red); color: #fff; }
+  .diff-tab.active-easy {
+    background: var(--chess-primary);
+    color: #fff;
+  }
+
+  .diff-tab.active-medium {
+    background: #d97706;
+    color: #fff;
+  }
+
+  .diff-tab.active-hard {
+    background: var(--chess-red);
+    color: #fff;
+  }
 
   /* Puzzle list panel */
   .puzzle-list-panel {
@@ -120,8 +164,14 @@
     overflow-y: auto;
   }
 
-  .puzzle-list-panel::-webkit-scrollbar { width: 4px; }
-  .puzzle-list-panel::-webkit-scrollbar-thumb { background: var(--border); border-radius: 99px; }
+  .puzzle-list-panel::-webkit-scrollbar {
+    width: 4px;
+  }
+
+  .puzzle-list-panel::-webkit-scrollbar-thumb {
+    background: var(--border);
+    border-radius: 99px;
+  }
 
   /* Individual puzzle buttons */
   .puzzle-btn {
@@ -168,9 +218,20 @@
     text-transform: uppercase;
   }
 
-  .diff-badge.easy   { background: rgba(119,149,86,0.2);  color: var(--chess-primary); }
-  .diff-badge.medium { background: rgba(217,119,6,0.2);   color: #d97706; }
-  .diff-badge.hard   { background: rgba(200,75,75,0.2);   color: var(--chess-red); }
+  .diff-badge.easy {
+    background: rgba(119, 149, 86, 0.2);
+    color: var(--chess-primary);
+  }
+
+  .diff-badge.medium {
+    background: rgba(217, 119, 6, 0.2);
+    color: #d97706;
+  }
+
+  .diff-badge.hard {
+    background: rgba(200, 75, 75, 0.2);
+    color: var(--chess-red);
+  }
 
   /* ── CENTER: Board ────────────────────────────────────────── */
   #board-container {
@@ -186,10 +247,15 @@
     border: 2px solid #ddd;
   }
 
-  .puzzle-info { text-align: center; margin-bottom: 10px; }
+  .puzzle-info {
+    text-align: center;
+    margin-bottom: 10px;
+  }
 
   /* ── RIGHT: Controls ──────────────────────────────────────── */
-  #controls-container { width: 100%; }
+  #controls-container {
+    width: 100%;
+  }
 
   /* Timer */
   .puzzle-timer {
@@ -234,8 +300,14 @@
     margin-bottom: 10px;
   }
 
-  #notation-box::-webkit-scrollbar { width: 4px; }
-  #notation-box::-webkit-scrollbar-thumb { background: var(--border); border-radius: 99px; }
+  #notation-box::-webkit-scrollbar {
+    width: 4px;
+  }
+
+  #notation-box::-webkit-scrollbar-thumb {
+    background: var(--border);
+    border-radius: 99px;
+  }
 
   .notation-heading {
     font-size: 0.62rem;
@@ -263,7 +335,8 @@
     opacity: .7;
   }
 
-  .move-white, .move-black {
+  .move-white,
+  .move-black {
     color: var(--move);
     padding: 3px 8px;
     border-radius: 4px;
@@ -278,7 +351,8 @@
     color: var(--cool-accent);
   }
 
-  .move-white.active, .move-black.active {
+  .move-white.active,
+  .move-black.active {
     background: var(--move-active);
     color: var(--move);
   }
@@ -294,13 +368,30 @@
     font-size: 0.88rem;
   }
 
-  #puzzle-status.correct { color: var(--chess-primary); background: rgba(119,149,86,0.12); }
-  #puzzle-status.wrong   { color: var(--chess-red);     background: rgba(200,75,75,0.1); }
-  #puzzle-status.info    { color: #60a5fa;              background: rgba(96,165,250,0.1); }
-  #puzzle-status.solved  { color: #a855f7;              background: rgba(168,85,247,0.1); }
+  #puzzle-status.correct {
+    color: var(--chess-primary);
+    background: rgba(119, 149, 86, 0.12);
+  }
+
+  #puzzle-status.wrong {
+    color: var(--chess-red);
+    background: rgba(200, 75, 75, 0.1);
+  }
+
+  #puzzle-status.info {
+    color: #60a5fa;
+    background: rgba(96, 165, 250, 0.1);
+  }
+
+  #puzzle-status.solved {
+    color: #a855f7;
+    background: rgba(168, 85, 247, 0.1);
+  }
 
   /* Quote box */
-  .quote-none { display: none !important; }
+  .quote-none {
+    display: none !important;
+  }
 
   #quote-box {
     background: oklch(20% 0.01 256);
@@ -331,7 +422,9 @@
     gap: 8px;
   }
 
-  #reset-btn, #hint-btn, #next-btn {
+  #reset-btn,
+  #hint-btn,
+  #next-btn {
     flex: 1;
     display: flex;
     align-items: center;
@@ -358,13 +451,13 @@
   #hint-btn:hover {
     border-color: #60a5fa;
     color: #60a5fa;
-    background: rgba(96,165,250,0.08);
+    background: rgba(96, 165, 250, 0.08);
   }
 
   #next-btn {
-    border-color: rgba(119,149,86,0.4);
+    border-color: rgba(119, 149, 86, 0.4);
     color: var(--chess-primary);
-    background: rgba(119,149,86,0.08);
+    background: rgba(119, 149, 86, 0.08);
   }
 
   #next-btn:hover {
@@ -373,8 +466,16 @@
     color: #fff;
   }
 
-  .notation-btn-img { width: 18px; height: 18px; opacity: 0.8; }
-  .btn-icon { display: inline-flex; align-items: center; }
+  .notation-btn-img {
+    width: 18px;
+    height: 18px;
+    opacity: 0.8;
+  }
+
+  .btn-icon {
+    display: inline-flex;
+    align-items: center;
+  }
 
   /* Mobile select puzzle button */
   #puzzle-title-small {
@@ -389,7 +490,9 @@
     transition: border-color 0.15s;
   }
 
-  #puzzle-title-small:hover { border-color: var(--chess-primary); }
+  #puzzle-title-small:hover {
+    border-color: var(--chess-primary);
+  }
 
   /* Modal */
   .modal-content {
@@ -402,18 +505,29 @@
     border-bottom: 1px solid var(--border);
   }
 
-  .modal-title { color: var(--chess-light); font-weight: 700; }
+  .modal-title {
+    color: var(--chess-light);
+    font-weight: 700;
+  }
 
   /* Toast */
-  .toast { border-radius: 12px !important; }
+  .toast {
+    border-radius: 12px !important;
+  }
 </style>
 
 <!-- Audio -->
 <audio id="correctSound" src="{% static 'sound/puzzle-correct.mp3' %}"></audio>
-<audio id="wrongSound"   src="{% static 'sound/puzzle-wrong.mp3' %}"></audio>
-<audio id="moveSound">    <source src="{% static 'sound/move-self.mp3' %}"  type="audio/mpeg"></audio>
-<audio id="captureSound"> <source src="{% static 'sound/capture.mp3' %}"    type="audio/mpeg"></audio>
-<audio id="checkSound">   <source src="{% static 'sound/move-check.mp3' %}" type="audio/mpeg"></audio>
+<audio id="wrongSound" src="{% static 'sound/puzzle-wrong.mp3' %}"></audio>
+<audio id="moveSound">
+  <source src="{% static 'sound/move-self.mp3' %}" type="audio/mpeg">
+</audio>
+<audio id="captureSound">
+  <source src="{% static 'sound/capture.mp3' %}" type="audio/mpeg">
+</audio>
+<audio id="checkSound">
+  <source src="{% static 'sound/move-check.mp3' %}" type="audio/mpeg">
+</audio>
 
 <div id="main-layout">
 
@@ -421,32 +535,26 @@
   <div id="puzzle-list" class="d-none d-lg-block">
 
     <div class="diff-tabs">
-      <button class="diff-tab active-easy" id="easy-tab"   data-category="easy">Easy</button>
-      <button class="diff-tab"             id="medium-tab" data-category="medium">Medium</button>
-      <button class="diff-tab"             id="hard-tab"   data-category="hard">Hard</button>
+      <button class="diff-tab active-easy" id="easy-tab" data-category="easy">Easy</button>
+      <button class="diff-tab" id="medium-tab" data-category="medium">Medium</button>
+      <button class="diff-tab" id="hard-tab" data-category="hard">Hard</button>
     </div>
 
     <div class="puzzle-list-panel">
       {% for puzzle in puzzles %}
       <button
         class="puzzle-btn puzzle-item {% if puzzle.id in solved_ids %}solved-puzzle{% else %}unsolved-puzzle{% endif %}"
-        data-category="{{ puzzle.difficulty }}"
-        data-fen="{{ puzzle.fen }}"
-        data-solution="{{ puzzle.solution }}"
-        data-title="{{ puzzle.title }}"
-        data-turn="{{ puzzle.turn }}"
-        data-index="{{ forloop.counter0 }}"
-        data-puzzle-id="{{ puzzle.id }}"
-        {% if puzzle.quote %}
-          data-quote-name="{{ puzzle.quote.name }}"
-          data-quote-text="{{ puzzle.quote.Quote }}"
-        {% endif %}
+        data-category="{{ puzzle.difficulty }}" data-fen="{{ puzzle.fen }}" data-solution="{{ puzzle.solution }}"
+        data-title="{{ puzzle.title }}" data-turn="{{ puzzle.turn }}" data-index="{{ forloop.counter0 }}"
+        data-puzzle-id="{{ puzzle.id }}" {% if puzzle.quote %} data-quote-name="{{ puzzle.quote.name }}"
+        data-quote-text="{{ puzzle.quote.Quote }}" {% endif %}
         style="{% if puzzle.difficulty != 'easy' %}display:none;{% endif %}">
         <strong>{{ puzzle.title }}</strong>
         <span class="diff-badge {{ puzzle.difficulty }}">{{ puzzle.difficulty|title }}</span>
       </button>
       {% empty %}
-      <p style="color:var(--color-gray-400);text-align:center;font-size:0.85rem;padding:16px 0;">No puzzles available.</p>
+      <p style="color:var(--color-gray-400);text-align:center;font-size:0.85rem;padding:16px 0;">No puzzles available.
+      </p>
       {% endfor %}
     </div>
 
@@ -507,16 +615,17 @@
     {% if messages %}
     <div class="position-fixed bottom-0 end-0 p-3" style="z-index:2000;">
       {% for message in messages %}
-      <div class="toast fade show border-0 shadow-lg mb-2
+      <div
+        class="toast fade show border-0 shadow-lg mb-2
           {% if message.tags == 'info' %}bg-success text-white{% elif message.tags == 'warning' %}bg-danger text-white{% else %}bg-dark text-white{% endif %}"
         role="alert" aria-live="assertive" aria-atomic="true" style="min-width:320px;border-radius:12px;">
         <div class="d-flex align-items-center">
           <div class="toast-body fs-6">
             {% if "days left" in message.message %}
-              {{ message|safe }}
-              <a href="{% url 'buy_premium' %}" class="btn btn-light btn-sm fw-bold ms-2">🔑 Buy Premium</a>
+            {{ message|safe }}
+            <a href="{% url 'buy_premium' %}" class="btn btn-light btn-sm fw-bold ms-2">🔑 Buy Premium</a>
             {% else %}
-              {{ message|safe }}
+            {{ message|safe }}
             {% endif %}
           </div>
           <button type="button" class="btn-close btn-close-white me-3 m-auto" data-bs-dismiss="toast"></button>
@@ -546,19 +655,11 @@
       </div>
       <div class="modal-body" style="background:oklch(16% 0.008 256);">
         {% for puzzle in puzzles %}
-        <button
-          class="puzzle-btn {% if puzzle.id in solved_ids %}solved-puzzle{% else %}unsolved-puzzle{% endif %}"
-          data-fen="{{ puzzle.fen }}"
-          data-solution="{{ puzzle.solution }}"
-          data-title="{{ puzzle.title }}"
-          data-turn="{{ puzzle.turn }}"
-          data-index="{{ forloop.counter0 }}"
-          data-puzzle-id="{{ puzzle.id }}"
-          data-bs-dismiss="modal"
-          {% if puzzle.quote %}
-            data-quote-name="{{ puzzle.quote.name }}"
-            data-quote-text="{{ puzzle.quote.Quote }}"
-          {% endif %}>
+        <button class="puzzle-btn {% if puzzle.id in solved_ids %}solved-puzzle{% else %}unsolved-puzzle{% endif %}"
+          data-fen="{{ puzzle.fen }}" data-solution="{{ puzzle.solution }}" data-title="{{ puzzle.title }}"
+          data-turn="{{ puzzle.turn }}" data-index="{{ forloop.counter0 }}" data-puzzle-id="{{ puzzle.id }}"
+          data-bs-dismiss="modal" {% if puzzle.quote %} data-quote-name="{{ puzzle.quote.name }}"
+          data-quote-text="{{ puzzle.quote.Quote }}" {% endif %}>
           <strong>{{ puzzle.title }}</strong>
           <span class="diff-badge {{ puzzle.difficulty }}">{{ puzzle.difficulty|title }}</span>
         </button>
@@ -578,7 +679,7 @@
 <script>
   /* ── Difficulty tabs ──────────────────────────────────────── */
   document.addEventListener("DOMContentLoaded", function () {
-    const tabs  = document.querySelectorAll(".diff-tab");
+    const tabs = document.querySelectorAll(".diff-tab");
     const items = document.querySelectorAll(".puzzle-item");
 
     tabs.forEach(tab => {
@@ -599,36 +700,36 @@
 
 <script>
   $(document).ready(function () {
-    const moveSound    = document.getElementById('moveSound');
+    const moveSound = document.getElementById('moveSound');
     const captureSound = document.getElementById('captureSound');
-    const checkSound   = document.getElementById('checkSound');
+    const checkSound = document.getElementById('checkSound');
 
     function safePlay(el) {
       el.currentTime = 0;
-      el.play().catch(() => {});
+      el.play().catch(() => { });
     }
 
     function playSoundForMove(move) {
-      if (move.flags.includes('c'))  safePlay(captureSound);
-      else if (game.in_check())      safePlay(checkSound);
-      else                           safePlay(moveSound);
+      if (move.flags.includes('c')) safePlay(captureSound);
+      else if (game.in_check()) safePlay(checkSound);
+      else safePlay(moveSound);
     }
 
     function playSound(src) {
       const a = new Audio(src);
-      a.play().catch(() => {});
+      a.play().catch(() => { });
     }
 
-    const $buttons              = $('.puzzle-btn');
-    const $puzzleTitleSmallBtn  = $('#puzzle-title-small');
-    const $puzzleTitleLarge     = $('#puzzle-title-large');
-    const $puzzleTurn           = $('#puzzle-turn');
-    const $fenDisplay           = $('#fen-display');
-    const $puzzleStatus         = $('#puzzle-status');
-    const $nextBtn              = $('#next-btn');
-    const $resetBtn             = $('#reset-btn');
-    const $hintBtn              = $('#hint-btn');
-    const $moveHistory          = $('#move-history');
+    const $buttons = $('.puzzle-btn');
+    const $puzzleTitleSmallBtn = $('#puzzle-title-small');
+    const $puzzleTitleLarge = $('#puzzle-title-large');
+    const $puzzleTurn = $('#puzzle-turn');
+    const $fenDisplay = $('#fen-display');
+    const $puzzleStatus = $('#puzzle-status');
+    const $nextBtn = $('#next-btn');
+    const $resetBtn = $('#reset-btn');
+    const $hintBtn = $('#hint-btn');
+    const $moveHistory = $('#move-history');
 
     let board = null, game = null;
     let currentSolutionMoves = [], currentMoveIndex = 0;
@@ -650,20 +751,20 @@
     function initBoard(fen, orientation) {
       if (board) board.destroy();
       board = Chessboard('board', {
-        position:     fen,
-        orientation:  orientation,
-        draggable:    true,
+        position: fen,
+        orientation: orientation,
+        draggable: true,
         dropOffBoard: 'snapback',
-        pieceTheme:   "{% static 'chessboardjs-1.0.0/img/chesspieces/wikipedia/' %}" + '{piece}' + '.png',
-        onDragStart:  onDragStart,
-        onDrop:       onDrop,
+        pieceTheme: "{% static 'chessboardjs-1.0.0/img/chesspieces/wikipedia/' %}" + '{piece}' + '.png',
+        onDragStart: onDragStart,
+        onDrop: onDrop,
       });
       $(window).resize(board.resize);
     }
 
     function onDragStart(source, piece) {
       if ((game.turn() === 'w' && piece.startsWith('b')) ||
-          (game.turn() === 'b' && piece.startsWith('w'))) return false;
+        (game.turn() === 'b' && piece.startsWith('w'))) return false;
       if (game.game_over()) return false;
     }
 
@@ -677,14 +778,14 @@
         const rank = target[1];
         if ((piece.startsWith('w') && rank === '8') || (piece.startsWith('b') && rank === '1')) {
           const c = prompt("Promote to (q, r, b, n):", "q");
-          return (c && ['q','r','b','n'].includes(c.toLowerCase())) ? c.toLowerCase() : 'q';
+          return (c && ['q', 'r', 'b', 'n'].includes(c.toLowerCase())) ? c.toLowerCase() : 'q';
         }
         return null;
       }
 
       const promotion = getPromotion(source, target, piece) || 'q';
-      const tempGame  = new Chess(game.fen());
-      const move      = tempGame.move({ from: source, to: target, promotion });
+      const tempGame = new Chess(game.fen());
+      const move = tempGame.move({ from: source, to: target, promotion });
 
       if (!move) { showStatus("Illegal move", "wrong"); return 'snapback'; }
 
@@ -700,7 +801,7 @@
           showStatus("🎉 Puzzle solved!", "solved");
           playSound("{% static 'sound/puzzle-correct.mp3' %}");
           stopTimerDisplay();
-          const puzzleId  = $buttons.eq(currentPuzzleIndex).data('puzzle-id');
+          const puzzleId = $buttons.eq(currentPuzzleIndex).data('puzzle-id');
           const timeTaken = Math.floor((Date.now() - solveStartTime) / 1000);
           $.ajax({
             url: `/puzzles/mark_solved/${puzzleId}/`,
@@ -732,7 +833,7 @@
     function makeOpponentMove() {
       if (currentMoveIndex >= currentSolutionMoves.length) return;
       const moveSAN = currentSolutionMoves[currentMoveIndex];
-      const move    = game.move(moveSAN);
+      const move = game.move(moveSAN);
       if (!move) { showStatus("Error in solution", "wrong"); return; }
       playSoundForMove(move);
       addToMoveHistory(move);
@@ -747,10 +848,10 @@
 
     function loadPuzzle(index) {
       wrongCounted = false;
-      const btn       = $buttons.eq(index);
-      const fen       = btn.data('fen');
-      const solution  = btn.data('solution').trim();
-      const title     = btn.data('title');
+      const btn = $buttons.eq(index);
+      const fen = btn.data('fen');
+      const solution = btn.data('solution').trim();
+      const title = btn.data('title');
       const quoteName = btn.data('quote-name');
       const quoteText = btn.data('quote-text');
 
@@ -760,19 +861,19 @@
         $('#quote-author').text(quoteName);
         $('#quote-text').html(quoteText);
         $('#quote-box').removeClass('quote-none');
-        setTimeout(() => $('#quote-box').fadeOut(500, function() { $(this).addClass('quote-none').show(); }), 10000);
+        setTimeout(() => $('#quote-box').fadeOut(500, function () { $(this).addClass('quote-none').show(); }), 10000);
       } else {
         $('#quote-box').addClass('quote-none');
         $('#quote-author').text('');
         $('#quote-text').text('');
       }
 
-      currentPuzzleTurn    = btn.data('turn');
-      currentPuzzleIndex   = index;
+      currentPuzzleTurn = btn.data('turn');
+      currentPuzzleIndex = index;
       currentSolutionMoves = solution.split(/\s+/);
-      currentMoveIndex     = 0;
-      currentFen           = fen;
-      moveHistory          = [];
+      currentMoveIndex = 0;
+      currentFen = fen;
+      moveHistory = [];
       game = new Chess(fen);
 
       solveStartTime = Date.now();
@@ -806,11 +907,11 @@
     }
 
     function formatMove(move) {
-      const bSym = { p:'', n:'♘', b:'♗', r:'♖', q:'♕', k:'♔' };
-      const wSym = { p:'', n:'♞', b:'♝', r:'♜', q:'♛', k:'♚' };
+      const bSym = { p: '', n: '♘', b: '♗', r: '♖', q: '♕', k: '♔' };
+      const wSym = { p: '', n: '♞', b: '♝', r: '♜', q: '♛', k: '♚' };
       const syms = move.color === 'w' ? wSym : bSym;
       const icon = syms[move.piece] || '';
-      const cap  = move.flags && move.flags.includes('c');
+      const cap = move.flags && move.flags.includes('c');
       if (move.piece === 'p') return cap && move.san.length >= 4 ? `${move.san[0]}x${move.to}` : move.to;
       return `${icon}${cap ? 'x' : ''}${move.to}`;
     }
@@ -819,17 +920,17 @@
       $moveHistory.empty();
       for (let i = 0; i < moveHistory.length; i += 2) {
         const pair = $('<div class="move-pair"></div>');
-        pair.append(`<div class="move-number">${Math.floor(i/2)+1}.</div>`);
-        if (i < moveHistory.length)     pair.append(`<div class="move-white">${formatMove(moveHistory[i])}</div>`);
-        if (i+1 < moveHistory.length)   pair.append(`<div class="move-black">${formatMove(moveHistory[i+1])}</div>`);
+        pair.append(`<div class="move-number">${Math.floor(i / 2) + 1}.</div>`);
+        if (i < moveHistory.length) pair.append(`<div class="move-white">${formatMove(moveHistory[i])}</div>`);
+        if (i + 1 < moveHistory.length) pair.append(`<div class="move-black">${formatMove(moveHistory[i + 1])}</div>`);
         $moveHistory.append(pair);
       }
     }
 
     $buttons.on('click', function () { loadPuzzle($(this).data('index')); });
-    $nextBtn.on('click',  function () { loadPuzzle((currentPuzzleIndex + 1) % $buttons.length); });
+    $nextBtn.on('click', function () { loadPuzzle((currentPuzzleIndex + 1) % $buttons.length); });
     $resetBtn.on('click', function () { if (currentFen) loadPuzzle(currentPuzzleIndex); });
-    $hintBtn.on('click',  function () {
+    $hintBtn.on('click', function () {
       if (currentMoveIndex < currentSolutionMoves.length)
         showStatus(`Hint: ${currentSolutionMoves[currentMoveIndex]}`, "info");
     });

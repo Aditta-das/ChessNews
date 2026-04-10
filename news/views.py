@@ -109,7 +109,7 @@ def all_blogs(request):
 
 def article_detail(request, slug):
     article = get_object_or_404(Article, slug=slug)
-    return render(request, 'news/detail.html', {'article': article})
+    return render(request, 'news/article_detail.html', {'article': article})
 
 # views.py
 @login_required

@@ -1,465 +1,605 @@
 {% extends 'news/base.html' %}
 {% load static %}
 
-{% block title %}Your Chess Progress{% endblock %}
+{% block title %}Your Progress — GM Bangladesh{% endblock %}
 
 {% block content %}
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.5/font/bootstrap-icons.css">
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 
 <style>
-    /* ----------------- EXISTING STYLES (UNCHANGED) ----------------- */
-    .profile-header {
-        background: rgba(40, 40, 40, 0.7);
-        backdrop-filter: blur(8px);
-        border-radius: 12px;
-        padding: 20px;
-        position: relative;
-    }
+  /* ── Profile header ───────────────────────────────────────── */
+  .profile-card {
+    background: var(--card-color);
+    border: 1px solid var(--border);
+    border-radius: 14px;
+    overflow: hidden;
+    margin-bottom: 20px;
+  }
 
-    .profile-img {
-        width: 90px;
-        height: 90px;
-        object-fit: cover;
-        border-radius: 8px;
-        border: 2px solid rgba(255, 255, 255, 0.2);
-    }
+  .profile-card::before {
+    content: '';
+    display: block;
+    height: 3px;
+    background: linear-gradient(90deg, var(--chess-primary), var(--chess-accent));
+  }
 
-    .edit-btn {
-        background: rgba(255, 255, 255, 0.1);
-        border: none;
-        color: #fff;
-        font-size: .9rem;
-        padding: 6px 12px;
-        border-radius: 6px;
-        transition: .3s;
-    }
+  .profile-inner {
+    padding: 20px 24px;
+    display: flex;
+    align-items: center;
+    gap: 18px;
+    flex-wrap: wrap;
+  }
 
-    .edit-btn:hover {
-        background: rgba(255, 255, 255, 0.3);
-    }
+  .profile-img {
+    width: 80px; height: 80px;
+    object-fit: cover;
+    border-radius: 10px;
+    border: 2px solid var(--border);
+    flex-shrink: 0;
+  }
 
-    .profile-name {
-        font-weight: 700;
-        font-size: 1.2rem;
-        color: #fff;
-    }
+  .profile-details { flex: 1; min-width: 0; }
 
-    .profile-bio {
-        color: #f8f8f8;
-        margin-top: 5px;
-        font-size: .9rem;
-    }
+  .profile-name {
+    font-size: 1.25rem;
+    font-weight: 800;
+    color: var(--chess-light);
+    margin-bottom: 3px;
+  }
 
-    .profile-stats {
-        font-size: .85rem;
-        color: #aaa;
-        margin-top: 10px;
-    }
+  .profile-bio {
+    font-size: 0.85rem;
+    color: var(--color-gray-400);
+    margin-bottom: 6px;
+  }
 
-    .profile-stats span {
-        margin-right: 15px;
-    }
+  .profile-meta {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px;
+    font-size: 0.74rem;
+  }
 
-    .card-glass {
-        background: rgba(40, 40, 40, 0.45);
-        backdrop-filter: blur(10px) saturate(180%);
-        border-radius: 12px;
-        border: 1px solid rgba(255, 255, 255, 0.125);
-    }
+  .profile-meta-chip {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    background: oklch(20% 0.01 256);
+    border: 1px solid var(--border);
+    border-radius: 99px;
+    padding: 3px 10px;
+    color: var(--color-gray-400);
+    font-weight: 600;
+  }
 
-    .stat-card {
-        transition: transform .3s, box-shadow .3s;
-    }
+  .profile-meta-chip i { color: var(--chess-primary); font-size: 0.75rem; }
 
-    .stat-card:hover {
-        transform: translateY(-5px);
-        box-shadow: 0 8px 24px rgba(0, 0, 0, .4);
-    }
+  .edit-profile-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 8px 18px;
+    border-radius: 99px;
+    border: 1px solid var(--border);
+    background: oklch(20% 0.01 256);
+    color: var(--chess-secondary);
+    font-size: 0.8rem;
+    font-weight: 700;
+    text-decoration: none;
+    transition: all 0.18s;
+    margin-left: auto;
+    align-self: flex-start;
+  }
 
-    .stat-icon {
-        font-size: 2.5rem;
-        opacity: .8;
-    }
+  .edit-profile-btn:hover {
+    border-color: var(--chess-primary);
+    color: var(--chess-primary);
+  }
 
-    .chart-container {
-        background: rgba(25, 25, 25, .4);
-        border-radius: 10px;
-        padding: 15px;
-        border: 1px solid rgba(255, 255, 255, .1);
-        box-shadow: inset 0 2px 10px rgba(0, 0, 0, .2);
-        position: relative;
-    }
+  /* ── Tab system ───────────────────────────────────────────── */
+  .tab-bar {
+    display: flex;
+    gap: 6px;
+    margin-bottom: 20px;
+    background: var(--card-color);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 6px;
+    width: fit-content;
+  }
 
-    /* ----------------- TAB SYSTEM ----------------- */
-    .tab-btn {
-        cursor: pointer;
-    }
+  .tab-btn {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    padding: 8px 18px;
+    border-radius: 8px;
+    font-size: 0.82rem;
+    font-weight: 700;
+    color: var(--color-gray-400);
+    cursor: pointer;
+    transition: all 0.18s;
+    border: none;
+    background: transparent;
+    white-space: nowrap;
+  }
 
-    .active-tab {
-        background: rgba(100, 180, 255, 0.25);
-        border: 1px solid rgba(100, 180, 255, 0.5);
-    }
+  .tab-btn:hover { color: var(--chess-light); background: oklch(22% 0.01 256); }
 
-    .tab-section {
-        display: none;
-    }
+  .tab-btn.active-tab {
+    background: oklch(22% 0.02 256);
+    color: var(--chess-light);
+    border: 1px solid var(--border);
+  }
 
-    .tab-section.active {
-        display: block;
-    }
+  .tab-btn.active-tab i { color: var(--chess-primary); }
 
-    #progressChart {
-        color: #fff;
-    }
+  .tab-section { display: none; }
+  .tab-section.active { display: block; }
+
+  /* ── Stats panel ──────────────────────────────────────────── */
+  .stats-grid {
+    display: grid;
+    grid-template-columns: 1fr 280px;
+    gap: 16px;
+    margin-bottom: 20px;
+    align-items: start;
+  }
+
+  .chart-panel {
+    background: var(--card-color);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 20px;
+  }
+
+  .chart-panel-title {
+    font-size: 0.88rem;
+    font-weight: 700;
+    color: var(--chess-light);
+    margin-bottom: 4px;
+  }
+
+  .chart-panel-sub {
+    font-size: 0.72rem;
+    color: var(--color-gray-400);
+    margin-bottom: 16px;
+    display: flex;
+    align-items: center;
+    gap: 4px;
+  }
+
+  .chart-panel-sub i { color: var(--chess-primary); }
+
+  .chart-wrap { position: relative; height: 300px; }
+
+  /* Stat cards */
+  .stat-cards { display: flex; flex-direction: column; gap: 10px; }
+
+  .stat-card {
+    background: var(--card-color);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 16px;
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    transition: transform 0.2s, border-color 0.2s;
+  }
+
+  .stat-card:hover {
+    transform: translateY(-2px);
+    border-color: rgba(119,149,86,0.4);
+  }
+
+  .stat-icon-wrap {
+    width: 44px; height: 44px;
+    border-radius: 10px;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 1.3rem;
+    flex-shrink: 0;
+  }
+
+  .stat-icon-wrap.green  { background: rgba(119,149,86,0.15); color: var(--chess-primary); }
+  .stat-icon-wrap.blue   { background: rgba(96,165,250,0.12); color: #60a5fa; }
+  .stat-icon-wrap.purple { background: rgba(168,85,247,0.12); color: #a855f7; }
+
+  .stat-label {
+    font-size: 0.7rem;
+    font-weight: 700;
+    letter-spacing: 1.5px;
+    text-transform: uppercase;
+    color: var(--color-gray-400);
+    margin-bottom: 2px;
+  }
+
+  .stat-value {
+    font-size: 1.3rem;
+    font-weight: 800;
+    color: var(--chess-light);
+    line-height: 1.2;
+  }
+
+  /* ── Achievements ─────────────────────────────────────────── */
+  .achievements-section { margin-top: 20px; }
+
+  .achievements-heading {
+    font-size: 0.88rem;
+    font-weight: 700;
+    color: var(--chess-light);
+    margin-bottom: 12px;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+  }
+
+  .achievements-heading i { color: #f59e0b; }
+
+  .achievements-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+    gap: 12px;
+  }
+
+  .achievement-card {
+    background: var(--card-color);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 16px;
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    transition: border-color 0.2s, transform 0.2s;
+  }
+
+  .achievement-card.unlocked {
+    border-color: rgba(245,158,11,0.3);
+  }
+
+  .achievement-card.unlocked:hover {
+    transform: translateY(-2px);
+    border-color: rgba(245,158,11,0.6);
+    box-shadow: 0 6px 20px rgba(245,158,11,0.1);
+  }
+
+  .achievement-card.locked { opacity: 0.45; }
+
+  .achievement-icon {
+    width: 46px; height: 46px;
+    flex-shrink: 0;
+    object-fit: contain;
+  }
+
+  .achievement-title {
+    font-size: 0.75rem;
+    font-weight: 700;
+    letter-spacing: 1px;
+    text-transform: uppercase;
+    color: #f59e0b;
+    margin-bottom: 2px;
+  }
+
+  .achievement-desc {
+    font-size: 0.82rem;
+    color: var(--chess-secondary);
+    margin: 0;
+  }
+
+  /* ── Blogs/Games grid ─────────────────────────────────────── */
+  .items-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+    gap: 12px;
+  }
+
+  .item-card {
+    background: var(--card-color);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 16px;
+    transition: border-color 0.18s, transform 0.18s;
+  }
+
+  .item-card:hover {
+    border-color: var(--chess-primary);
+    transform: translateY(-3px);
+  }
+
+  .item-card-title {
+    font-size: 0.88rem;
+    font-weight: 700;
+    color: var(--chess-light);
+    margin-bottom: 10px;
+    line-height: 1.4;
+  }
+
+  .item-view-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+    font-size: 0.75rem;
+    font-weight: 700;
+    padding: 5px 14px;
+    border-radius: 99px;
+    border: 1px solid rgba(119,149,86,0.4);
+    color: var(--chess-primary);
+    background: rgba(119,149,86,0.08);
+    text-decoration: none;
+    transition: all 0.15s;
+  }
+
+  .item-view-btn:hover {
+    background: var(--chess-primary);
+    border-color: var(--chess-primary);
+    color: #fff;
+  }
+
+  .empty-msg {
+    color: var(--color-gray-400);
+    font-size: 0.85rem;
+    font-style: italic;
+    text-align: center;
+    padding: 32px;
+    background: var(--card-color);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+  }
+
+  /* Responsive */
+  @media (max-width: 768px) {
+    .stats-grid { grid-template-columns: 1fr; }
+    .tab-bar { width: 100%; overflow-x: auto; }
+    .profile-inner { gap: 12px; }
+    .edit-profile-btn { margin-left: 0; margin-top: 8px; }
+  }
 </style>
 
-<div class="container py-3">
+<div>
 
-    <!-- PROFILE HEADER -->
-    <div class="profile-header shadow mb-4">
-        <div class="d-flex flex-wrap align-items-center justify-content-between">
+  <!-- ── Profile card ───────────────────────────────────────── -->
+  <div class="profile-card">
+    <div class="profile-inner">
+      <img src="{% if request.user.userprofile.image %}{{ request.user.userprofile.image.url }}{% else %}{% static 'profile_images/user.png' %}{% endif %}"
+           class="profile-img" alt="{{ user.username }}">
 
-            <div class="d-flex align-items-center flex-wrap">
-                <img src="{% if request.user.userprofile.image %}{{ request.user.userprofile.image.url }}{% else %}{% static 'profile_images/user.png' %}{% endif %}"
-                    class="profile-img me-2">
-
-                <div>
-                    <span class="profile-name me-2">{{ user.username|default:"Guest Player" }}</span>
-
-                    <div class="profile-bio">
-                        {{ request.user.userprofile.bio|default:"Add Description Here" }}
-                    </div>
-
-                    <div class="profile-stats">
-                        <span><b>{{ user.date_joined.date }}</b> Joined</span>
-                    </div>
-                </div>
-            </div>
-
-            <a href="{% url 'edit_profile' %}">
-                <button class="edit-btn">Edit Profile</button>
-            </a>
-
+      <div class="profile-details">
+        <div class="profile-name">{{ user.username|default:"Guest Player" }}</div>
+        <div class="profile-bio">{{ request.user.userprofile.bio|default:"No bio yet. Add one in Edit Profile." }}</div>
+        <div class="profile-meta">
+          <span class="profile-meta-chip">
+            <i class="bi bi-calendar3"></i> Joined {{ user.date_joined|date:"M d, Y" }}
+          </span>
+          <span class="profile-meta-chip">
+            <i class="bi bi-puzzle"></i> {{ puzzles_solved|default:"0" }} Puzzles solved
+          </span>
         </div>
+      </div>
+
+      <a href="{% url 'edit_profile' %}" class="edit-profile-btn">
+        <i class="bi bi-pencil-fill"></i> Edit Profile
+      </a>
+    </div>
+  </div>
+
+  <!-- ── Tab bar ────────────────────────────────────────────── -->
+  <div class="tab-bar">
+    <button class="tab-btn active-tab" data-tab="stats">
+      <i class="bi bi-bar-chart-line"></i> Stats
+    </button>
+    <button class="tab-btn" data-tab="blogs">
+      <i class="bi bi-journal-text"></i> My Blogs
+    </button>
+    <button class="tab-btn" data-tab="games">
+      <i class="bi bi-controller"></i> My Games
+    </button>
+  </div>
+
+  <!-- ── STATS TAB ──────────────────────────────────────────── -->
+  <div id="stats" class="tab-section active">
+
+    <div class="stats-grid">
+
+      <!-- Chart -->
+      <div class="chart-panel">
+        <div class="chart-panel-title">Puzzle Performance</div>
+        <div class="chart-panel-sub">
+          <i class="bi bi-info-circle"></i> Time taken per puzzle — lower is better
+        </div>
+        <div class="chart-wrap">
+          <canvas id="progressChart"></canvas>
+        </div>
+      </div>
+
+      <!-- Stat cards -->
+      <div class="stat-cards">
+
+        <div class="stat-card">
+          <div class="stat-icon-wrap blue"><i class="bi bi-clock-history"></i></div>
+          <div>
+            <div class="stat-label">Average Time</div>
+            <div class="stat-value">{{ average_time|default:"—" }}</div>
+          </div>
+        </div>
+
+        <div class="stat-card">
+          <div class="stat-icon-wrap green"><i class="bi bi-check2-square"></i></div>
+          <div>
+            <div class="stat-label">Puzzles Solved</div>
+            <div class="stat-value">{{ puzzles_solved|default:"0" }}</div>
+          </div>
+        </div>
+
+        <div class="stat-card">
+          <div class="stat-icon-wrap purple"><i class="bi bi-graph-up-arrow"></i></div>
+          <div>
+            <div class="stat-label">Success Rate</div>
+            <div class="stat-value">{{ success_rate|default:"—" }}</div>
+          </div>
+        </div>
+
+      </div>
     </div>
 
-    <!-- NAVIGATION TABS -->
-    <div class="d-flex gap-3 mb-4 flex-wrap">
+    <!-- Achievements -->
+    <div class="achievements-section">
+      <div class="achievements-heading">
+        <i class="bi bi-trophy-fill"></i> Achievements
+      </div>
+      <div class="achievements-grid">
 
-        <div class="card-glass px-4 py-2 text-white fw-semibold stat-card tab-btn active-tab" data-tab="stats">
-            <i class="bi bi-bar-chart-line me-1"></i> Stats
-        </div>
-
-        <div class="card-glass px-4 py-2 text-white fw-semibold stat-card tab-btn" data-tab="blogs">
-            <i class="bi bi-journal-text me-1"></i> My Blogs
-        </div>
-
-        <div class="card-glass px-4 py-2 text-white fw-semibold stat-card tab-btn" data-tab="games">
-            <i class="bi bi-controller me-1"></i> My Games
-        </div>
-
-    </div>
-
-    <!-- ===================== STATS TAB (EXACTLY YOUR PUZZLE STATS) ===================== -->
-    <div id="stats" class="tab-section active">
-
-        <!-- Title -->
-        <div class="text-left mb-4">
-            <h3 class="mb-4 text-white fw-bold">Your Puzzle Progress</h3>
-        </div>
-
-        <!-- Charts and Stats -->
-        <div class="row g-4">
-
-            <!-- Chart -->
-            <div class="col-lg-8 col-md-12">
-                <div class="card card-glass p-4 h-100 shadow">
-                    <div class="d-flex justify-content-between align-items-center mb-3">
-                        <h5 class="text-white fw-bold mb-0">Time Taken per Puzzle</h5>
-                        <div class="text-white-50" style="font-size: 0.85rem;">
-                            <i class="bi bi-info-circle me-1"></i>Lower is better
-                        </div>
-                    </div>
-                    <div class="chart-container" style="position: relative; height:350px;">
-                        <canvas id="progressChart"></canvas>
-                    </div>
-                </div>
-            </div>
-
-            <!-- Stats -->
-            <div class="col-lg-4 col-md-12">
-                <h5 class="text-white fw-bold mb-3">Stats at a Glance</h5>
-
-                <div class="card card-glass stat-card p-3 mb-3">
-                    <div class="d-flex align-items-center">
-                        <div class="me-3 text-white">
-                            <i class="bi bi-clock-history stat-icon"></i>
-                        </div>
-                        <div>
-                            <h6 class="text-white-50 mb-0">Average Time</h6>
-                            <h4 class="fw-bold text-white mb-0">{{ average_time|default:"0s" }}</h4>
-                        </div>
-                    </div>
-                </div>
-
-                <div class="card card-glass stat-card p-3 mb-3">
-                    <div class="d-flex align-items-center">
-                        <div class="me-3 text-white">
-                            <i class="bi bi-check2-square stat-icon"></i>
-                        </div>
-                        <div>
-                            <h6 class="text-white-50 mb-0">Puzzles Solved</h6>
-                            <h4 class="fw-bold text-white mb-0">{{ puzzles_solved|default:"0" }}</h4>
-                        </div>
-                    </div>
-                </div>
-
-                <div class="card card-glass stat-card p-3">
-                    <div class="d-flex align-items-center">
-                        <div class="me-3 text-white">
-                            <i class="bi bi-graph-up-arrow stat-icon"></i>
-                        </div>
-                        <div>
-                            <h6 class="text-white-50 mb-0">Success Rate</h6>
-                            <h4 class="fw-bold text-white mb-0">{{ success_rate|default:"Coming Soon" }}</h4>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </div>
-
-        <!-- Achievements -->
-        <div class="row g-4 mt-3">
-            <div class="col-12">
-                <h3 class="mb-1 text-white fw-bold">Achievements</h3>
-            </div>
-
-            {% if puzzles_solved >= 5 %}
-            <div class="col-lg-4 col-md-6 col-sm-12">
-                <div class="card card-glass stat-card p-3 h-100 d-flex align-items-center">
-                    <div class="d-flex align-items-center">
-                        <div class="me-3">
-                            <img src="{% static 'progress/puzzle.png' %}" alt="Puzzle Icon" class="stat-icon img-fluid"
-                                style="width: 50px; height: 50px;">
-                        </div>
-                        <div>
-                            <h6 class="text-white-50 mb-0">Puzzle Beginner</h6>
-                            <p class="fw-bold text-white mb-0">You correctly solved 5 Puzzles!</p>
-                        </div>
-                    </div>
-                </div>
-            </div>
-            {% else %}
-            <div class="col-lg-4 col-md-6 col-sm-12">
-                <div class="card card-glass stat-card p-3 h-100 d-flex justify-content-center align-items-center">
-                    <img src="{% static 'progress/lock.png' %}" alt="Locked Icon" class="stat-icon img-fluid"
-                        style="width: 50px; height: 50px;">
-                </div>
-            </div>
-            {% endif %}
-        </div>
-
-    </div>
-    <!-- ===================== BLOGS TAB ===================== -->
-    <div id="blogs" class="tab-section">
-        {% if user_blogs %}
-        <div class="row">
-            {% for blog in user_blogs %}
-            <div class="col-md-4 mb-3">
-                <div class="card bg-dark text-white p-3 rounded-4 shadow">
-                    <small>{{ blog.title }}</small><br>
-                    <a href="{% url 'article_detail' blog.slug %}" class="btn btn-sm btn-primary mt-2">
-                        View Blog
-                    </a>
-                </div>
-            </div>
-            {% endfor %}
+        {% if puzzles_solved >= 5 %}
+        <div class="achievement-card unlocked">
+          <img src="{% static 'progress/puzzle.png' %}" class="achievement-icon" alt="Puzzle Beginner">
+          <div>
+            <div class="achievement-title">Puzzle Beginner</div>
+            <p class="achievement-desc">Correctly solved 5 puzzles!</p>
+          </div>
         </div>
         {% else %}
-        <p class="text-center text-muted">No games uploaded yet.</p>
+        <div class="achievement-card locked">
+          <img src="{% static 'progress/lock.png' %}" class="achievement-icon" alt="Locked">
+          <div>
+            <div class="achievement-title" style="color:var(--color-gray-400);">Puzzle Beginner</div>
+            <p class="achievement-desc">Solve 5 puzzles to unlock</p>
+          </div>
+        </div>
         {% endif %}
+
+      </div>
     </div>
 
-    <!-- ===================== GAMES TAB ===================== -->
-    <div id="games" class="tab-section">
-        {% if user_games %}
-        <div class="row">
-            {% for game in user_games %}
-            <div class="col-md-4 mb-3">
-                <div class="card bg-dark text-white p-3 rounded-4 shadow">
-                    <small>{{ game.white_player }} vs {{ game.black_player }}</small><br>
-                    <a href="{% url 'game_detail' game.slug_link %}" class="btn btn-sm btn-primary mt-2">
-                        View Game
-                    </a>
-                </div>
-            </div>
-            {% endfor %}
-        </div>
-        {% else %}
-        <p class="text-center text-muted">No games uploaded yet.</p>
-        {% endif %}
+  </div>
+
+  <!-- ── BLOGS TAB ──────────────────────────────────────────── -->
+  <div id="blogs" class="tab-section">
+    {% if user_blogs %}
+    <div class="items-grid">
+      {% for blog in user_blogs %}
+      <div class="item-card">
+        <div class="item-card-title">{{ blog.title }}</div>
+        <a href="{% url 'article_detail' blog.slug %}" class="item-view-btn">
+          <i class="bi bi-arrow-right"></i> View Blog
+        </a>
+      </div>
+      {% endfor %}
     </div>
+    {% else %}
+    <div class="empty-msg">
+      <i class="bi bi-journal-text" style="display:block;font-size:2rem;margin-bottom:8px;color:var(--chess-primary);opacity:0.4;"></i>
+      No blogs yet. <a href="{% url 'write_article' %}" style="color:var(--chess-primary);">Write your first one →</a>
+    </div>
+    {% endif %}
+  </div>
+
+  <!-- ── GAMES TAB ──────────────────────────────────────────── -->
+  <div id="games" class="tab-section">
+    {% if user_games %}
+    <div class="items-grid">
+      {% for game in user_games %}
+      <div class="item-card">
+        <div class="item-card-title">{{ game.white_player }} vs {{ game.black_player }}</div>
+        <a href="{% url 'game_detail' game.slug_link %}" class="item-view-btn">
+          <i class="bi bi-arrow-right"></i> View Game
+        </a>
+      </div>
+      {% endfor %}
+    </div>
+    {% else %}
+    <div class="empty-msg">
+      <i class="bi bi-controller" style="display:block;font-size:2rem;margin-bottom:8px;color:var(--chess-primary);opacity:0.4;"></i>
+      No games uploaded yet.
+    </div>
+    {% endif %}
+  </div>
 
 </div>
 
-<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 <script>
-    const labels = {{ labels| safe }};
-    const data = {
-        labels: labels,
-        datasets: [{
-            label: 'Time Taken (seconds)',
-            data: {{ data| safe }},
-    fill: true,
-        backgroundColor: function(context) {
-            const chart = context.chart;
-            const { ctx, chartArea } = chart;
-            if (!chartArea) {
-                return null;
-            }
-            return createGradient(ctx, chartArea);
-        },
-    borderColor: 'rgba(255, 255, 255, 0.8)',
+  /* ── Chart ─────────────────────────────────────────────────── */
+  const ctx = document.getElementById('progressChart').getContext('2d');
+
+  const gradient = ctx.createLinearGradient(0, 0, 0, 300);
+  gradient.addColorStop(0,   'rgba(119,149,86,0.28)');
+  gradient.addColorStop(0.5, 'rgba(119,149,86,0.10)');
+  gradient.addColorStop(1,   'rgba(119,149,86,0.02)');
+
+  new Chart(ctx, {
+    type: 'line',
+    data: {
+      labels: {{ labels|safe }},
+      datasets: [{
+        label: 'Time (s)',
+        data:  {{ data|safe }},
+        fill: true,
+        backgroundColor: gradient,
+        borderColor: 'rgba(119,149,86,0.9)',
         borderWidth: 2,
-            pointBackgroundColor: 'rgba(255, 255, 255, 1)',
-                pointBorderColor: 'rgba(40, 40, 40, 1)',
-                    pointBorderWidth: 2,
-                        pointRadius: 6,
-                            pointHoverRadius: 8,
-                                pointHoverBackgroundColor: 'rgba(255, 255, 255, 1)',
-                                    pointHoverBorderColor: 'rgba(255, 255, 255, 0.8)',
-                                        pointHoverBorderWidth: 3,
-                                            tension: 0.4,
-                                                borderDash: [0, 0]
-        }]
-    };
-
-    function createGradient(ctx, chartArea) {
-        const gradient = ctx.createLinearGradient(0, chartArea.top, 0, chartArea.bottom);
-        gradient.addColorStop(0, 'rgba(100, 180, 255, 0.3)');
-        gradient.addColorStop(0.5, 'rgba(100, 180, 255, 0.15)');
-        gradient.addColorStop(1, 'rgba(100, 180, 255, 0.05)');
-        return gradient;
-    }
-
-    const config = {
-        type: 'line',
-        data: data,
-        options: {
-            responsive: true,
-            maintainAspectRatio: false,
-            plugins: {
-                legend: {
-                    display: false
-                },
-                tooltip: {
-                    backgroundColor: 'rgba(30, 30, 30, 0.95)',
-                    titleColor: 'rgba(255, 255, 255, 0.9)',
-                    bodyColor: 'rgba(255, 255, 255, 0.8)',
-                    borderColor: 'rgba(100, 180, 255, 0.5)',
-                    borderWidth: 1,
-                    cornerRadius: 8,
-                    padding: 12,
-                    displayColors: false,
-                    callbacks: {
-                        label: function (context) {
-                            return `${context.parsed.y.toFixed(1)} seconds`;
-                        }
-                    }
-                }
-            },
-            scales: {
-                y: {
-                    beginAtZero: true,
-                    title: {
-                        display: true,
-                        text: 'Time Taken (seconds)',
-                        color: 'rgba(255, 255, 255, 0.8)',
-                        font: {
-                            size: 14,
-                            weight: 'bold',
-                            family: "'Segoe UI', 'Roboto', sans-serif"
-                        },
-                        padding: { top: 10, bottom: 10 }
-                    },
-                    ticks: {
-                        color: 'rgba(255, 255, 255, 0.7)',
-                        font: { size: 12 },
-                        padding: 8
-                    },
-                    grid: {
-                        color: 'rgba(255, 255, 255, 0.12)',
-                        drawBorder: false,
-                        lineWidth: 1
-                    }
-                },
-                x: {
-                    title: {
-                        display: true,
-                        text: 'Puzzle Number',
-                        color: 'rgba(255, 255, 255, 0.8)',
-                        font: {
-                            size: 14,
-                            weight: 'bold',
-                            family: "'Segoe UI', 'Roboto', sans-serif"
-                        },
-                        padding: { top: 10, bottom: 10 }
-                    },
-                    ticks: {
-                        maxRotation: 45,
-                        autoSkip: true,
-                        color: 'rgba(255, 255, 255, 0.7)',
-                        font: { size: 12 },
-                        padding: 8
-                    },
-                    grid: {
-                        display: false
-                    }
-                }
-            },
-            interaction: {
-                intersect: false,
-                mode: 'nearest'
-            },
-            elements: {
-                line: {
-                    borderWidth: 2
-                }
-            },
-            animation: {
-                duration: 1000,
-                easing: 'easeOutQuart'
-            }
+        pointBackgroundColor: '#779556',
+        pointBorderColor: 'var(--chess-dark)',
+        pointBorderWidth: 2,
+        pointRadius: 5,
+        pointHoverRadius: 7,
+        tension: 0.4,
+      }]
+    },
+    options: {
+      responsive: true,
+      maintainAspectRatio: false,
+      plugins: {
+        legend: { display: false },
+        tooltip: {
+          backgroundColor: 'oklch(18% 0.01 256)',
+          titleColor: 'rgba(248,241,229,0.9)',
+          bodyColor:  'rgba(235,236,208,0.8)',
+          borderColor: 'rgba(119,149,86,0.4)',
+          borderWidth: 1,
+          cornerRadius: 8,
+          padding: 10,
+          displayColors: false,
+          callbacks: {
+            label: ctx => ctx.parsed.y.toFixed(1) + 's'
+          }
         }
-    };
+      },
+      scales: {
+        y: {
+          beginAtZero: true,
+          title: {
+            display: true,
+            text: 'Seconds',
+            color: 'rgba(235,236,208,0.6)',
+            font: { size: 11, weight: '700' }
+          },
+          ticks: { color: 'rgba(235,236,208,0.5)', font: { size: 11 } },
+          grid:  { color: 'rgba(255,255,255,0.06)' }
+        },
+        x: {
+          title: {
+            display: true,
+            text: 'Puzzle',
+            color: 'rgba(235,236,208,0.6)',
+            font: { size: 11, weight: '700' }
+          },
+          ticks: { color: 'rgba(235,236,208,0.5)', font: { size: 11 }, maxRotation: 45, autoSkip: true },
+          grid:  { display: false }
+        }
+      },
+      animation: { duration: 900, easing: 'easeOutQuart' },
+      interaction: { intersect: false, mode: 'nearest' }
+    }
+  });
 
-    // Create chart
-    const ctx = document.getElementById('progressChart').getContext('2d');
-    const chart = new Chart(ctx, config);
-
-    // Add smooth animation on hover
-    const canvas = document.getElementById('progressChart');
-    canvas.style.transition = 'all 0.3s ease';
-
-    canvas.addEventListener('mouseenter', () => {
-        canvas.style.transform = 'scale(1.005)';
+  /* ── Tabs ───────────────────────────────────────────────────── */
+  document.querySelectorAll('.tab-btn').forEach(btn => {
+    btn.addEventListener('click', () => {
+      document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active-tab'));
+      document.querySelectorAll('.tab-section').forEach(s => s.classList.remove('active'));
+      btn.classList.add('active-tab');
+      document.getElementById(btn.dataset.tab).classList.add('active');
     });
-
-    canvas.addEventListener('mouseleave', () => {
-        canvas.style.transform = 'scale(1)';
-    });
-
-    // ---------------- TABS ----------------
-    const btns = document.querySelectorAll(".tab-btn");
-    const sections = document.querySelectorAll(".tab-section");
-    btns.forEach(btn => {
-        btn.addEventListener("click", () => {
-            btns.forEach(b => b.classList.remove("active-tab"));
-            sections.forEach(s => s.classList.remove("active"));
-            btn.classList.add("active-tab");
-            document.getElementById(btn.dataset.tab).classList.add("active");
-        });
-    });
+  });
 </script>
 
 {% endblock %}

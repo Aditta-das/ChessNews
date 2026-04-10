@@ -1,0 +1,1121 @@
+{% extends 'news/base.html' %}
+{% load static %}
+
+{% block title %}{{ article.title }} - GM Bangladesh{% endblock %}
+
+{% block content %}
+
+<style>
+    /* ── Reading progress bar ─────────────────────────────────── */
+    .reading-progress-bar {
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 0%;
+        height: 3px;
+        background: var(--chess-primary);
+        z-index: 9999;
+        transition: width 0.1s linear;
+        box-shadow: 0 0 8px rgba(119, 149, 86, 0.5);
+    }
+
+    /* ── Layout ───────────────────────────────────────────────── */
+    .article-layout {
+        max-width: 1100px;
+        margin: 0 auto;
+        padding: 0 0 48px;
+    }
+
+    /* ── Article card ─────────────────────────────────────────── */
+    .article-card {
+        background: var(--card-color);
+        border: 1px solid var(--border);
+        border-radius: 14px;
+        overflow: hidden;
+        margin-bottom: 16px;
+        animation: fadeInUp 0.5s ease-out;
+    }
+
+    @keyframes fadeInUp {
+        from {
+            opacity: 0;
+            transform: translateY(20px);
+        }
+
+        to {
+            opacity: 1;
+            transform: translateY(0);
+        }
+    }
+
+    .article-card::before {
+        content: '';
+        display: block;
+        height: 3px;
+        background: var(--chess-primary);
+    }
+
+    .article-inner {
+        padding: 28px 32px;
+    }
+
+    /* ── Title ────────────────────────────────────────────────── */
+    .article-title {
+        font-size: 2rem;
+        font-weight: 800;
+        color: var(--chess-light);
+        line-height: 1.3;
+        margin-bottom: 20px;
+        letter-spacing: -0.02em;
+        padding-bottom: 16px;
+        border-bottom: 1px solid var(--border);
+    }
+
+    /* ── Author row ───────────────────────────────────────────── */
+    .author-row {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        background: oklch(20% 0.01 256);
+        border: 1px solid var(--border);
+        border-radius: 10px;
+        padding: 12px 16px;
+        margin-bottom: 20px;
+    }
+
+    .author-avatar {
+        width: 44px;
+        height: 44px;
+        border-radius: 50%;
+        background: var(--chess-primary);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 1.1rem;
+        font-weight: 700;
+        color: #fff;
+        flex-shrink: 0;
+        border: 2px solid rgba(119, 149, 86, 0.3);
+    }
+
+    .author-name {
+        font-size: 0.95rem;
+        font-weight: 700;
+        color: var(--chess-light);
+    }
+
+    .author-sub {
+        font-size: 0.75rem;
+        color: var(--color-gray-400);
+        margin-top: 1px;
+    }
+
+    .author-actions {
+        margin-left: auto;
+        display: flex;
+        gap: 6px;
+    }
+
+    .edit-btn {
+        display: inline-flex;
+        align-items: center;
+        gap: 5px;
+        font-size: 0.75rem;
+        font-weight: 700;
+        padding: 5px 12px;
+        border-radius: 99px;
+        border: 1px solid var(--border);
+        background: oklch(22% 0.01 256);
+        color: var(--chess-secondary);
+        text-decoration: none;
+        transition: all 0.15s;
+    }
+
+    .edit-btn:hover {
+        border-color: var(--chess-primary);
+        color: var(--chess-primary);
+    }
+
+    .delete-btn {
+        border-color: rgba(200, 75, 75, 0.4);
+        color: var(--chess-red);
+    }
+
+    .delete-btn:hover {
+        background: rgba(200, 75, 75, 0.1);
+        border-color: var(--chess-red);
+    }
+
+    /* ── Meta badges ──────────────────────────────────────────── */
+    .meta-row {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 8px;
+        margin-bottom: 24px;
+    }
+
+    .meta-pill {
+        display: inline-flex;
+        align-items: center;
+        gap: 5px;
+        font-size: 0.72rem;
+        font-weight: 700;
+        padding: 4px 12px;
+        border-radius: 99px;
+        border: 1px solid var(--border);
+        background: oklch(20% 0.01 256);
+        color: var(--color-gray-400);
+        letter-spacing: 0.3px;
+    }
+
+    .meta-pill i {
+        color: var(--chess-primary);
+    }
+
+    /* ── Article content ──────────────────────────────────────── */
+    .article-content img {
+        display: block;
+        margin: 16px auto;
+        max-width: 100%;
+        max-height: 420px;
+        object-fit: cover;
+        border-radius: 10px;
+        border: 1px solid var(--border);
+    }
+
+    .article-content p {
+        margin-bottom: 1.5rem;
+    }
+
+    .article-content p:first-of-type::first-letter {
+        font-size: 3.2rem;
+        float: left;
+        padding-right: 12px;
+        line-height: 1;
+        color: var(--chess-primary);
+        font-weight: 800;
+    }
+
+    .article-content img {
+        display: block !important;
+        margin-left: auto !important;
+        margin-right: auto !important;
+
+        width: 100%;
+        max-width: 800px;
+
+        height: auto;
+        max-height: 420px;
+        object-fit: cover;
+
+        border-radius: 10px;
+        border: 1px solid var(--border);
+    }
+
+    .article-content img,
+    .article-content figure.image {
+        display: block !important;
+        margin: 20px auto !important;
+        text-align: center !important;
+    }
+
+    .article-content iframe {
+        width: 100%;
+        aspect-ratio: 16/9;
+        border-radius: 10px;
+        margin: 20px 0;
+        border: 1px solid var(--border);
+        display: block;
+    }
+
+    .article-content h2 {
+        font-size: 1.5rem;
+        font-weight: 700;
+        color: var(--chess-light);
+        border-left: 3px solid var(--chess-primary);
+        padding-left: 14px;
+        margin: 2rem 0 1rem;
+    }
+
+    .article-content h3 {
+        font-size: 1.2rem;
+        font-weight: 700;
+        color: var(--chess-primary);
+        margin: 1.8rem 0 0.8rem;
+    }
+
+    .article-content ul,
+    .article-content ol {
+        padding-left: 1.6rem;
+        margin-bottom: 1.4rem;
+        color: var(--chess-secondary);
+    }
+
+    .article-content li {
+        margin-bottom: 0.4rem;
+    }
+
+    .article-content blockquote {
+        border-left: 3px solid var(--chess-primary);
+        background: oklch(20% 0.01 256);
+        padding: 14px 20px;
+        margin: 20px 0;
+        border-radius: 0 8px 8px 0;
+        font-style: italic;
+        color: var(--chess-secondary);
+    }
+
+    /* ── Stats bar ────────────────────────────────────────────── */
+    .stats-bar {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        padding: 14px 0;
+        border-top: 1px solid var(--border);
+        border-bottom: 1px solid var(--border);
+        margin: 24px 0 0;
+        flex-wrap: wrap;
+    }
+
+    .stat-chip {
+        display: inline-flex;
+        align-items: center;
+        gap: 5px;
+        font-size: 0.8rem;
+        font-weight: 700;
+        padding: 6px 14px;
+        border-radius: 99px;
+        border: 1px solid var(--border);
+        background: oklch(20% 0.01 256);
+        color: var(--chess-secondary);
+        cursor: default;
+    }
+
+    .stat-chip i {
+        font-size: 0.9rem;
+    }
+
+    .stat-chip.likes-chip {
+        cursor: pointer;
+        transition: all 0.15s;
+    }
+
+    .stat-chip.likes-chip:hover,
+    .stat-chip.likes-chip.liked {
+        border-color: var(--chess-red);
+        color: var(--chess-red);
+        background: rgba(200, 75, 75, 0.08);
+    }
+
+    .stat-chip.likes-chip.liked i {
+        color: var(--chess-red);
+    }
+
+    .share-chip {
+        cursor: pointer;
+        transition: all 0.15s;
+        margin-left: auto;
+    }
+
+    .share-chip:hover {
+        border-color: var(--chess-primary);
+        color: var(--chess-primary);
+    }
+
+    /* ── Comments section ─────────────────────────────────────── */
+    .section-label {
+        font-size: 0.62rem;
+        font-weight: 700;
+        letter-spacing: 2px;
+        text-transform: uppercase;
+        color: var(--color-gray-400);
+        margin-bottom: 12px;
+    }
+
+    .comments-card {
+        background: var(--card-color);
+        border: 1px solid var(--border);
+        border-radius: 14px;
+        overflow: hidden;
+        margin-bottom: 12px;
+    }
+
+    .comments-header-bar {
+        padding: 14px 20px;
+        border-bottom: 1px solid var(--border);
+        display: flex;
+        align-items: center;
+        gap: 8px;
+    }
+
+    .comments-heading {
+        font-size: 0.95rem;
+        font-weight: 700;
+        color: var(--chess-light);
+        margin: 0;
+    }
+
+    .comment-count-pill {
+        display: inline-block;
+        background: rgba(119, 149, 86, 0.15);
+        color: var(--chess-primary);
+        font-size: 0.7rem;
+        font-weight: 700;
+        padding: 2px 9px;
+        border-radius: 99px;
+        border: 1px solid rgba(119, 149, 86, 0.25);
+    }
+
+    /* Comment form */
+    .comment-form-wrap {
+        padding: 16px 20px;
+        border-bottom: 1px solid var(--border);
+    }
+
+    .comment-textarea {
+        width: 100%;
+        background: oklch(14% 0.008 256);
+        border: 1px solid var(--border);
+        border-radius: 8px;
+        color: var(--chess-light);
+        font-size: 0.88rem;
+        padding: 10px 12px;
+        resize: vertical;
+        font-family: inherit;
+        transition: border-color 0.15s;
+        min-height: 72px;
+    }
+
+    .comment-textarea:focus {
+        outline: none;
+        border-color: var(--chess-primary);
+    }
+
+    .comment-textarea::placeholder {
+        color: var(--color-gray-400);
+    }
+
+    .comment-submit-btn {
+        margin-top: 8px;
+        padding: 7px 20px;
+        font-size: 0.8rem;
+        font-weight: 700;
+        border-radius: 99px;
+        border: none;
+        background: var(--chess-primary);
+        color: #fff;
+        cursor: pointer;
+        transition: all 0.18s;
+    }
+
+    .comment-submit-btn:hover:not(:disabled) {
+        background: #67804a;
+    }
+
+    .comment-submit-btn:disabled {
+        opacity: 0.5;
+        cursor: not-allowed;
+    }
+
+    .login-notice {
+        padding: 12px 20px;
+        background: oklch(20% 0.01 256);
+        border-bottom: 1px solid var(--border);
+        font-size: 0.85rem;
+        color: var(--color-gray-400);
+    }
+
+    .login-notice a {
+        color: var(--chess-primary);
+        font-weight: 700;
+    }
+
+    .login-notice a:hover {
+        color: var(--chess-light);
+    }
+
+    /* Comment list */
+    .comments-list {
+        padding: 8px 20px 16px;
+    }
+
+    .comments-list::-webkit-scrollbar {
+        width: 4px;
+    }
+
+    .comments-list::-webkit-scrollbar-thumb {
+        background: var(--border);
+        border-radius: 99px;
+    }
+
+    /* Individual comment */
+    .comment-item {
+        padding: 14px 0;
+        border-bottom: 1px solid var(--border);
+        animation: fadeInUp 0.35s ease-out;
+    }
+
+    .comment-item:last-child {
+        border-bottom: none;
+    }
+
+    .comment-top {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        margin-bottom: 8px;
+    }
+
+    .c-avatar {
+        width: 34px;
+        height: 34px;
+        border-radius: 50%;
+        background: var(--chess-primary);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 0.82rem;
+        font-weight: 700;
+        color: #fff;
+        flex-shrink: 0;
+        border: 1px solid rgba(119, 149, 86, 0.3);
+    }
+
+    .c-username {
+        font-size: 0.88rem;
+        font-weight: 700;
+        color: var(--chess-light);
+    }
+
+    .c-time {
+        font-size: 0.72rem;
+        color: var(--color-gray-400);
+        margin-left: 2px;
+    }
+
+    .c-actions {
+        margin-left: auto;
+        display: flex;
+        gap: 4px;
+    }
+
+    .c-action-btn {
+        background: none;
+        border: none;
+        font-size: 0.75rem;
+        padding: 3px 8px;
+        border-radius: 6px;
+        cursor: pointer;
+        color: var(--color-gray-400);
+        transition: all 0.15s;
+        display: inline-flex;
+        align-items: center;
+        gap: 3px;
+        font-weight: 600;
+    }
+
+    .c-action-btn.reply-toggle:hover {
+        color: var(--chess-primary);
+        background: rgba(119, 149, 86, 0.1);
+    }
+
+    .c-action-btn.edit-comment:hover {
+        color: #60a5fa;
+        background: rgba(96, 165, 250, 0.08);
+    }
+
+    .c-action-btn.delete-comment:hover {
+        color: var(--chess-red);
+        background: rgba(200, 75, 75, 0.08);
+    }
+
+    .comment-text {
+        font-size: 0.88rem;
+        color: var(--chess-secondary);
+        line-height: 1.6;
+        margin: 0;
+        padding-left: 44px;
+    }
+
+    /* Edit box */
+    .edit-container {
+        padding-left: 44px;
+        margin-top: 8px;
+    }
+
+    .edit-input {
+        width: 100%;
+        background: oklch(14% 0.008 256);
+        border: 1px solid var(--border);
+        border-radius: 7px;
+        color: var(--chess-light);
+        font-size: 0.86rem;
+        padding: 8px 10px;
+        font-family: inherit;
+        resize: vertical;
+        margin-bottom: 6px;
+    }
+
+    .edit-input:focus {
+        outline: none;
+        border-color: var(--chess-primary);
+    }
+
+    .edit-actions {
+        display: flex;
+        gap: 6px;
+    }
+
+    .save-edit-btn {
+        font-size: 0.76rem;
+        font-weight: 700;
+        padding: 4px 14px;
+        border-radius: 99px;
+        border: none;
+        background: var(--chess-primary);
+        color: #fff;
+        cursor: pointer;
+        transition: background 0.15s;
+    }
+
+    .save-edit-btn:hover {
+        background: #67804a;
+    }
+
+    .cancel-edit-btn {
+        font-size: 0.76rem;
+        font-weight: 700;
+        padding: 4px 14px;
+        border-radius: 99px;
+        border: 1px solid var(--border);
+        background: oklch(22% 0.01 256);
+        color: var(--chess-secondary);
+        cursor: pointer;
+        transition: all 0.15s;
+    }
+
+    .cancel-edit-btn:hover {
+        border-color: var(--color-gray-400);
+        color: var(--chess-light);
+    }
+
+    /* Reply form */
+    .reply-form-container {
+        padding-left: 44px;
+        margin-top: 10px;
+        display: none;
+    }
+
+    .reply-textarea {
+        width: 100%;
+        background: oklch(14% 0.008 256);
+        border: 1px solid var(--border);
+        border-radius: 7px;
+        color: var(--chess-light);
+        font-size: 0.85rem;
+        padding: 8px 10px;
+        font-family: inherit;
+        resize: none;
+        transition: border-color 0.15s;
+    }
+
+    .reply-textarea:focus {
+        outline: none;
+        border-color: var(--chess-primary);
+    }
+
+    .reply-textarea::placeholder {
+        color: var(--color-gray-400);
+    }
+
+    .reply-submit-btn {
+        margin-top: 6px;
+        font-size: 0.76rem;
+        font-weight: 700;
+        padding: 5px 16px;
+        border-radius: 99px;
+        border: none;
+        background: var(--chess-primary);
+        color: #fff;
+        cursor: pointer;
+        transition: background 0.15s;
+    }
+
+    .reply-submit-btn:hover {
+        background: #67804a;
+    }
+
+    /* Replies */
+    .replies-section {
+        margin-left: 44px;
+        margin-top: 10px;
+        padding-left: 14px;
+        border-left: 2px solid rgba(119, 149, 86, 0.2);
+    }
+
+    .reply-item {
+        padding: 10px 0;
+        border-bottom: 1px solid var(--border);
+        animation: fadeInUp 0.3s ease-out;
+    }
+
+    .reply-item:last-child {
+        border-bottom: none;
+    }
+
+    .reply-text {
+        font-size: 0.84rem;
+        color: var(--chess-secondary);
+        margin: 0;
+        padding-left: 36px;
+        line-height: 1.55;
+    }
+
+    /* No comments */
+    .no-comments {
+        padding: 28px 0;
+        text-align: center;
+        color: var(--color-gray-400);
+        font-size: 0.85rem;
+        font-style: italic;
+    }
+
+    .no-comments i {
+        display: block;
+        font-size: 2rem;
+        margin-bottom: 8px;
+        opacity: 0.4;
+    }
+
+    /* Back button */
+    .back-btn {
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
+        font-size: 0.82rem;
+        font-weight: 700;
+        padding: 8px 20px;
+        border-radius: 99px;
+        border: 1px solid var(--border);
+        background: oklch(20% 0.01 256);
+        color: var(--chess-secondary);
+        text-decoration: none;
+        transition: all 0.18s;
+        margin-top: 8px;
+    }
+
+    .back-btn:hover {
+        border-color: var(--chess-primary);
+        color: var(--chess-primary);
+    }
+
+    /* Notification */
+    .notif-toast {
+        position: fixed;
+        top: 20px;
+        right: 20px;
+        z-index: 9999;
+        background: var(--card-color);
+        border: 1px solid var(--border);
+        border-left: 3px solid var(--chess-primary);
+        color: var(--chess-light);
+        padding: 10px 18px;
+        border-radius: 10px;
+        font-size: 0.85rem;
+        font-weight: 600;
+        box-shadow: 0 6px 20px rgba(0, 0, 0, 0.4);
+        animation: slideIn 0.3s ease;
+        display: flex;
+        align-items: center;
+        gap: 8px;
+    }
+
+    .notif-toast.error {
+        border-left-color: var(--chess-red);
+    }
+
+    .notif-toast.success {
+        border-left-color: var(--chess-primary);
+    }
+
+    @keyframes slideIn {
+        from {
+            transform: translateX(80px);
+            opacity: 0;
+        }
+
+        to {
+            transform: translateX(0);
+            opacity: 1;
+        }
+    }
+
+    /* Responsive */
+    @media (max-width: 600px) {
+        .article-inner {
+            padding: 18px;
+        }
+
+        .article-title {
+            font-size: 1.4rem;
+        }
+
+        .article-content {
+            font-size: 0.95rem;
+        }
+
+        .article-content img {
+            width: 100%;
+            max-height: 260px;
+            margin: 16px auto;
+            border-radius: 8px;
+        }
+
+        .article-content p:first-of-type::first-letter {
+            font-size: 2.4rem;
+        }
+
+        .comments-list {
+            padding: 8px 14px 14px;
+        }
+
+        .reply-form-container,
+        .edit-container {
+            padding-left: 0;
+        }
+
+        .replies-section {
+            margin-left: 0;
+        }
+    }
+</style>
+
+<div class="reading-progress-bar" id="reading-progress"></div>
+
+<div class="article-layout">
+
+    <!-- ── Article ─────────────────────────────────────────────── -->
+    <div class="article-card">
+        <div class="article-inner">
+
+            <h1 class="article-title">{{ article.title }}</h1>
+
+            <!-- Author -->
+            <div class="author-row">
+                <div class="author-avatar">{{ article.author.username|first|upper }}</div>
+                <div>
+                    <div class="author-name">{{ article.author.username }}</div>
+                    <div class="author-sub">Chess Journalist</div>
+                </div>
+                {% if request.user == article.author %}
+                <div class="author-actions">
+                    <a href="{% url 'edit_article' article.slug %}" class="edit-btn">
+                        <i class="bi bi-pencil-fill"></i> Edit
+                    </a>
+                    <button id="delete-article-btn" class="edit-btn delete-btn">
+                        <i class="bi bi-trash-fill"></i> Delete
+                    </button>
+                </div>
+                {% endif %}
+            </div>
+
+            <!-- Meta -->
+            <div class="meta-row">
+                <span class="meta-pill">
+                    <i class="bi bi-calendar3"></i> {{ article.published_at|date:"M d, Y" }}
+                </span>
+                {% if article.updated_at != article.created_at %}
+                <span class="meta-pill">
+                    <i class="bi bi-arrow-clockwise"></i> Updated {{ article.published_at|date:"M d, Y" }}
+                </span>
+                {% endif %}
+            </div>
+
+            <!-- Content -->
+            <div class="article-content">{{ article.content|safe }}</div>
+
+            <!-- Stats -->
+            <div class="stats-bar">
+                <span class="stat-chip likes-chip {% if user in article.likes.all %}liked{% endif %}" id="like-btn"
+                    data-slug="{{ article.slug }}" style="cursor:pointer;">
+                    <i class="bi bi-heart{% if user in article.likes.all %}-fill{% endif %}"></i>
+                    <span id="like-count">{{ article.likes.count }}</span>
+                    <span id="like-label">{% if user in article.likes.all %}Liked{% else %}Like{% endif %}</span>
+                </span>
+                <span class="stat-chip">
+                    <i class="bi bi-chat" style="color:var(--chess-primary);"></i>
+                    {{ article.comments.count }} Comments
+                </span>
+                <span class="stat-chip share-chip" id="share-btn">
+                    <i class="bi bi-share"></i> Share
+                </span>
+            </div>
+
+        </div>
+    </div>
+
+    <!-- ── Comments ────────────────────────────────────────────── -->
+    <div class="comments-card">
+
+        <div class="comments-header-bar">
+            <i class="bi bi-chat-fill" style="color:var(--chess-primary);font-size:0.9rem;"></i>
+            <h3 class="comments-heading">Comments</h3>
+            <span class="comment-count-pill">{{ article.comments.count }}</span>
+        </div>
+
+        <!-- Form -->
+        {% if user.is_authenticated %}
+        <div class="comment-form-wrap">
+            <form id="comment-form" data-slug="{{ article.slug }}">
+                {% csrf_token %}
+                <textarea id="comment-content" class="comment-textarea" rows="3" placeholder="Share your thoughts…"
+                    required></textarea>
+                <button type="submit" class="comment-submit-btn" id="comment-submit">Post Comment</button>
+            </form>
+        </div>
+        {% else %}
+        <div class="login-notice">
+            <i class="bi bi-info-circle me-1"></i>
+            Please <a href="{% url 'login' %}">log in</a> to join the discussion.
+        </div>
+        {% endif %}
+
+        <!-- List -->
+        <div class="comments-list" id="comments-list">
+            {% for comment in article.comments.all %}
+            {% if comment.is_parent %}
+            {% include 'news/partial/comment.html' with comment=comment %}
+            {% endif %}
+            {% empty %}
+            <div class="no-comments" id="no-comments-message">
+                <i class="bi bi-chat-dots"></i>
+                No comments yet. Be the first!
+            </div>
+            {% endfor %}
+        </div>
+
+    </div>
+
+    <div style="text-align:center;">
+        <a href="{% url 'all_blogs' %}" class="back-btn">
+            <i class="bi bi-arrow-left"></i> Back to All Articles
+        </a>
+    </div>
+
+</div>
+
+<script>
+    // ── CSRF ─────────────────────────────────────────────────────
+    function getCookie(name) {
+        const match = document.cookie.match(new RegExp('(?:^|; )' + name + '=([^;]*)'));
+        return match ? decodeURIComponent(match[1]) : null;
+    }
+    const csrftoken = getCookie('csrftoken');
+    const articleSlug = "{{ article.slug|escapejs }}";
+
+    // ── Notification ──────────────────────────────────────────────
+    function showNotif(msg, type = 'success') {
+        const el = document.createElement('div');
+        el.className = `notif-toast ${type}`;
+        el.innerHTML = `<i class="bi bi-${type === 'success' ? 'check-circle' : 'exclamation-circle'}"></i> ${msg}`;
+        document.body.appendChild(el);
+        setTimeout(() => { el.style.opacity = '0'; el.style.transition = '0.3s'; setTimeout(() => el.remove(), 300); }, 2800);
+    }
+
+    // ── Reading progress ──────────────────────────────────────────
+    window.addEventListener('scroll', () => {
+        const h = document.documentElement.scrollHeight - window.innerHeight;
+        document.getElementById('reading-progress').style.width = ((window.scrollY / h) * 100) + '%';
+    });
+
+    // ── Like ──────────────────────────────────────────────────────
+    document.getElementById('like-btn')?.addEventListener('click', function () {
+        fetch(`/article/${articleSlug}/like/`)
+            .then(r => r.json())
+            .then(data => {
+                this.classList.toggle('liked', data.liked);
+                this.querySelector('i').className = `bi bi-heart${data.liked ? '-fill' : ''}`;
+                document.getElementById('like-count').textContent = data.like_count;
+                document.getElementById('like-label').textContent = data.liked ? 'Liked' : 'Like';
+            });
+    });
+
+    // ── Share ─────────────────────────────────────────────────────
+    document.getElementById('share-btn')?.addEventListener('click', function () {
+        if (navigator.share) {
+            navigator.share({ title: '{{ article.title|escapejs }}', url: location.href });
+        } else {
+            navigator.clipboard.writeText(location.href).then(() => showNotif('Link copied!', 'success'));
+        }
+    });
+
+    // ── Post comment ──────────────────────────────────────────────
+    document.getElementById('comment-form')?.addEventListener('submit', function (e) {
+        e.preventDefault();
+        const content = document.getElementById('comment-content').value.trim();
+        if (!content) return;
+        const btn = document.getElementById('comment-submit');
+        btn.disabled = true; btn.textContent = 'Posting…';
+
+        fetch(`/article/${articleSlug}/comment/add/`, {
+            method: 'POST',
+            headers: { 'X-CSRFToken': csrftoken, 'Content-Type': 'application/x-www-form-urlencoded' },
+            body: new URLSearchParams({ content })
+        })
+            .then(r => r.json())
+            .then(data => {
+                if (data.status === 'success') {
+                    document.getElementById('no-comments-message')?.remove();
+                    document.getElementById('comments-list').insertAdjacentHTML('afterbegin', data.html);
+                    document.getElementById('comment-content').value = '';
+                    showNotif('Comment posted!', 'success');
+                } else { showNotif('Error posting comment', 'error'); }
+            })
+            .catch(() => showNotif('Network error', 'error'))
+            .finally(() => { btn.disabled = false; btn.textContent = 'Post Comment'; });
+    });
+
+    // ── Delete article ────────────────────────────────────────────
+    document.getElementById('delete-article-btn')?.addEventListener('click', function () {
+        if (!confirm('Delete this article? This cannot be undone.')) return;
+        fetch(`/article/{{ article.slug }}/delete/`, {
+            method: 'POST',
+            headers: { 'X-CSRFToken': csrftoken }
+        })
+            .then(r => r.json())
+            .then(data => {
+                if (data.status === 'success') {
+                    showNotif('Article deleted', 'success');
+                    setTimeout(() => location.href = "{% url 'all_blogs' %}", 1400);
+                }
+            });
+    });
+
+    // ── Delegated events ──────────────────────────────────────────
+    document.addEventListener('click', function (e) {
+
+        // Toggle reply form
+        const replyToggle = e.target.closest('.reply-toggle');
+        if (replyToggle) {
+            const id = replyToggle.dataset.commentId;
+            const form = document.getElementById(`reply-form-${id}`);
+            if (form) form.style.display = form.style.display === 'none' ? 'block' : 'none';
+        }
+
+        // Edit comment
+        const editBtn = e.target.closest('.edit-comment');
+        if (editBtn) {
+            const id = editBtn.dataset.commentId;
+            document.getElementById(`text-${id}`).style.display = 'none';
+            document.getElementById(`edit-container-${id}`).style.display = 'block';
+        }
+
+        // Cancel edit
+        const cancelBtn = e.target.closest('.cancel-edit');
+        if (cancelBtn) {
+            const id = cancelBtn.dataset.commentId;
+            document.getElementById(`text-${id}`).style.display = 'block';
+            document.getElementById(`edit-container-${id}`).style.display = 'none';
+        }
+
+        // Save edit
+        const saveBtn = e.target.closest('.save-edit');
+        if (saveBtn) {
+            const id = saveBtn.dataset.commentId;
+            const content = document.getElementById(`edit-input-${id}`).value.trim();
+            if (!content) return;
+            fetch(`/comment/${id}/edit/`, {
+                method: 'POST',
+                headers: { 'X-CSRFToken': csrftoken, 'Content-Type': 'application/x-www-form-urlencoded' },
+                body: new URLSearchParams({ content })
+            })
+                .then(r => r.json())
+                .then(data => {
+                    if (data.status === 'success') {
+                        document.getElementById(`text-${id}`).textContent = data.content;
+                        document.getElementById(`text-${id}`).style.display = 'block';
+                        document.getElementById(`edit-container-${id}`).style.display = 'none';
+                        showNotif('Comment updated', 'success');
+                    }
+                });
+        }
+
+        // Delete comment
+        const delComment = e.target.closest('.delete-comment');
+        if (delComment) {
+            const id = delComment.dataset.commentId;
+            if (!confirm('Delete this comment?')) return;
+            fetch(`/comment/${id}/delete/`, {
+                method: 'POST', headers: { 'X-CSRFToken': csrftoken }
+            })
+                .then(r => r.json())
+                .then(data => {
+                    if (data.status === 'success') {
+                        const el = document.getElementById(`comment-${id}`);
+                        if (el) { el.style.opacity = '0'; el.style.transition = '0.3s'; setTimeout(() => el.remove(), 300); }
+                        showNotif('Comment deleted', 'success');
+                    }
+                });
+        }
+
+        // Delete reply
+        const delReply = e.target.closest('.delete-reply');
+        if (delReply) {
+            const id = delReply.dataset.replyId;
+            if (!confirm('Delete this reply?')) return;
+            fetch(`/reply/${id}/delete/`, {
+                method: 'POST', headers: { 'X-CSRFToken': csrftoken }
+            })
+                .then(r => r.json())
+                .then(data => {
+                    if (data.status === 'success') {
+                        const el = document.getElementById(`reply-${id}`);
+                        if (el) { el.style.opacity = '0'; el.style.transition = '0.3s'; setTimeout(() => el.remove(), 300); }
+                        showNotif('Reply deleted', 'success');
+                    }
+                });
+        }
+    });
+
+    // ── Reply submit ──────────────────────────────────────────────
+    document.addEventListener('submit', function (e) {
+        if (!e.target.classList.contains('reply-form')) return;
+        e.preventDefault();
+        const form = e.target;
+        const parentId = form.dataset.parentId;
+        const textarea = form.querySelector('.reply-textarea');
+        const content = textarea.value.trim();
+        if (!content) return;
+        const csrf = form.querySelector('[name=csrfmiddlewaretoken]').value;
+        const btn = form.querySelector('button[type=submit]');
+        btn.disabled = true;
+
+        fetch(`/comment/${parentId}/reply/`, {
+            method: 'POST',
+            headers: { 'X-CSRFToken': csrf, 'Content-Type': 'application/x-www-form-urlencoded' },
+            body: new URLSearchParams({ content })
+        })
+            .then(r => r.json())
+            .then(data => {
+                if (data.status === 'success' && data.html) {
+                    textarea.value = '';
+                    form.closest('.reply-form-container').style.display = 'none';
+                    const commentCard = form.closest('.comment-item');
+                    let section = commentCard.querySelector('.replies-section');
+                    if (!section) {
+                        section = document.createElement('div');
+                        section.className = 'replies-section';
+                        commentCard.appendChild(section);
+                    }
+                    const tmp = document.createElement('div');
+                    tmp.innerHTML = data.html;
+                    const reply = tmp.firstElementChild;
+                    if (reply && !document.getElementById(reply.id)) section.appendChild(reply);
+                    showNotif('Reply posted!', 'success');
+                }
+            })
+            .finally(() => { btn.disabled = false; });
+    });
+</script>
+
+{% endblock %}
