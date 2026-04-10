@@ -71,7 +71,13 @@ class TopPlayerImg(models.Model):
     def __str__(self):
         return self.name
 
+class BangladeshiTopPlayer(models.Model):
+    fide_id = models.CharField(max_length=20, unique=True)
+    name = models.CharField(max_length=100)
+    image = models.ImageField(upload_to='bangladesh_players/', null=True, blank=True)
 
+    def __str__(self):
+        return self.name
     
 class TournamentBanner(models.Model):
     title = models.CharField(max_length=200)
@@ -89,19 +95,6 @@ class TournamentBanner(models.Model):
         
     def __str__(self):
         return self.title
-
-
-class BangladeshiTopPlayer(models.Model):
-    RANK_CHOICES = [(i, str(i)) for i in range(1, 11)]  # 1 to 10
-
-    name = models.CharField(max_length=100)
-    image = models.ImageField(upload_to='bangladesh_players/', null=True, blank=True)
-    fide_rating = models.PositiveIntegerField()
-    rank = models.PositiveSmallIntegerField(choices=RANK_CHOICES, unique=True)
-
-    def __str__(self):
-        return f"#{self.rank} - {self.name}"
-
 
 
 class Book(models.Model):

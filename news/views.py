@@ -23,49 +23,132 @@ from django.template.loader import render_to_string
 from django.http import JsonResponse, HttpResponseForbidden
 from django.views.decorators.http import require_POST
 
-def home(request):
-    # Big news
-    big_news = Article.objects.filter(is_big_news=True).first()
-    small_news = Article.objects.order_by('-published_at').exclude(id=big_news.id if big_news else None)[:6]
-    best_reporter = User.objects.order_by('-article__id').first()
-    
-    top_bd_players = BangladeshiTopPlayer.objects.order_by('rank')
+from django.core.cache import cache
+import requests
+from django.http import JsonResponse
+from django.shortcuts import render
+from django.core.cache import cache
+from django.views.decorators.csrf import csrf_exempt
+from django.views.decorators.cache import never_cache
+import requests
+from .models import Article, TopPlayerImg, BangladeshiTopPlayer, TournamentBanner, Events, UserProfile
+from django.contrib.auth.models import User
 
-    # Fetch top players from FIDE API
-    try:
-        response = requests.get('https://fide-api.vercel.app/top_players/?limit=5&history=false')
-        players = response.json()
-    except Exception:
-        players = []
-
-    # Attach images
-    for player in players:
+@csrf_exempt
+def api_world_players(request):
+    """API endpoint for world players"""
+    players = cache.get('world_players_api')
+    if not players:
         try:
-            img_obj = TopPlayerImg.objects.get(fide_id=player['fide_id'])
-            player['image_url'] = img_obj.image.url if img_obj.image else None
-        except TopPlayerImg.DoesNotExist:
-            player['image_url'] = None
+            response = requests.get(
+                'https://fide-api.vercel.app/top_players/?limit=5&history=false',
+                timeout=20
+            )
+            if response.status_code == 200:
+                print(response.status_code)
+                players = response.json()
+                cache.set('world_players_api', players, 300)
+            else:
+                players = []
+        except Exception as e:
+            print("WORLD API ERROR:", e)
+            players = []
+    
+    # Attach images
+    world_map = {
+        p.fide_id: p for p in TopPlayerImg.objects.all()
+    }
+    
+    for player in players:
+        obj = world_map.get(player.get('fide_id'))
+        player['image_url'] = obj.image.url if obj and obj.image else None
+        player['rank'] = int(player.get('rank', 0))
+        player['rating'] = int(player.get('rating', 0))
+        player['country'] = player.get('country', '')
+    
+    return JsonResponse({'players': players, 'success': True})
 
-    # Tournament banner
-    banner = TournamentBanner.objects.filter(show_banner=True).order_by('-created_at').first()
-    home_banner = TournamentBanner.objects.filter(inside_home=True).order_by('-created_at').first()
-    tournamets = Events.objects.all().order_by('start')
+
+@csrf_exempt
+def api_bd_players(request):
+    """API endpoint for Bangladeshi players"""
+    top_bd_players = cache.get('bd_players_api')
+    
+    if not top_bd_players:
+        try:
+            bd_response = requests.get(
+                'https://fide.onrender.com/bangladesh_players/?limit=5',
+                timeout=20
+            )
+            if bd_response.status_code == 200:
+                top_bd_players = bd_response.json()
+                cache.set('bd_players_api', top_bd_players, 300)
+            else:
+                top_bd_players = []
+        except Exception as e:
+            print("BD API ERROR:", e)
+            top_bd_players = []
+    
+    bd_map = {
+        p.fide_id: p for p in BangladeshiTopPlayer.objects.all()
+    }
+    
+    for player in top_bd_players:
+        obj = bd_map.get(player.get('fide_id'))
+        player['image_url'] = obj.image.url if obj and obj.image else None
+        player['rank'] = int(player.get('rank', 0))
+        player['rating'] = int(player.get('rating', 0))
+        player['country'] = 'BAN'
+    
+    return JsonResponse({'players': top_bd_players, 'success': True})
+
+
+def home(request):
+    # ── Big news ─────────────────────────────
+    big_news = Article.objects.filter(is_big_news=True).first()
+    small_news = Article.objects.order_by('-published_at')
+    if big_news:
+        small_news = small_news.exclude(id=big_news.id)
+    small_news = small_news[:6]
+
+    best_reporter = User.objects.order_by('-article__id').first()
+
+    # ─────────────────────────────────────────
+    # REMOVED API CALLS - Now loading via JavaScript
+    # ─────────────────────────────────────────
+    
+    # ─────────────────────────────────────────
+    # 📅 Other data (database only - fast)
+    # ─────────────────────────────────────────
+    banner = TournamentBanner.objects.filter(
+        show_banner=True
+    ).order_by('-created_at').first()
+
+    home_banner = TournamentBanner.objects.filter(
+        inside_home=True
+    ).order_by('-created_at').first()
+
+    tournaments = Events.objects.all().order_by('start')
+
     profile = None
-    if request.user.is_authenticated and hasattr(request.user, 'userprofile'):
-        profile = request.user.userprofile
+    if request.user.is_authenticated:
+        try:
+            profile = request.user.userprofile
+        except UserProfile.DoesNotExist:
+            profile = None
 
+    # ─────────────────────────────────────────
+    # Render
+    # ─────────────────────────────────────────
     return render(request, 'news/home.html', {
         'big_news': big_news,
         'small_news': small_news,
         'best_reporter': best_reporter,
-        'players': players,
         'banner': banner,
-        'top_bd_players': top_bd_players,
-        'profile': profile,  
         'home_banner': home_banner,
-        'tournaments': tournamets,
+        'tournaments': tournaments,
+        'profile': profile,
     })
-
 
 @login_required
 def create_article(request, slug=None):

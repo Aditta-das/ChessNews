@@ -195,7 +195,7 @@
 
 	@keyframes ticker-scroll {
 		0% {
-			transform: translateX(100vw);
+			transform: translateX(100%);
 		}
 
 		100% {
@@ -504,11 +504,9 @@
 		left: 0;
 		right: 0;
 		text-align: center;
-
 		font-size: 0.9rem;
 		font-weight: 800;
 		color: #ffffff;
-
 		text-shadow: 0 2px 6px rgba(0, 0, 0, 0.8);
 		padding: 0 8px;
 		z-index: 2;
@@ -663,6 +661,47 @@
 		margin-left: auto;
 	}
 
+	/* Loading States */
+	.loading-spinner {
+		display: flex;
+		justify-content: center;
+		align-items: center;
+		min-height: 200px;
+		grid-column: 1/-1;
+	}
+
+	.spinner {
+		width: 40px;
+		height: 40px;
+		border: 3px solid var(--border);
+		border-top-color: var(--chess-primary);
+		border-radius: 50%;
+		animation: spin 1s linear infinite;
+	}
+
+	@keyframes spin {
+		to {
+			transform: rotate(360deg);
+		}
+	}
+
+	.error-message {
+		grid-column: 1/-1;
+		text-align: center;
+		padding: 40px;
+		color: var(--color-gray-400);
+	}
+
+	.retry-btn {
+		background: var(--chess-primary);
+		color: white;
+		border: none;
+		padding: 8px 20px;
+		border-radius: 99px;
+		margin-top: 10px;
+		cursor: pointer;
+	}
+
 	/* ── Responsive ──────────────────────────────────────────────── */
 	@media (max-width: 900px) {
 		.home-grid {
@@ -728,15 +767,10 @@
 <div class="ticker-wrap mb-4">
 	<div class="ticker-label">♔ Live Rankings</div>
 	<div class="ticker-container">
-		<div class="ticker-text">
-			{% for player in players %}
-			<span style="margin-right:28px;">
-				<strong style="color:var(--chess-primary);">#{{ player.rank }}</strong>
-				<span style="margin:0 4px;">{{ player.name }}</span>
-				<span class="flag-icon flag-icon-{{ player.country|lower }}"></span>
-				<span class="ticker-rating">{{ player.rating }}</span>
-			</span>
-			{% endfor %}
+		<div class="ticker-text" id="ticker-content">
+			<div class="loading-spinner" style="min-height: auto; padding: 8px 0;">
+				<div class="spinner" style="width: 20px; height: 20px;"></div>
+			</div>
 		</div>
 	</div>
 </div>
@@ -864,22 +898,10 @@
 	<div class="section-heading-row">
 		<h2 class="section-heading">🌍 Top World Players</h2>
 	</div>
-	<div class="players-grid">
-		{% for player in players %}
-		<div class="player-card">
-			<img src="{{ player.image_url|default:'/static/img/default-player.jpg' }}" class="player-image"
-				alt="{{ player.name }}" loading="lazy">
-			<div class="player-image-overlay"></div>
-			<span class="player-rank-badge">#{{ player.rank }}</span>
-			<img class="player-country-flag" src="https://flagcdn.com/w20/{{ player.country|lower|slice:'2' }}.png"
-				alt="{{ player.country }}">
-			<div class="player-name-overlay">{{ player.name }}</div>
-			<div class="player-footer">
-				<div class="rating-pill"><i class="bi bi-bar-chart-fill"
-						style="color:var(--chess-primary);font-size:0.7rem;"></i> <span>{{ player.rating }}</span></div>
-			</div>
+	<div id="world-players-container" class="players-grid">
+		<div class="loading-spinner">
+			<div class="spinner"></div>
 		</div>
-		{% endfor %}
 	</div>
 </div>
 
@@ -888,23 +910,10 @@
 	<div class="section-heading-row">
 		<h2 class="section-heading">🇧🇩 Top Bangladeshi Players</h2>
 	</div>
-	<div class="players-grid">
-		{% for bd_player in top_bd_players %}
-		<div class="player-card">
-			<img src="{{ bd_player.image.url }}" class="player-image" alt="{{ bd_player.name }}" loading="lazy">
-			<div class="player-image-overlay"></div>
-			<span class="player-rank-badge">#{{ bd_player.rank }}</span>
-			<img class="player-country-flag" src="https://flagcdn.com/w20/bd.png" alt="Bangladesh">
-			<div class="player-name-overlay">{{ bd_player.name }}</div>
-			<div class="player-footer">
-				<div class="rating-pill">
-					<i class="bi bi-bar-chart-fill" style="color:var(--chess-primary);font-size:0.7rem;">
-					</i>
-					<span>{{ bd_player.fide_rating }}</span>
-				</div>
-			</div>
+	<div id="bd-players-container" class="players-grid">
+		<div class="loading-spinner">
+			<div class="spinner"></div>
 		</div>
-		{% endfor %}
 	</div>
 </div>
 
@@ -944,5 +953,142 @@
 		{% endfor %}
 	</div>
 </div>
+
+<script>
+	// Helper function to escape HTML
+	function escapeHtml(text) {
+		if (!text) return '';
+		const div = document.createElement('div');
+		div.textContent = text;
+		return div.innerHTML;
+	}
+
+	// Create player card HTML
+	function createPlayerCard(player, isBD = false) {
+		const flagCode = isBD ? 'bd' : (player.country || '').toLowerCase().slice(0, 2);
+		const flagUrl = isBD ? 'https://flagcdn.com/w20/bd.png' : `https://flagcdn.com/w20/${flagCode}.png`;
+		const defaultImage = '/static/img/default-player.jpg';
+
+		return `
+        <div class="player-card">
+            <img src="${player.image_url || defaultImage}" 
+                 class="player-image"
+                 alt="${escapeHtml(player.name)}" 
+                 loading="lazy"
+                 onerror="this.src='${defaultImage}'">
+            <div class="player-image-overlay"></div>
+            <span class="player-rank-badge">#${player.rank}</span>
+            <img class="player-country-flag" src="${flagUrl}" alt="${player.country || 'BD'}">
+            <div class="player-name-overlay">${escapeHtml(player.name)}</div>
+            <div class="player-footer">
+                <div class="rating-pill">
+                    <i class="bi bi-bar-chart-fill" style="color:var(--chess-primary);font-size:0.7rem;"></i>
+                    <span>${player.rating}</span>
+                </div>
+            </div>
+        </div>
+    `;
+	}
+
+	// Load World Players
+	async function loadWorldPlayers() {
+		const container = document.getElementById('world-players-container');
+		if (!container) return;
+
+		try {
+			const response = await fetch('/api/world-players/');
+			const data = await response.json();
+
+			if (data.success && data.players && data.players.length > 0) {
+				container.innerHTML = data.players.map(player => createPlayerCard(player, false)).join('');
+			} else {
+				container.innerHTML = '<div class="error-message">No players data available</div>';
+			}
+		} catch (error) {
+			console.error('Error loading world players:', error);
+			container.innerHTML = `
+            <div class="error-message">
+                Failed to load players data
+                <div><button class="retry-btn" onclick="loadWorldPlayers()">Retry</button></div>
+            </div>
+        `;
+		}
+	}
+
+	// Load Bangladeshi Players
+	async function loadBDPlayers() {
+		const container = document.getElementById('bd-players-container');
+		if (!container) return;
+
+		try {
+			const response = await fetch('/api/bd-players/');
+			const data = await response.json();
+
+			if (data.success && data.players && data.players.length > 0) {
+				container.innerHTML = data.players.map(player => createPlayerCard(player, true)).join('');
+			} else {
+				container.innerHTML = '<div class="error-message">No Bangladeshi players data available</div>';
+			}
+		} catch (error) {
+			console.error('Error loading BD players:', error);
+			container.innerHTML = `
+            <div class="error-message">
+                Failed to load players data
+                <div><button class="retry-btn" onclick="loadBDPlayers()">Retry</button></div>
+            </div>
+        `;
+		}
+	}
+
+	// Load Ticker Data
+	async function loadTickerData() {
+		const tickerContainer = document.getElementById('ticker-content');
+		if (!tickerContainer) return;
+
+		try {
+			const response = await fetch('/api/world-players/');
+			const data = await response.json();
+
+			if (data.success && data.players && data.players.length > 0) {
+				const tickerHtml = data.players.map(player => `
+                <span style="margin-right:28px;">
+                    <strong style="color:var(--chess-primary);">#${player.rank}</strong>
+                    <span style="margin:0 4px;">${escapeHtml(player.name)}</span>
+                    <span class="ticker-rating">${player.rating}</span>
+                </span>
+            `).join('');
+				tickerContainer.innerHTML = tickerHtml;
+			} else {
+				tickerContainer.innerHTML = '<span style="color:var(--color-gray-400);">No rankings available</span>';
+			}
+		} catch (error) {
+			console.error('Error loading ticker data:', error);
+			tickerContainer.innerHTML = '<span style="color:var(--color-gray-400);">Failed to load rankings</span>';
+		}
+	}
+
+	// Load all data when page loads
+	document.addEventListener('DOMContentLoaded', () => {
+		loadWorldPlayers();
+		loadBDPlayers();
+		loadTickerData();
+	});
+
+	// Optional: Reload data every 5 minutes
+	let reloadInterval = setInterval(() => {
+		if (document.visibilityState === 'visible') {
+			loadWorldPlayers();
+			loadBDPlayers();
+			loadTickerData();
+		}
+	}, 300000); // 5 minutes
+
+	// Cleanup interval on page unload
+	window.addEventListener('beforeunload', () => {
+		if (reloadInterval) {
+			clearInterval(reloadInterval);
+		}
+	});
+</script>
 
 {% endblock %}

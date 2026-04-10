@@ -1,136 +1,279 @@
 {% extends 'news/base.html' %}
 {% load static %}
 
-{% block title %}Login - ChessNews{% endblock %}
+{% block title %}Login — GM Bangladesh{% endblock %}
 
 {% block content %}
-<div class="container">
-    <div class="row justify-content-center">
-        <div class="col-md-8 col-lg-6">
-            <div class="card shadow-lg border-0 mt-5">
-                <div class="card-header bg-dark text-white text-center py-3">
-                    <h2 class="mb-0">Login</h2>
-                </div>
-                <div class="card-body p-4">
-                    <form method="post" class="needs-validation" novalidate>
-                        {% csrf_token %}
-
-                        {% if form.non_field_errors %}
-                        <div class="alert alert-danger">
-                            {% for error in form.non_field_errors %}
-                            {{ error }}
-                            {% endfor %}
-                        </div>
-                        {% endif %}
-
-                        <!-- Email -->
-                        <div class="mb-4">
-                            <label for="{{ form.email.id_for_label }}" class="form-label fw-bold">
-                                <i class="fas fa-envelope me-2"></i>Email Address
-                            </label>
-                            <input type="email"
-                                class="form-control form-control-lg {% if form.email.errors %}is-invalid{% endif %}"
-                                id="{{ form.email.id_for_label }}" name="{{ form.email.name }}"
-                                value="{{ form.email.value|default:'' }}" required>
-                            {% for error in form.email.errors %}
-                            <div class="invalid-feedback">{{ error }}</div>
-                            {% endfor %}
-                        </div>
-
-                        <!-- Password -->
-                        <div class="mb-4">
-                            <label for="{{ form.password.id_for_label }}" class="form-label fw-bold">
-                                <i class="fas fa-lock me-2"></i>Password
-                            </label>
-                            <input type="password"
-                                class="form-control form-control-lg {% if form.password.errors %}is-invalid{% endif %}"
-                                id="{{ form.password.id_for_label }}" name="{{ form.password.name }}" required>
-                            {% for error in form.password.errors %}
-                            <div class="invalid-feedback">{{ error }}</div>
-                            {% endfor %}
-                        </div>
-
-                        <!-- OTP -->
-                        <!-- {% if show_otp %}
-                        <div class="mb-4">
-                            <label for="{{ form.otp.id_for_label }}" class="form-label fw-bold">
-                                <i class="fas fa-shield-alt me-2"></i>OTP Code
-                            </label>
-                            <input type="text"
-                                class="form-control form-control-lg {% if form.otp.errors %}is-invalid{% endif %}"
-                                id="{{ form.otp.id_for_label }}" name="{{ form.otp.name }}" required>
-                            {% for error in form.otp.errors %}
-                            <div class="invalid-feedback">{{ error }}</div>
-                            {% endfor %}
-                            {% if email_sent %}
-                            <div class="text-success mt-2">
-                                <i class="fas fa-check-circle me-2"></i>OTP sent to your email
-                            </div>
-                            {% endif %}
-                        </div>
-                        {% endif %} -->
-
-                        <!-- Submit -->
-                        <div class="d-grid gap-2 mb-3">
-                            <button type="submit" class="btn btn-primary btn-lg">
-                                <i class="fas fa-sign-in-alt me-2"></i>Login
-                            </button>
-                        </div>
-                        <div class="text-center">
-                            <span class="text-white">Don't have an account?</span>
-                            <a href="{% url 'register' %}" class="fw-bold" style="text-decoration: none;">Register</a>
-                        </div>
-                    </form>
-                </div>
-            </div>
-        </div>
-    </div>
-</div>
-
 <style>
-    .card {
-        border-radius: 15px;
+    .auth-wrap {
+        min-height: calc(100vh - 120px);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        padding: 32px 16px;
+    }
+
+    .auth-card {
+        width: 100%;
+        max-width: 420px;
+        background: var(--card-color);
+        border: 1px solid var(--border);
+        border-radius: 16px;
         overflow: hidden;
-        border: none;
+        animation: fadeInUp 0.4s ease-out;
     }
 
-    .card-header {
-        font-family: 'Playfair Display', serif;
-        border-bottom: 2px solid var(--chess-primary);
+    @keyframes fadeInUp {
+        from {
+            opacity: 0;
+            transform: translateY(20px);
+        }
+
+        to {
+            opacity: 1;
+            transform: translateY(0);
+        }
     }
 
-    .form-control {
-        border: 1px solid #ced4da;
-        transition: all 0.3s;
+    .auth-card::before {
+        content: '';
+        display: block;
+        height: 3px;
+        background: linear-gradient(90deg, var(--chess-primary), var(--chess-accent));
     }
 
-    .form-control:focus {
-        border-color: var(--chess-primary);
-        box-shadow: 0 0 0 0.25rem rgba(119, 149, 86, 0.25);
+    /* Header */
+    .auth-header {
+        padding: 28px 32px 20px;
+        text-align: center;
+        border-bottom: 1px solid var(--border);
     }
 
-    .form-control-lg {
-        padding: 0.75rem 1rem;
+    .auth-logo {
+        width: 52px;
+        height: 52px;
+        background: var(--chess-primary);
+        border-radius: 12px;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 1.6rem;
+        margin-bottom: 14px;
+        box-shadow: 0 4px 16px rgba(119, 149, 86, 0.35);
     }
 
-    .btn-lg {
-        padding: 0.75rem 1.5rem;
-        font-weight: 600;
-        letter-spacing: 0.5px;
+    .auth-title {
+        font-size: 1.3rem;
+        font-weight: 800;
+        color: var(--chess-light);
+        margin-bottom: 4px;
     }
 
-    .invalid-feedback {
-        font-size: 0.9rem;
+    .auth-sub {
+        font-size: 0.8rem;
+        color: var(--color-gray-400);
     }
 
-    a {
+    /* Body */
+    .auth-body {
+        padding: 24px 32px 28px;
+    }
+
+    /* Error */
+    .auth-error {
+        background: rgba(200, 75, 75, 0.1);
+        border: 1px solid rgba(200, 75, 75, 0.3);
+        border-radius: 8px;
+        padding: 10px 14px;
+        font-size: 0.82rem;
+        color: var(--chess-red);
+        margin-bottom: 18px;
+        display: flex;
+        align-items: center;
+        gap: 7px;
+    }
+
+    /* Field */
+    .field-wrap {
+        margin-bottom: 16px;
+    }
+
+    .field-label {
+        font-size: 0.7rem;
+        font-weight: 700;
+        letter-spacing: 1.5px;
+        text-transform: uppercase;
+        color: var(--color-gray-400);
+        margin-bottom: 6px;
+        display: flex;
+        align-items: center;
+        gap: 5px;
+    }
+
+    .field-label i {
         color: var(--chess-primary);
-        transition: color 0.3s;
+        font-size: 0.75rem;
     }
 
-    a:hover {
-        color: var(--chess-accent);
+    .auth-input {
+        width: 100%;
+        background: oklch(14% 0.008 256);
+        border: 1px solid var(--border);
+        border-radius: 8px;
+        color: var(--chess-light);
+        font-size: 0.9rem;
+        padding: 11px 14px;
+        font-family: inherit;
+        transition: border-color 0.15s, box-shadow 0.15s;
+        outline: none;
+    }
+
+    .auth-input:focus {
+        border-color: var(--chess-primary);
+        box-shadow: 0 0 0 3px rgba(119, 149, 86, 0.15);
+    }
+
+    .auth-input.is-invalid {
+        border-color: var(--chess-red);
+    }
+
+    .auth-input::placeholder {
+        color: var(--color-gray-400);
+    }
+
+    .field-error {
+        font-size: 0.75rem;
+        color: var(--chess-red);
+        margin-top: 4px;
+        display: flex;
+        align-items: center;
+        gap: 4px;
+    }
+
+    /* Submit */
+    .auth-submit {
+        width: 100%;
+        padding: 12px;
+        font-size: 0.88rem;
+        font-weight: 700;
+        letter-spacing: 0.5px;
+        border-radius: 8px;
+        border: none;
+        background: var(--chess-primary);
+        color: #fff;
+        cursor: pointer;
+        transition: all 0.2s ease;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 7px;
+        margin-top: 20px;
+    }
+
+    .auth-submit:hover {
+        background: #67804a;
+        transform: translateY(-1px);
+        box-shadow: 0 5px 16px rgba(119, 149, 86, 0.35);
+    }
+
+    .auth-submit:active {
+        transform: translateY(0);
+    }
+
+    /* Footer */
+    .auth-footer {
+        padding: 14px 32px 20px;
+        text-align: center;
+        border-top: 1px solid var(--border);
+    }
+
+    .auth-footer p {
+        font-size: 0.82rem;
+        color: var(--color-gray-400);
+        margin: 0;
+    }
+
+    .auth-footer a {
+        color: var(--chess-primary);
+        font-weight: 700;
+        transition: color 0.15s;
+    }
+
+    .auth-footer a:hover {
+        color: #67804a;
+    }
+
+    /* Chess decoration */
+    .auth-deco {
+        text-align: center;
+        font-size: 1.4rem;
+        letter-spacing: 6px;
+        color: rgba(119, 149, 86, 0.12);
+        padding: 8px 0 0;
+        user-select: none;
     }
 </style>
+
+<div class="auth-wrap">
+    <div class="auth-card">
+
+        <div class="auth-header">
+            <div class="auth-logo">♚</div>
+            <div class="auth-title">Welcome Back</div>
+            <div class="auth-sub">Sign in to your GM Bangladesh account</div>
+        </div>
+
+        <div class="auth-body">
+
+            {% if form.non_field_errors %}
+            <div class="auth-error">
+                <i class="bi bi-exclamation-circle-fill"></i>
+                {% for error in form.non_field_errors %}{{ error }}{% endfor %}
+            </div>
+            {% endif %}
+
+            <form method="post" novalidate>
+                {% csrf_token %}
+
+                <!-- Email -->
+                <div class="field-wrap">
+                    <div class="field-label">
+                        <i class="bi bi-envelope-fill"></i> Email Address
+                    </div>
+                    <input type="email" name="{{ form.email.name }}" id="{{ form.email.id_for_label }}"
+                        class="auth-input {% if form.email.errors %}is-invalid{% endif %}"
+                        value="{{ form.email.value|default:'' }}" placeholder="you@example.com" required>
+                    {% for error in form.email.errors %}
+                    <div class="field-error"><i class="bi bi-x-circle-fill"></i> {{ error }}</div>
+                    {% endfor %}
+                </div>
+
+                <!-- Password -->
+                <div class="field-wrap">
+                    <div class="field-label">
+                        <i class="bi bi-lock-fill"></i> Password
+                    </div>
+                    <input type="password" name="{{ form.password.name }}" id="{{ form.password.id_for_label }}"
+                        class="auth-input {% if form.password.errors %}is-invalid{% endif %}"
+                        placeholder="Your password" required>
+                    {% for error in form.password.errors %}
+                    <div class="field-error"><i class="bi bi-x-circle-fill"></i> {{ error }}</div>
+                    {% endfor %}
+                </div>
+
+                <button type="submit" class="auth-submit">
+                    <i class="bi bi-box-arrow-in-right"></i> Sign In
+                </button>
+
+            </form>
+        </div>
+
+        <div class="auth-footer">
+            <p>Don't have an account? <a href="{% url 'register' %}">Create one →</a></p>
+            <div class="auth-deco">♟ ♞ ♝ ♛ ♚</div>
+        </div>
+
+    </div>
+</div>
 
 {% endblock %}
