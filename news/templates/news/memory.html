@@ -44,7 +44,9 @@
         }
     }
 
-    #config-panel { width: 100%; }
+    #config-panel {
+        width: 100%;
+    }
 
     .section-label {
         font-size: 0.62rem;
@@ -62,7 +64,8 @@
         margin-bottom: 4px;
     }
 
-    .ctrl-btn, .mode-btn {
+    .ctrl-btn,
+    .mode-btn {
         padding: 8px 6px;
         border-radius: 7px;
         border: 1px solid var(--border);
@@ -77,13 +80,15 @@
         width: 100%;
     }
 
-    .ctrl-btn:hover, .mode-btn:hover {
+    .ctrl-btn:hover,
+    .mode-btn:hover {
         border-color: var(--chess-primary);
         color: var(--chess-light);
         background: oklch(28% 0.02 256);
     }
 
-    .ctrl-btn.selected, .mode-btn.selected {
+    .ctrl-btn.selected,
+    .mode-btn.selected {
         background: var(--chess-primary);
         border-color: var(--chess-primary);
         color: #fff;
@@ -116,12 +121,16 @@
         box-shadow: 0 4px 12px rgba(119, 149, 86, 0.35);
     }
 
-    #start-btn:disabled { opacity: 0.45; cursor: not-allowed; }
+    #start-btn:disabled {
+        opacity: 0.45;
+        cursor: not-allowed;
+    }
 
     /* Board */
     #board-container {
         width: 100%;
-        max-width: 600px;
+        max-width: 420px;
+        /* ← was 600px, now fits naturally in middle column */
         margin: 0 auto;
     }
 
@@ -142,17 +151,42 @@
         transition: width 1s linear, background 0.4s;
     }
 
-    #timer-bar.urgent { background: var(--chess-red); }
+    #timer-bar.urgent {
+        background: var(--chess-red);
+    }
 
     #board {
         width: 100%;
         height: auto;
         aspect-ratio: 1/1;
-        border: 2px solid #ddd;
+        border: 2px solid var(--border);
+        border-radius: 4px;
+    }
+
+    /* ── Spare pieces (trash) background fix ─────────────────── */
+    /* The spare pieces row above/below the board has a dark page bg
+       making black pieces invisible. Force a light background. */
+    .spare-pieces-7492f {
+        background: oklch(22% 0.01 256) !important;
+        border-radius: 6px;
+        padding: 4px 0;
+    }
+
+    /* Each spare piece cell */
+    .spare-pieces-7492f .square-55d63 {
+        background: oklch(22% 0.01 256) !important;
+    }
+
+    /* Highlight spare piece on hover */
+    .spare-pieces-7492f .square-55d63:hover {
+        background: oklch(30% 0.015 256) !important;
+        border-radius: 4px;
     }
 
     /* Controls */
-    #controls-container { width: 100%; }
+    #controls-container {
+        width: 100%;
+    }
 
     .phase-badge {
         display: inline-block;
@@ -165,20 +199,58 @@
         width: fit-content;
     }
 
-    .badge-idle     { background: var(--card-color);           color: var(--color-gray-400); }
-    .badge-memorize { background: rgba(96,165,250,0.15);       color: #60a5fa; }
-    .badge-solve    { background: rgba(245,158,11,0.15);       color: #f59e0b; }
-    .badge-correct  { background: rgba(119,149,86,0.2);        color: var(--chess-primary); }
-    .badge-revealed { background: rgba(168,85,247,0.15);       color: #a855f7; }
+    .badge-idle {
+        background: var(--card-color);
+        color: var(--color-gray-400);
+    }
+
+    .badge-memorize {
+        background: rgba(96, 165, 250, 0.15);
+        color: #60a5fa;
+    }
+
+    .badge-solve {
+        background: rgba(245, 158, 11, 0.15);
+        color: #f59e0b;
+    }
+
+    .badge-correct {
+        background: rgba(119, 149, 86, 0.2);
+        color: var(--chess-primary);
+    }
+
+    .badge-revealed {
+        background: rgba(168, 85, 247, 0.15);
+        color: #a855f7;
+    }
 
     #memory-status {
         font-weight: bold;
         margin: 10px 0;
         min-height: 24px;
-        padding: 5px;
-        border-radius: 4px;
-        color: var(--status);
-        background-color: #f0faf0;
+        padding: 6px 10px;
+        border-radius: 8px;
+        font-size: 0.85rem;
+    }
+
+    #memory-status.correct {
+        color: var(--chess-primary);
+        background: rgba(119, 149, 86, 0.12);
+    }
+
+    #memory-status.wrong {
+        color: var(--chess-red);
+        background: rgba(200, 75, 75, 0.1);
+    }
+
+    #memory-status.info {
+        color: #60a5fa;
+        background: rgba(96, 165, 250, 0.1);
+    }
+
+    #memory-status.solved {
+        color: #a855f7;
+        background: rgba(168, 85, 247, 0.1);
     }
 
     .score-row {
@@ -210,8 +282,13 @@
         margin-top: 2px;
     }
 
-    .score-box.s-correct .num { color: var(--chess-primary); }
-    .score-box.s-time .num    { color: #60a5fa; }
+    .score-box.s-correct .num {
+        color: var(--chess-primary);
+    }
+
+    .score-box.s-time .num {
+        color: #60a5fa;
+    }
 
     .meta-row {
         display: flex;
@@ -241,7 +318,8 @@
         margin-top: 12px;
     }
 
-    #reveal-btn, #next-btn {
+    #reveal-btn,
+    #next-btn {
         display: none;
         flex: 1;
         align-items: center;
@@ -264,7 +342,7 @@
     }
 
     #reveal-btn:hover {
-        background: rgba(168,85,247,0.12);
+        background: rgba(168, 85, 247, 0.12);
         transform: translateY(-1px);
     }
 
@@ -274,7 +352,7 @@
     }
 
     #next-btn:hover {
-        background: rgba(119,149,86,0.12);
+        background: rgba(119, 149, 86, 0.12);
         transform: translateY(-1px);
     }
 </style>
@@ -291,12 +369,16 @@
             <button class="ctrl-btn" onclick="setTime(120,this)">120s</button>
         </div>
         <hr>
-        <div id="puzzle-counter" style="text-align:center;margin-bottom:8px;color:var(--chess-secondary);font-size:0.85rem;"></div>
+        <div id="puzzle-counter"
+            style="text-align:center;margin-bottom:8px;color:var(--chess-secondary);font-size:0.85rem;"></div>
         <p class="section-label">🎯 Training Mode</p>
         <div class="btn-grid-2" id="mode-btns">
-            <button class="mode-btn selected" onclick="setMode('easy',this)">Easy<br><span style="opacity:.55;font-size:.72em">(3–6)</span></button>
-            <button class="mode-btn" onclick="setMode('medium',this)">Medium<br><span style="opacity:.55;font-size:.72em">(7–14)</span></button>
-            <button class="mode-btn" onclick="setMode('hard',this)">Hard<br><span style="opacity:.55;font-size:.72em">(15–32)</span></button>
+            <button class="mode-btn selected" onclick="setMode('easy',this)">Easy<br><span
+                    style="opacity:.55;font-size:.72em">(3–6)</span></button>
+            <button class="mode-btn" onclick="setMode('medium',this)">Medium<br><span
+                    style="opacity:.55;font-size:.72em">(7–14)</span></button>
+            <button class="mode-btn" onclick="setMode('hard',this)">Hard<br><span
+                    style="opacity:.55;font-size:.72em">(15–32)</span></button>
             <button class="mode-btn progressive" onclick="setMode('progressive',this)">⭐ Progressive</button>
         </div>
         <hr>
@@ -314,7 +396,7 @@
     <!-- RIGHT: Info & Stats -->
     <div id="controls-container">
         <h4 id="puzzle-title" style="font-weight:600;color:var(--chess-light);font-size:1.1rem;text-align:center;">
-            🧠 Memory Trainer
+            Memory Trainer
         </h4>
         <hr>
         <div style="text-align:center;">
@@ -362,36 +444,37 @@
 <script>
     let board,
         currentIndex = 0,
-        targetFen    = "",
+        targetFen = "",
         selectedMode = "easy",
         selectedTime = 25,
-        solving      = false,
+        solving = false,
         solveStart,
         timerInterval,
-        solvedCount  = 0,
-        positions    = [];
+        solvedCount = 0,
+        positions = [];
 
     board = Chessboard('board', {
-        draggable:    true,
-        sparePieces:  true,
+        draggable: true,
+        sparePieces: true,
         dropOffBoard: 'trash',
-        pieceTheme:   "{% static 'chessboardjs-1.0.0/img/chesspieces/wikipedia/' %}{piece}.png",
-        onDrop:       onDrop
+        animationDuration: 100,
+        pieceTheme: "{% static 'chessboardjs-1.0.0/img/chesspieces/wikipedia/' %}{piece}.png",
+        onDrop: onDrop
     });
 
-    $(window).resize(board.resize);
+    $(window).resize(() => { if (board) board.resize(); });
 
     // ── UI helpers ─────────────────────────────────────────────
     function setBadge(phase) {
         const el = document.getElementById('phase-badge');
         el.className = 'phase-badge badge-' + phase;
-        const labels = { idle:'Idle', memorize:'Memorize', solve:'Solve!', correct:'Correct ✅', revealed:'Revealed' };
+        const labels = { idle: 'Idle', memorize: 'Memorize', solve: 'Solve!', correct: 'Correct ✅', revealed: 'Revealed' };
         el.textContent = labels[phase] || phase;
     }
 
     function showStatus(msg, type) {
         const el = document.getElementById('memory-status');
-        el.classList.remove('d-none','correct','wrong','info','solved');
+        el.classList.remove('d-none', 'correct', 'wrong', 'info', 'solved');
         el.classList.add(type || 'info');
         el.textContent = msg;
     }
@@ -445,9 +528,9 @@
         if (!ok) { document.getElementById('start-btn').disabled = false; return; }
 
         currentIndex = 0;
-        solvedCount  = 0;
+        solvedCount = 0;
         document.getElementById('score-correct').textContent = '0';
-        document.getElementById('score-time').textContent    = '—';
+        document.getElementById('score-time').textContent = '—';
         hideBtn('reveal-btn');
         hideBtn('next-btn');
         nextPosition();
@@ -473,9 +556,9 @@
         // Pick FEN based on mode
         if (selectedMode === 'progressive') {
             let pool;
-            if (solvedCount < 3)      pool = positions.filter(p => p.difficulty === 'easy');
+            if (solvedCount < 3) pool = positions.filter(p => p.difficulty === 'easy');
             else if (solvedCount < 6) pool = positions.filter(p => p.difficulty === 'medium');
-            else                      pool = positions.filter(p => p.difficulty === 'hard');
+            else pool = positions.filter(p => p.difficulty === 'hard');
             if (!pool.length) pool = positions;
             targetFen = pool[Math.floor(Math.random() * pool.length)].fen;
         } else {
@@ -511,7 +594,7 @@
     }
 
     function startSolvePhase() {
-        solving    = true;
+        solving = true;
         solveStart = Date.now();
         setBadge('solve');
         showStatus('Rebuild the position from memory!', 'info');
@@ -554,18 +637,28 @@
     function onDrop(source, target, piece) {
         if (!solving) return 'snapback';
 
-        const pos = board.position();
-        if (source !== 'spare') delete pos[source];
-        pos[target] = piece;
-        board.position(pos, false);
+        // Dropped off board = remove piece (trash)
+        if (target === 'offboard') return;
 
+        const pos = board.position();
+
+        // Remove from source square only if it came from the board (not spare)
+        if (source !== 'spare') {
+            delete pos[source];
+        }
+
+        // Place piece on target square
+        // If a piece was already there it gets overwritten (correct behaviour for rebuilding)
+        pos[target] = piece;
+
+        board.position(pos, false);
         checkPosition();
     }
 
     // ── Check ──────────────────────────────────────────────────
     function checkPosition() {
         const current = fenPieces(board.position());
-        const target  = fenPieces(targetFen);
+        const target = fenPieces(targetFen);
 
         if (current === target) {
             const elapsed = ((Date.now() - solveStart) / 1000).toFixed(1);
@@ -574,7 +667,7 @@
             clearInterval(timerInterval);
 
             document.getElementById('score-correct').textContent = solvedCount;
-            document.getElementById('score-time').textContent    = elapsed;
+            document.getElementById('score-time').textContent = elapsed;
 
             setBadge('correct');
             showStatus('✅ Correct! Solved in ' + elapsed + 's.', 'correct');

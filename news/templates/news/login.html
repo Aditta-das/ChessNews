@@ -250,8 +250,14 @@
 
                 <!-- Password -->
                 <div class="field-wrap">
-                    <div class="field-label">
-                        <i class="bi bi-lock-fill"></i> Password
+                    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:6px;">
+                        <div class="field-label" style="margin-bottom:0;">
+                            <i class="bi bi-lock-fill"></i> Password
+                        </div>
+                        <a href="{% url 'forgot_step1' %}"
+                            style="font-size:0.72rem;font-weight:700;color:var(--chess-primary);text-decoration:none;">
+                            Forgot password?
+                        </a>
                     </div>
                     <input type="password" name="{{ form.password.name }}" id="{{ form.password.id_for_label }}"
                         class="auth-input {% if form.password.errors %}is-invalid{% endif %}"

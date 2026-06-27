@@ -203,6 +203,28 @@ class EmailOTP(models.Model):
 
     def __str__(self):
         return f"{self.email} - {self.otp}"
+    
+class SecurityQuestion(models.Model):
+    QUESTIONS = [
+        ('mother',  "What is your mother's maiden name?"),
+        ('pet',     "What was the name of your first pet?"),
+        ('city',    "What city were you born in?"),
+        ('school',  "What was the name of your primary school?"),
+        ('friend',  "What is the name of your childhood best friend?"),
+        ('food',    "What is your favourite food?"),
+        ('teacher', "What was your favourite teacher's name?"),
+        ('car',     "What was the model of your first car or bicycle?"),
+        ('chess',     "What is your favourite chess opening?"),
+    ]
+    user     = models.OneToOneField('auth.User', on_delete=models.CASCADE, related_name='security_question')
+    question = models.CharField(max_length=20, choices=QUESTIONS)
+    answer   = models.CharField(max_length=200)
+ 
+    def check_answer(self, raw):
+        return self.answer == raw.strip().lower()
+ 
+    def __str__(self):
+        return f"{self.user.username} — {self.get_question_display()}"
 
 class UserProfile(models.Model):
     user = models.OneToOneField(User, on_delete=models.CASCADE)

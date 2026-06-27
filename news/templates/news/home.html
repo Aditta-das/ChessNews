@@ -62,6 +62,8 @@
 		display: flex;
 		align-items: center;
 		gap: 12px;
+		background: var(--card-color);
+		border: 1px solid var(--border);
 		border-radius: 12px;
 		padding: 10px 14px;
 		margin-bottom: 16px;
@@ -85,28 +87,10 @@
 		display: inline-block;
 		width: 8px;
 		height: 8px;
-		background: #1cbc57;
+		background: #22c55e;
 		border-radius: 50%;
 		margin-left: 6px;
 		box-shadow: 0 0 0 2px rgba(34, 197, 94, 0.25);
-		animation: onlinePulse 1.5s infinite;
-	}
-
-	@keyframes onlinePulse {
-		0% {
-			transform: scale(1);
-			opacity: 1;
-		}
-
-		50% {
-			transform: scale(1.2);
-			opacity: 0.6;
-		}
-
-		100% {
-			transform: scale(1);
-			opacity: 1;
-		}
 	}
 
 	.badge-premium {
@@ -195,7 +179,7 @@
 
 	@keyframes ticker-scroll {
 		0% {
-			transform: translateX(100%);
+			transform: translateX(100vw);
 		}
 
 		100% {
@@ -266,7 +250,7 @@
 
 	.featured-card-excerpt {
 		color: var(--chess-secondary);
-		font-size: 1rem;
+		font-size: 0.9rem;
 		line-height: 1.65;
 		margin-bottom: 16px;
 		flex: 1;
@@ -473,9 +457,7 @@
 		left: 0;
 		right: 0;
 		height: 185px;
-		background: linear-gradient(to bottom,
-				transparent 40%,
-				rgba(0, 0, 0, 0.85));
+		background: linear-gradient(to bottom, transparent 40%, rgba(0, 0, 0, 0.75));
 	}
 
 	.player-rank-badge {
@@ -500,16 +482,15 @@
 
 	.player-name-overlay {
 		position: absolute;
-		bottom: 40px;
+		bottom: 34px;
 		left: 0;
 		right: 0;
 		text-align: center;
-		font-size: 0.9rem;
-		font-weight: 800;
-		color: #ffffff;
-		text-shadow: 0 2px 6px rgba(0, 0, 0, 0.8);
+		font-size: 0.85rem;
+		font-weight: 700;
+		color: #fff;
+		text-shadow: 0 1px 4px rgba(0, 0, 0, 0.8);
 		padding: 0 8px;
-		z-index: 2;
 	}
 
 	.player-footer {
@@ -624,10 +605,9 @@
 		color: var(--chess-primary);
 	}
 
-	.blog-excerpt,
-	.blog-excerpt * {
+	.blog-excerpt {
 		font-size: 0.82rem;
-		color: var(--chess-light) !important;
+		color: var(--chess-secondary);
 		line-height: 1.55;
 		margin-bottom: 12px;
 	}
@@ -637,7 +617,7 @@
 		align-items: center;
 		gap: 8px;
 		padding-top: 10px;
-		border-top: 1px solid var(--chess-light);
+		border-top: 1px solid var(--border);
 		margin-top: auto;
 	}
 
@@ -659,47 +639,6 @@
 		font-size: 0.72rem;
 		color: var(--color-gray-400);
 		margin-left: auto;
-	}
-
-	/* Loading States */
-	.loading-spinner {
-		display: flex;
-		justify-content: center;
-		align-items: center;
-		min-height: 200px;
-		grid-column: 1/-1;
-	}
-
-	.spinner {
-		width: 40px;
-		height: 40px;
-		border: 3px solid var(--border);
-		border-top-color: var(--chess-primary);
-		border-radius: 50%;
-		animation: spin 1s linear infinite;
-	}
-
-	@keyframes spin {
-		to {
-			transform: rotate(360deg);
-		}
-	}
-
-	.error-message {
-		grid-column: 1/-1;
-		text-align: center;
-		padding: 40px;
-		color: var(--color-gray-400);
-	}
-
-	.retry-btn {
-		background: var(--chess-primary);
-		color: white;
-		border: none;
-		padding: 8px 20px;
-		border-radius: 99px;
-		margin-top: 10px;
-		cursor: pointer;
 	}
 
 	/* ── Responsive ──────────────────────────────────────────────── */
@@ -768,9 +707,13 @@
 	<div class="ticker-label">♔ Live Rankings</div>
 	<div class="ticker-container">
 		<div class="ticker-text" id="ticker-content">
-			<div class="loading-spinner" style="min-height: auto; padding: 8px 0;">
-				<div class="spinner" style="width: 20px; height: 20px;"></div>
-			</div>
+			{% for player in players %}
+			<span style="margin-right:28px;">
+				<strong style="color:var(--chess-primary);">#{{ player.rank }}</strong>
+				<span style="margin:0 4px;">{{ player.name }}</span>
+				<span class="ticker-rating">{{ player.rating }}</span>
+			</span>
+			{% endfor %}
 		</div>
 	</div>
 </div>
@@ -795,14 +738,13 @@
 			<div class="featured-card-body">
 				<h2 class="featured-card-title">{{ big_news.title }}</h2>
 				<p class="featured-card-excerpt">
-					{{ big_news.content|striptags|truncatewords:80 }}
+					{{ big_news.content|remove_img_tags|truncatewords:80|safe }}
 				</p>
 				<div class="featured-meta">
 					<span class="featured-meta-text">
 						<i class="bi bi-person me-1"></i>{{ big_news.author.username }}
 						&nbsp;·&nbsp;
-						<i class="bi bi-calendar3 me-1"></i>
-						{{ big_news.published_at|date:"M d, Y" }}
+						<i class="bi bi-calendar3 me-1"></i>{{ big_news.published_at|date:"M d, Y" }}
 					</span>
 					<a href="{% url 'article_detail' slug=big_news.slug %}" class="read-more-btn">
 						Read More <i class="bi bi-arrow-right"></i>
@@ -821,7 +763,7 @@
 	<div class="sidebar">
 
 		<!-- Status -->
-		<div class="info-panel">
+		<!-- <div class="info-panel">
 			<div class="panel-header">
 				<span class="panel-header-title"><i class="bi bi-gem"></i> Account Status</span>
 				{% if profile and profile.is_premium %}
@@ -841,16 +783,15 @@
 					{% endif %}
 				</span>
 			</div>
-		</div>
+		</div> -->
 
 		<!-- Tournaments -->
 		<div class="info-panel">
 			<div class="panel-header">
-				<span class="panel-header-title">
-					<i class="bi bi-trophy-fill" style="color:#f59e0b;"></i>
+				<span class="panel-header-title"><i class="bi bi-trophy-fill" style="color:#f59e0b;"></i>
 					Tournaments</span>
 				<a href="{% url 'all_events' %}" style="font-size:0.72rem;color:var(--chess-primary);font-weight:700;">
-					<i class="bi bi-calendar-plus-fill"></i>
+					View All <i class="bi bi-chevron-right"></i>
 				</a>
 			</div>
 			<div class="tournament-scroll">
@@ -893,26 +834,68 @@
 	</div>
 </div>
 
-<!-- ── Top World Players ────────────────────────────────────────── -->
+<!-- ── Top World Players (Men / Women slider) ────────────────────── -->
 <div class="players-section">
 	<div class="section-heading-row">
 		<h2 class="section-heading">🌍 Top World Players</h2>
+		<div class="slider-tabs" id="world-tabs">
+			<button class="slider-tab active" data-target="world-men">
+				<i class="bi bi-gender-male"></i> Men
+			</button>
+			<button class="slider-tab" data-target="world-women">
+				<i class="bi bi-gender-female"></i> Women
+			</button>
+		</div>
 	</div>
-	<div id="world-players-container" class="players-grid">
-		<div class="loading-spinner">
-			<div class="spinner"></div>
+
+	<!-- Men -->
+	<div id="world-men" class="slider-panel active">
+		<div id="world-players-container" class="players-grid">
+			<div class="loading-spinner">
+				<div class="spinner"></div>
+			</div>
+		</div>
+	</div>
+
+	<!-- Women -->
+	<div id="world-women" class="slider-panel">
+		<div id="world-women-container" class="players-grid">
+			<div class="loading-spinner">
+				<div class="spinner"></div>
+			</div>
 		</div>
 	</div>
 </div>
 
-<!-- ── Top BD Players ───────────────────────────────────────────── -->
+<!-- ── Top BD Players (Men / Women slider) ──────────────────────── -->
 <div class="players-section">
 	<div class="section-heading-row">
 		<h2 class="section-heading">🇧🇩 Top Bangladeshi Players</h2>
+		<div class="slider-tabs" id="bd-tabs">
+			<button class="slider-tab active" data-target="bd-men">
+				<i class="bi bi-gender-male"></i> Men
+			</button>
+			<button class="slider-tab" data-target="bd-women">
+				<i class="bi bi-gender-female"></i> Women
+			</button>
+		</div>
 	</div>
-	<div id="bd-players-container" class="players-grid">
-		<div class="loading-spinner">
-			<div class="spinner"></div>
+
+	<!-- Men -->
+	<div id="bd-men" class="slider-panel active">
+		<div id="bd-players-container" class="players-grid">
+			<div class="loading-spinner">
+				<div class="spinner"></div>
+			</div>
+		</div>
+	</div>
+
+	<!-- Women -->
+	<div id="bd-women" class="slider-panel">
+		<div id="bd-women-container" class="players-grid">
+			<div class="loading-spinner">
+				<div class="spinner"></div>
+			</div>
 		</div>
 	</div>
 </div>
@@ -937,9 +920,9 @@
 				<div class="blog-title">
 					<a href="{% url 'article_detail' slug=article.slug %}">{{ article.title }}</a>
 				</div>
-				<p class="blog-excerpt">{{ article.content|striptags|truncatewords:22 }}</p>
+				<p class="blog-excerpt">{{ article.content|remove_img_tags|truncatewords:22|safe }}</p>
 				<div class="blog-footer">
-					<img src="https://ui-avatars.com/api/?name={{ article.author.username }}&background=random&size=32&rounded=true&bold=true"
+					<img src="https://ui-avatars.com/api/?name={{ article.author.username }}&background=random&size=32&rounded=true"
 						alt="{{ article.author.username }}">
 					<span class="blog-author">{{ article.author.username }}</span>
 					<span class="blog-time">{{ article.published_at|timesince }} ago</span>
@@ -954,140 +937,331 @@
 	</div>
 </div>
 
-<script>
-	// Helper function to escape HTML
-	function escapeHtml(text) {
-		if (!text) return '';
-		const div = document.createElement('div');
-		div.textContent = text;
-		return div.innerHTML;
+<style>
+	/* ── Gender slider tabs ─────────────────────────────────────── */
+	.slider-tabs {
+		display: flex;
+		gap: 4px;
+		background: var(--card-color);
+		border: 1px solid var(--border);
+		border-radius: 99px;
+		padding: 4px;
 	}
 
-	// Create player card HTML
-	function createPlayerCard(player, isBD = false) {
+	.slider-tab {
+		display: flex;
+		align-items: center;
+		gap: 5px;
+		padding: 5px 14px;
+		border-radius: 99px;
+		border: none;
+		background: transparent;
+		color: var(--color-gray-400);
+		font-size: 0.75rem;
+		font-weight: 700;
+		cursor: pointer;
+		transition: all 0.2s ease;
+		font-family: inherit;
+	}
+
+	.slider-tab i {
+		font-size: 0.82rem;
+	}
+
+	.slider-tab.active {
+		background: var(--chess-primary);
+		color: #fff;
+		box-shadow: 0 2px 8px rgba(119, 149, 86, 0.35);
+	}
+
+	.slider-tab:not(.active):hover {
+		color: var(--chess-light);
+		background: oklch(24% 0.01 256);
+	}
+
+	.slider-tab[data-target$="-women"].active {
+		background: #7c3aed;
+		box-shadow: 0 2px 8px rgba(124, 58, 237, 0.35);
+	}
+
+	/* Panels */
+	.slider-panel {
+		display: none;
+		animation: panelFadeIn 0.28s ease;
+	}
+
+	.slider-panel.active {
+		display: block;
+	}
+
+	@keyframes panelFadeIn {
+		from {
+			opacity: 0;
+			transform: translateY(6px);
+		}
+
+		to {
+			opacity: 1;
+			transform: translateY(0);
+		}
+	}
+
+	/* Loading */
+	.loading-spinner {
+		display: flex;
+		justify-content: center;
+		align-items: center;
+		min-height: 180px;
+		grid-column: 1/-1;
+	}
+
+	.spinner {
+		width: 36px;
+		height: 36px;
+		border: 3px solid var(--border);
+		border-top-color: var(--chess-primary);
+		border-radius: 50%;
+		animation: spin 0.9s linear infinite;
+	}
+
+	@keyframes spin {
+		to {
+			transform: rotate(360deg);
+		}
+	}
+
+	.error-message {
+		grid-column: 1/-1;
+		text-align: center;
+		padding: 32px;
+		color: var(--color-gray-400);
+		font-size: 0.85rem;
+	}
+
+	.retry-btn {
+		background: var(--chess-primary);
+		color: white;
+		border: none;
+		padding: 7px 18px;
+		border-radius: 99px;
+		margin-top: 10px;
+		cursor: pointer;
+		font-weight: 700;
+		font-size: 0.8rem;
+		font-family: inherit;
+		transition: background 0.15s;
+	}
+
+	.retry-btn:hover {
+		background: #67804a;
+	}
+
+	.player-card.women-card:hover {
+		border-color: #7c3aed;
+		box-shadow: 0 10px 28px rgba(124, 58, 237, 0.18);
+	}
+
+	.women-rank-badge {
+		background: #7c3aed !important;
+	}
+</style>
+
+<script>
+	function escapeHtml(t) {
+		if (!t) return '';
+		const d = document.createElement('div');
+		d.textContent = t;
+		return d.innerHTML;
+	}
+
+	function createPlayerCard(player, isBD, isWomen) {
 		const flagCode = isBD ? 'bd' : (player.country || '').toLowerCase().slice(0, 2);
-		const flagUrl = isBD ? 'https://flagcdn.com/w20/bd.png' : `https://flagcdn.com/w20/${flagCode}.png`;
-		const defaultImage = '/static/img/default-player.jpg';
+		const flagUrl = `https://flagcdn.com/h20/${flagCode}.png`;
+		const defaultImg = '/static/img/default-player.jpg';
+		const accentColor = isWomen ? '#7c3aed' : 'var(--chess-primary)';
 
 		return `
-        <div class="player-card">
-            <img src="${player.image_url || defaultImage}" 
-                 class="player-image"
-                 alt="${escapeHtml(player.name)}" 
-                 loading="lazy"
-                 onerror="this.src='${defaultImage}'">
-            <div class="player-image-overlay"></div>
-            <span class="player-rank-badge">#${player.rank}</span>
-            <img class="player-country-flag" src="${flagUrl}" alt="${player.country || 'BD'}">
-            <div class="player-name-overlay">${escapeHtml(player.name)}</div>
-            <div class="player-footer">
-                <div class="rating-pill">
-                    <i class="bi bi-bar-chart-fill" style="color:var(--chess-primary);font-size:0.7rem;"></i>
-                    <span>${player.rating}</span>
-                </div>
-            </div>
+      <div class="player-card${isWomen ? ' women-card' : ''}">
+        <img src="${player.image_url || defaultImg}"
+             class="player-image" alt="${escapeHtml(player.name)}" loading="lazy"
+             onerror="this.src='${defaultImg}'">
+        <div class="player-image-overlay"></div>
+        <span class="player-rank-badge${isWomen ? ' women-rank-badge' : ''}">#${player.rank}</span>
+        <img class="player-country-flag" src="${flagUrl}" alt="">
+        <div class="player-name-overlay">${escapeHtml(player.name)}</div>
+        <div class="player-footer">
+          <div class="rating-pill">
+            <i class="bi bi-bar-chart-fill" style="color:${accentColor};font-size:0.7rem;"></i>
+            <span>${player.rating}</span>
+          </div>
         </div>
-    `;
+      </div>`;
 	}
 
-	// Load World Players
+	function renderPlayers(containerId, players, isBD, isWomen, retryFn) {
+		const el = document.getElementById(containerId);
+		if (!el) return;
+		if (players && players.length) {
+			el.innerHTML = players.map(p => createPlayerCard(p, isBD, isWomen)).join('');
+		} else {
+			el.innerHTML = `<div class="error-message">No data.<div><button class="retry-btn" onclick="${retryFn}()">Retry</button></div></div>`;
+		}
+	}
+
+	function renderError(containerId, retryFn) {
+		const el = document.getElementById(containerId);
+		if (el) el.innerHTML = `<div class="error-message">Failed to load.<div><button class="retry-btn" onclick="${retryFn}()">Retry</button></div></div>`;
+	}
+
 	async function loadWorldPlayers() {
-		const container = document.getElementById('world-players-container');
-		if (!container) return;
-
-		try {
-			const response = await fetch('/api/world-players/');
-			const data = await response.json();
-
-			if (data.success && data.players && data.players.length > 0) {
-				container.innerHTML = data.players.map(player => createPlayerCard(player, false)).join('');
-			} else {
-				container.innerHTML = '<div class="error-message">No players data available</div>';
-			}
-		} catch (error) {
-			console.error('Error loading world players:', error);
-			container.innerHTML = `
-            <div class="error-message">
-                Failed to load players data
-                <div><button class="retry-btn" onclick="loadWorldPlayers()">Retry</button></div>
-            </div>
-        `;
-		}
+		try { const d = await (await fetch('/api/world-players/')).json(); renderPlayers('world-players-container', d.success ? d.players : null, false, false, 'loadWorldPlayers'); }
+		catch { renderError('world-players-container', 'loadWorldPlayers'); }
 	}
 
-	// Load Bangladeshi Players
+	async function loadWorldWomenPlayers() {
+		try { const d = await (await fetch('/api/world-women-players/')).json(); renderPlayers('world-women-container', d.success ? d.players : null, false, true, 'loadWorldWomenPlayers'); }
+		catch { renderError('world-women-container', 'loadWorldWomenPlayers'); }
+	}
+
 	async function loadBDPlayers() {
-		const container = document.getElementById('bd-players-container');
-		if (!container) return;
-
-		try {
-			const response = await fetch('/api/bd-players/');
-			const data = await response.json();
-
-			if (data.success && data.players && data.players.length > 0) {
-				container.innerHTML = data.players.map(player => createPlayerCard(player, true)).join('');
-			} else {
-				container.innerHTML = '<div class="error-message">No Bangladeshi players data available</div>';
-			}
-		} catch (error) {
-			console.error('Error loading BD players:', error);
-			container.innerHTML = `
-            <div class="error-message">
-                Failed to load players data
-                <div><button class="retry-btn" onclick="loadBDPlayers()">Retry</button></div>
-            </div>
-        `;
-		}
+		try { const d = await (await fetch('/api/bd-players/')).json(); renderPlayers('bd-players-container', d.success ? d.players : null, true, false, 'loadBDPlayers'); }
+		catch { renderError('bd-players-container', 'loadBDPlayers'); }
 	}
 
-	// Load Ticker Data
+	async function loadBDWomenPlayers() {
+		try {
+			const d = await (await fetch('/api/bd-women-players/')).json();
+			renderPlayers('bd-women-container', d.success ? d.players : null, true, true, 'loadBDWomenPlayers');
+		}
+		catch { renderError('bd-women-container', 'loadBDWomenPlayers'); }
+	}
+
 	async function loadTickerData() {
-		const tickerContainer = document.getElementById('ticker-content');
-		if (!tickerContainer) return;
+		const el = document.getElementById('ticker-content');
+		if (!el) return;
 
 		try {
-			const response = await fetch('/api/world-players/');
-			const data = await response.json();
+			const results = await Promise.allSettled([
+				fetch('/api/world-players/'),
+				fetch('/api/bd-players/'),
+				fetch('/api/world-women-players/'),
+				fetch('/api/bd-women-players/')
+			]);
 
-			if (data.success && data.players && data.players.length > 0) {
-				const tickerHtml = data.players.map(player => `
-                <span style="margin-right:28px;">
-                    <strong style="color:var(--chess-primary);">#${player.rank}</strong>
-                    <span style="margin:0 4px;">${escapeHtml(player.name)}</span>
-                    <span class="ticker-rating">${player.rating}</span>
-                </span>
-            `).join('');
-				tickerContainer.innerHTML = tickerHtml;
-			} else {
-				tickerContainer.innerHTML = '<span style="color:var(--color-gray-400);">No rankings available</span>';
+			let combined = [];
+
+			// helper
+			async function handle(res, type) {
+				if (res.status === 'fulfilled') {
+					const data = await res.value.json();
+					if (data.success && data.players) {
+						combined.push(...data.players.map(p => ({ ...p, type })));
+					}
+				}
 			}
-		} catch (error) {
-			console.error('Error loading ticker data:', error);
-			tickerContainer.innerHTML = '<span style="color:var(--color-gray-400);">Failed to load rankings</span>';
+
+			await handle(results[0], 'world');
+			await handle(results[1], 'bd');
+			await handle(results[2], 'women');
+			await handle(results[3], 'bd-women');
+
+			if (combined.length) {
+				el.innerHTML = combined.map(p => {
+					let color = 'var(--chess-primary)';
+					let prefix = '';
+
+					if (p.type === 'bd') {
+						color = '#22c55e';
+					}
+					else if (p.type === 'women') {
+						color = '#7c3aed';
+					}
+					else if (p.type === 'bd-women') {
+						color = '#7c3aed';
+						prefix = '🇧🇩';
+					}
+
+					return `
+					<span style="margin-right:28px;">
+						<strong style="color:${color};">#${p.rank}</strong>
+						<span style="margin:0 4px;">
+							${prefix} ${escapeHtml(p.name)}
+						</span>
+						<span class="ticker-rating">${p.rating}</span>
+					</span>
+				`;
+				}).join('');
+
+				// restart animation
+				el.style.animation = 'none';
+				el.offsetHeight;
+				el.style.animation = '';
+
+			} else {
+				el.innerHTML = '<span style="color:var(--color-gray-400);">No rankings available</span>';
+			}
+
+		} catch (err) {
+			console.error('Ticker error:', err);
+			el.innerHTML = '<span style="color:var(--color-gray-400);">Failed to load rankings</span>';
 		}
 	}
 
-	// Load all data when page loads
+	function initSliderTabs(tabsId) {
+		const container = document.getElementById(tabsId);
+		if (!container) return;
+		const section = container.closest('.players-section');
+		const heading = section.querySelector('.section-heading');
+
+		const activeBtn = container.querySelector('.slider-tab.active');
+		if (activeBtn) {
+			updateHeading(activeBtn, heading);
+		}
+
+		container.querySelectorAll('.slider-tab').forEach(btn => {
+			btn.addEventListener('click', () => {
+
+				container.querySelectorAll('.slider-tab').forEach(b => b.classList.remove('active'));
+				btn.classList.add('active');
+
+				updateHeading(btn, heading);
+
+				section.querySelectorAll('.slider-panel').forEach(p => p.classList.remove('active'));
+				const panel = document.getElementById(btn.dataset.target);
+				if (panel) panel.classList.add('active');
+			});
+		});
+
+		function updateHeading(btn, heading) {
+			if (btn.dataset.target === 'world-women') {
+				heading.innerText = '🌍 Top Women Players';
+			} else if (btn.dataset.target === 'bd-men') {
+				heading.innerText = '🇧🇩 Top Men Players';
+			} else if (btn.dataset.target === 'bd-women') {
+				heading.innerText = '🇧🇩 Top Women Players';
+			} else {
+				heading.innerText = '🌍 Top Men Players';
+			}
+		}
+	}
+
+
+
 	document.addEventListener('DOMContentLoaded', () => {
+		initSliderTabs('world-tabs');
+		initSliderTabs('bd-tabs');
 		loadWorldPlayers();
+		loadWorldWomenPlayers();
 		loadBDPlayers();
+		loadBDWomenPlayers();
 		loadTickerData();
-	});
 
-	// Optional: Reload data every 5 minutes
-	let reloadInterval = setInterval(() => {
-		if (document.visibilityState === 'visible') {
-			loadWorldPlayers();
-			loadBDPlayers();
+		setInterval(() => {
+			if (document.visibilityState !== 'visible') return;
+			loadWorldPlayers(); loadWorldWomenPlayers();
+			loadBDPlayers(); loadBDWomenPlayers();
 			loadTickerData();
-		}
-	}, 300000); // 5 minutes
-
-	// Cleanup interval on page unload
-	window.addEventListener('beforeunload', () => {
-		if (reloadInterval) {
-			clearInterval(reloadInterval);
-		}
+		}, 300000);
 	});
 </script>
 

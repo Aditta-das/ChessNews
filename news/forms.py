@@ -104,6 +104,48 @@ class ProfileEditForm(forms.ModelForm):
         return profile
 
 
+class ForgotStep1Form(forms.Form):
+    email = forms.EmailField(label='Email Address')
+ 
+    def clean_email(self):
+        email = self.cleaned_data['email'].strip().lower()
+        try:
+            user = User.objects.get(email=email)
+        except User.DoesNotExist:
+            raise forms.ValidationError("No account found with this email.")
+        if not hasattr(user, 'security_question'):
+            raise forms.ValidationError("This account has no security question set.")
+        return email
+ 
+ 
+class ForgotStep2Form(forms.Form):
+    answer = forms.CharField(max_length=200, label='Your Answer')
+ 
+    def clean_answer(self):
+        return self.cleaned_data['answer'].strip().lower()
+ 
+ 
+class ResetPasswordForm(forms.Form):
+    new_password     = forms.CharField(widget=forms.PasswordInput, min_length=8)
+    confirm_password = forms.CharField(widget=forms.PasswordInput)
+ 
+    def clean(self):
+        import re
+        cd = super().clean()
+        p1, p2 = cd.get('new_password', ''), cd.get('confirm_password', '')
+        if p1 != p2:
+            raise forms.ValidationError("Passwords do not match.")
+        if p1:
+            errors = []
+            if len(p1) < 8:                                   errors.append("At least 8 characters.")
+            if not re.search(r"[A-Z]", p1):                   errors.append("One uppercase letter.")
+            if not re.search(r"[a-z]", p1):                   errors.append("One lowercase letter.")
+            if not re.search(r"[0-9]", p1):                   errors.append("One number.")
+            if not re.search(r'[!@#$%^&*(),.?":{}|<>]', p1): errors.append("One special character.")
+            if errors:
+                raise forms.ValidationError(errors)
+        return cd
+
 class ArticleForm(forms.ModelForm):
     class Meta:
         model = Article

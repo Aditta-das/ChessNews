@@ -50,11 +50,12 @@
   .dot-black { background: #1a1a1a; }
   .dot-white { background: #f0f0f0; }
 
+  /* Eval bar */
   .eval-track {
-    width: 91%;
-    height: 15px;
+    width: 100%;
+    height: 8px;
     background: #1a1a1a;
-    border-radius: 0px;
+    border-radius: 99px;
     overflow: hidden;
     border: 1px solid var(--border);
     position: relative;
@@ -341,18 +342,17 @@
     <div class="board-wrapper" id="board-wrapper">
       <div id="game-board"></div>
       <svg id="board-overlay" xmlns="http://www.w3.org/2000/svg">
-        <defs>
-          <marker id="ah-green"  markerWidth="5" markerHeight="5" refX="3" refY="2.5" orient="auto"><path d="M0,0 L0,5 L5,2.5 z" fill="rgba(0,200,80,0.95)"/></marker>
-          <marker id="ah-orange" markerWidth="5" markerHeight="5" refX="3" refY="2.5" orient="auto"><path d="M0,0 L0,5 L5,2.5 z" fill="rgba(255,165,0,0.95)"/></marker>
-          <marker id="ah-red"    markerWidth="5" markerHeight="5" refX="3" refY="2.5" orient="auto"><path d="M0,0 L0,5 L5,2.5 z" fill="rgba(220,50,50,0.95)"/></marker>
-          <marker id="ah-blue"   markerWidth="5" markerHeight="5" refX="3" refY="2.5" orient="auto"><path d="M0,0 L0,5 L5,2.5 z" fill="rgba(60,140,255,0.95)"/></marker>
-        </defs>
         <g id="highlight-layer"></g>
         <g id="arrow-layer"></g>
       </svg>
     </div>
 
     <div class="arrow-hint">
+      <span><b style="color:rgba(0,200,80,0.9)">●</b> Right-drag arrow</span>
+      <span><b style="color:rgba(255,165,0,0.9)">●</b> +Shift</span>
+      <span><b style="color:rgba(220,50,50,0.9)">●</b> +Ctrl</span>
+      <span><b style="color:rgba(60,140,255,0.9)">●</b> +Alt</span>
+      <span>Right-click = highlight &nbsp;·&nbsp; Esc = clear</span>
     </div>
 
     <div class="player-label">
@@ -746,26 +746,24 @@
     }, 80);
   });
 
-  /* ══════════════════════════════════════════════════════════════
-     ARROW & HIGHLIGHT SYSTEM
+  /* ── Arrows & highlights ─────────────────────────────────────
      Right-drag         → green arrow
      Right-drag +Shift  → orange
      Right-drag +Ctrl   → red
      Right-drag +Alt    → blue
      Right-click (stay) → toggle highlight
      Left-click / Esc   → clear all
-  ══════════════════════════════════════════════════════════════ */
-  var arrows     = {};   // key → { from, to, color }
-  var highlights = {};   // key → color
-  var dragFrom   = null;
-  var dragStart  = null;
-  var dragMods   = {};
+  ───────────────────────────────────────────────────────────── */
+  var arrows      = {};
+  var highlights  = {};
+  var dragPreview = null;
+  var suppressContextMenu = false;
 
   var COLORS = {
-    green:  { stroke: 'rgba(0,200,80,0.92)',   marker: 'url(#ah-green)',  fill: 'rgba(0,200,80,0.22)'  },
-    orange: { stroke: 'rgba(255,165,0,0.92)',  marker: 'url(#ah-orange)', fill: 'rgba(255,165,0,0.22)' },
-    red:    { stroke: 'rgba(220,50,50,0.92)',  marker: 'url(#ah-red)',    fill: 'rgba(220,50,50,0.22)' },
-    blue:   { stroke: 'rgba(60,140,255,0.92)', marker: 'url(#ah-blue)',   fill: 'rgba(60,140,255,0.22)'}
+    green:  { key: 'green',  fill: '#00c850' },
+    orange: { key: 'orange', fill: '#ffa500' },
+    red:    { key: 'red',    fill: '#dc3232' },
+    blue:   { key: 'blue',   fill: '#3c8cff' }
   };
 
   function pickColor(mods) {
@@ -782,13 +780,19 @@
     return bd && bd.offsetWidth > 0 ? bd.offsetWidth / 8 : 0;
   }
 
-  function sqCenter(sq) {
+  function sqToCol(sq) {
     var file = sq.charCodeAt(0) - 97;
-    var rank = parseInt(sq[1]) - 1;
-    var sz   = getSqSize();
-    var col  = orientation === 'white' ? file   : 7 - file;
-    var row  = orientation === 'white' ? 7-rank : rank;
-    return { x: col * sz + sz / 2, y: row * sz + sz / 2 };
+    return orientation === 'white' ? file : 7 - file;
+  }
+
+  function sqToRow(sq) {
+    var rank = parseInt(sq[1], 10) - 1;
+    return orientation === 'white' ? 7 - rank : rank;
+  }
+
+  function sqCenter(sq) {
+    var sz = getSqSize();
+    return { x: sqToCol(sq) * sz + sz / 2, y: sqToRow(sq) * sz + sz / 2 };
   }
 
   function pxToSq(px, py) {
@@ -803,10 +807,41 @@
   }
 
   function boardXY(e) {
-    var bd   = document.getElementById('game-board');
+    var bd = document.getElementById('game-board');
     if (!bd) return null;
     var rect = bd.getBoundingClientRect();
-    return { x: e.clientX - rect.left, y: e.clientY - rect.top };
+    return { x: e.clientX - rect.left, y: e.clientY - rect.top, w: rect.width, h: rect.height };
+  }
+
+  function buildArrowPoints(fromPt, toPt, sz) {
+    var dx = toPt.x - fromPt.x;
+    var dy = toPt.y - fromPt.y;
+    var len = Math.sqrt(dx * dx + dy * dy);
+    if (len < 2) return null;
+    var ux = dx / len, uy = dy / len;
+    var px = -uy, py = ux;
+
+    var shaftHalf = sz * 0.075;
+    var headLen   = Math.min(sz * 0.34, len * 0.6);
+    var headHalf  = sz * 0.19;
+    var tipInset  = sz * 0.06;
+
+    var tip      = { x: toPt.x - ux * tipInset, y: toPt.y - uy * tipInset };
+    var headBase = { x: tip.x - ux * headLen,   y: tip.y - uy * headLen };
+
+    return [
+      { x: fromPt.x + px * shaftHalf,   y: fromPt.y + py * shaftHalf   },
+      { x: headBase.x + px * shaftHalf, y: headBase.y + py * shaftHalf },
+      { x: headBase.x + px * headHalf,  y: headBase.y + py * headHalf  },
+      { x: tip.x,                       y: tip.y                       },
+      { x: headBase.x - px * headHalf,  y: headBase.y - py * headHalf  },
+      { x: headBase.x - px * shaftHalf, y: headBase.y - py * shaftHalf },
+      { x: fromPt.x - px * shaftHalf,   y: fromPt.y - py * shaftHalf   }
+    ];
+  }
+
+  function pointsToStr(pts) {
+    return pts.map(function (p) { return p.x.toFixed(1) + ',' + p.y.toFixed(1); }).join(' ');
   }
 
   function drawOverlay() {
@@ -819,49 +854,41 @@
     var sz = getSqSize();
     if (!sz) return;
 
-    /* highlights */
     Object.keys(highlights).forEach(function (sq) {
       var color = highlights[sq];
-      var file  = sq.charCodeAt(0) - 97;
-      var rank  = parseInt(sq[1]) - 1;
-      var col   = orientation === 'white' ? file   : 7 - file;
-      var row   = orientation === 'white' ? 7-rank : rank;
-      var el    = document.createElementNS('http://www.w3.org/2000/svg', 'rect');
-      el.setAttribute('x', col * sz);
-      el.setAttribute('y', row * sz);
+      var el = document.createElementNS('http://www.w3.org/2000/svg', 'rect');
+      el.setAttribute('x', sqToCol(sq) * sz);
+      el.setAttribute('y', sqToRow(sq) * sz);
       el.setAttribute('width',  sz);
       el.setAttribute('height', sz);
-      el.setAttribute('fill',         color.fill);
-      el.setAttribute('stroke',       color.stroke);
-      el.setAttribute('stroke-width', 2);
-      el.setAttribute('rx', 3);
+      el.setAttribute('fill', color.fill);
+      el.setAttribute('fill-opacity', '0.55');
       hlg.appendChild(el);
     });
 
-    /* arrows */
     Object.keys(arrows).forEach(function (key) {
-      var a     = arrows[key];
-      var from  = sqCenter(a.from);
-      var to    = sqCenter(a.to);
-      var color = a.color;
-      var dx    = to.x - from.x, dy = to.y - from.y;
-      var len   = Math.sqrt(dx*dx + dy*dy) || 1;
-      var shrink = sz * 0.30;
-      var ex    = to.x - (dx / len) * shrink;
-      var ey    = to.y - (dy / len) * shrink;
-      var sw    = sz * 0.14;
-
-      var line  = document.createElementNS('http://www.w3.org/2000/svg', 'line');
-      line.setAttribute('x1', from.x);
-      line.setAttribute('y1', from.y);
-      line.setAttribute('x2', ex);
-      line.setAttribute('y2', ey);
-      line.setAttribute('stroke',          color.stroke);
-      line.setAttribute('stroke-width',    sw);
-      line.setAttribute('stroke-linecap',  'round');
-      line.setAttribute('marker-end',      color.marker);
-      arwg.appendChild(line);
+      var a   = arrows[key];
+      var pts = buildArrowPoints(sqCenter(a.from), sqCenter(a.to), sz);
+      if (!pts) return;
+      var poly = document.createElementNS('http://www.w3.org/2000/svg', 'polygon');
+      poly.setAttribute('points', pointsToStr(pts));
+      poly.setAttribute('fill', a.color.fill);
+      poly.setAttribute('fill-opacity', '0.85');
+      poly.setAttribute('stroke', 'rgba(0,0,0,0.25)');
+      poly.setAttribute('stroke-width', '1');
+      arwg.appendChild(poly);
     });
+
+    if (dragPreview && dragPreview.toPt) {
+      var pts2 = buildArrowPoints(sqCenter(dragPreview.from), dragPreview.toPt, sz);
+      if (pts2) {
+        var poly2 = document.createElementNS('http://www.w3.org/2000/svg', 'polygon');
+        poly2.setAttribute('points', pointsToStr(pts2));
+        poly2.setAttribute('fill', dragPreview.color.fill);
+        poly2.setAttribute('fill-opacity', '0.5');
+        arwg.appendChild(poly2);
+      }
+    }
   }
 
   function clearOverlay() {
@@ -869,6 +896,53 @@
     highlights = {};
     drawOverlay();
   }
+
+  function onDragMove(e) {
+    if (!dragPreview) return;
+    var pos = boardXY(e);
+    if (!pos) return;
+    dragPreview.toPt = {
+      x: Math.max(0, Math.min(pos.w, pos.x)),
+      y: Math.max(0, Math.min(pos.h, pos.y))
+    };
+    dragPreview.toSq = pxToSq(pos.x, pos.y);
+    drawOverlay();
+  }
+
+  function onDragEnd(e) {
+    document.removeEventListener('mousemove', onDragMove);
+    document.removeEventListener('mouseup', onDragEnd);
+    if (!dragPreview) return;
+
+    var fromSq = dragPreview.from;
+    var color  = dragPreview.color;
+    var pos    = boardXY(e);
+    var toSq   = pos ? pxToSq(pos.x, pos.y) : dragPreview.toSq;
+    dragPreview = null;
+
+    if (toSq && toSq === fromSq) {
+      if (highlights[fromSq] && highlights[fromSq].key === color.key) {
+        delete highlights[fromSq];
+      } else {
+        highlights[fromSq] = color;
+      }
+    } else if (toSq) {
+      var akey = fromSq + '-' + toSq;
+      if (arrows[akey] && arrows[akey].color.key === color.key) {
+        delete arrows[akey];
+      } else {
+        arrows[akey] = { from: fromSq, to: toSq, color: color };
+      }
+    }
+    drawOverlay();
+  }
+
+  document.addEventListener('contextmenu', function (e) {
+    if (suppressContextMenu) {
+      e.preventDefault();
+      suppressContextMenu = false;
+    }
+  });
 
   /* ── DOM ready ─────────────────────────────────────────────── */
   document.addEventListener('DOMContentLoaded', function () {
@@ -920,7 +994,14 @@
         case 'r': case 'R':          e.preventDefault(); document.getElementById('resetBtn').click(); break;
         case 'f': case 'F':          e.preventDefault(); document.getElementById('flipBtn').click(); break;
         case 'Home':                 e.preventDefault(); document.getElementById('resetBtn').click(); break;
-        case 'Escape':               clearOverlay(); break;
+        case 'Escape':
+          if (dragPreview) {
+            document.removeEventListener('mousemove', onDragMove);
+            document.removeEventListener('mouseup', onDragEnd);
+            dragPreview = null;
+          }
+          clearOverlay();
+          break;
       }
     });
 
@@ -951,44 +1032,22 @@
     /* 6. Arrow / highlight mouse events */
     var boardDiv = document.getElementById('game-board');
 
-    boardDiv.addEventListener('contextmenu', function (e) { e.preventDefault(); }, true);
-
     boardDiv.addEventListener('mousedown', function (e) {
       if (e.button !== 2) return;
       e.preventDefault();
       var pos = boardXY(e);
       if (!pos) return;
-      dragFrom  = pxToSq(pos.x, pos.y);
-      dragStart = pos;
-      dragMods  = { shift: e.shiftKey, ctrl: e.ctrlKey, alt: e.altKey };
-    });
-
-    boardDiv.addEventListener('mouseup', function (e) {
-      if (e.button !== 2) return;
-      e.preventDefault();
-      if (!dragFrom) return;
-      var pos  = boardXY(e);
-      if (!pos) { dragFrom = null; return; }
-      var toSq = pxToSq(pos.x, pos.y);
-      var dx   = pos.x - dragStart.x;
-      var dy   = pos.y - dragStart.y;
-      var dist = Math.sqrt(dx*dx + dy*dy);
-      var color = pickColor(dragMods);
-
-      if (dist < 8 || toSq === dragFrom) {
-        /* right-click without drag → toggle highlight */
-        var hkey = dragFrom;
-        if (highlights[hkey]) { delete highlights[hkey]; }
-        else                  { highlights[hkey] = color; }
-      } else if (toSq) {
-        /* right-drag → toggle arrow */
-        var akey = dragFrom + '-' + toSq;
-        if (arrows[akey]) { delete arrows[akey]; }
-        else              { arrows[akey] = { from: dragFrom, to: toSq, color: color }; }
-      }
-
-      dragFrom = null;
-      drawOverlay();
+      var fromSq = pxToSq(pos.x, pos.y);
+      if (!fromSq) return;
+      suppressContextMenu = true;
+      dragPreview = {
+        from:  fromSq,
+        toPt:  sqCenter(fromSq),
+        toSq:  fromSq,
+        color: pickColor({ shift: e.shiftKey, ctrl: e.ctrlKey, alt: e.altKey })
+      };
+      document.addEventListener('mousemove', onDragMove);
+      document.addEventListener('mouseup', onDragEnd);
     });
 
     /* left-click on board clears drawings */

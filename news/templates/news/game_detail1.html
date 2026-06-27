@@ -1,0 +1,758 @@
+{% extends 'news/base.html' %}
+{% load static %}
+
+{% block content %}
+<link rel="stylesheet" href="{% static 'chessboardjs-1.0.0/css/chessboard-1.0.0.min.css' %}">
+<script src="{% static 'jquery.min.js' %}"></script>
+<script src="{% static 'chessboardjs-1.0.0/js/chessboard-1.0.0.min.js' %}"></script>
+<script src="{% static 'chess.min.js' %}"></script>
+
+<audio id="correctSound" src="{% static 'sound/puzzle-correct.mp3' %}"></audio>
+<audio id="wrongSound" src="{% static 'sound/puzzle-wrong.mp3' %}"></audio>
+<audio id="moveSound">
+    <source src="{% static 'sound/move-self.mp3' %}" type="audio/mpeg">
+</audio>
+<audio id="captureSound">
+    <source src="{% static 'sound/capture.mp3' %}" type="audio/mpeg">
+</audio>
+<audio id="checkSound">
+    <source src="{% static 'sound/move-check.mp3' %}" type="audio/mpeg">
+</audio>
+
+<style>
+    /* ── CSS VARIABLES (matching your base theme) ───────────────── */
+    :root {
+        --chess-primary: #769656;
+        --chess-white: #eeeed2;
+        --chess-secondary: #b0b3b8;
+        --chess-light: #f0f0f0;
+        --chess-red: #c84b4b;
+        --chess-accent: #e5b83c;
+        --border: rgba(255, 255, 255, 0.08);
+        --card-color: oklch(18% 0.01 256);
+        --color-gray-400: #9ca3af;
+    }
+
+    /* ── 50/50 EQUAL GRID LAYOUT (BOARD & INFO SAME WIDTH) ───────── */
+    .game-layout {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        /* ← TWO EQUAL COLUMNS */
+        gap: 24px;
+        max-width: 1400px;
+        margin: 24px auto;
+        padding: 0 24px;
+        align-items: start;
+    }
+
+    /* Left column: board area - fills its grid cell completely */
+    .board-col {
+        display: flex;
+        flex-direction: column;
+        gap: 12px;
+        width: 100%;
+    }
+
+    /* Board wrapper - no max-width restriction, allows full expansion */
+    .board-wrapper {
+        width: 100%;
+        max-width: none;
+        /* remove previous limit */
+    }
+
+    /* Chessboard container - perfect square that fills available width */
+    #game-board {
+        width: 100% !important;
+        aspect-ratio: 1 / 1;
+        /* forces square based on parent width */
+        outline: none;
+    }
+
+    /* Custom chessboard colors */
+    #game-board .white-1e1d7 {
+        background-color: var(--chess-primary) !important;
+        /* light */
+    }
+
+    #game-board .black-3c85d {
+        background-color: var(--chess-white) !important;
+        /* dark */
+    }
+
+    /* Ensure chessboard internal table also fills 100% */
+    #game-board .chessboard-1-0-0,
+    #game-board table {
+        width: 100% !important;
+        height: auto !important;
+    }
+
+    /* Right column: info panel - also 1fr, perfectly equal */
+    .info-col {
+        display: flex;
+        flex-direction: column;
+        gap: 16px;
+        min-width: 0;
+        /* prevent overflow from long words */
+        width: 100%;
+    }
+
+    /* ── Rest of the styling (preserved from original) ───────────── */
+    .player-label {
+        font-size: 1rem;
+        font-weight: 700;
+        color: var(--chess-light);
+        display: flex;
+        align-items: center;
+        gap: 8px;
+    }
+
+    .player-color-dot {
+        width: 12px;
+        height: 12px;
+        border-radius: 50%;
+        border: 1px solid rgba(255, 255, 255, 0.2);
+    }
+
+    .dot-black {
+        background: #1a1a1a;
+    }
+
+    .dot-white {
+        background: #f0f0f0;
+    }
+
+    .eval-track {
+        width: 100%;
+        height: 16px;
+        background: #1a1a1a;
+        border-radius: 99px;
+        overflow: hidden;
+        border: 1px solid var(--border);
+        position: relative;
+    }
+
+    #white-bar {
+        height: 100%;
+        background: #f0f0f0;
+        position: absolute;
+        left: 0;
+        top: 0;
+        transition: width 0.35s ease;
+        display: flex;
+        align-items: center;
+        font-size: 11px;
+        font-weight: 800;
+        color: #000;
+        padding-left: 6px;
+        white-space: nowrap;
+    }
+
+    #black-bar {
+        height: 100%;
+        background: #1a1a1a;
+        position: absolute;
+        right: 0;
+        top: 0;
+        transition: width 0.35s ease;
+        display: flex;
+        align-items: center;
+        justify-content: flex-end;
+        font-size: 11px;
+        font-weight: 800;
+        color: #fff;
+        padding-right: 6px;
+        white-space: nowrap;
+    }
+
+    .board-controls {
+        display: flex;
+        gap: 10px;
+        justify-content: center;
+        margin-top: 4px;
+    }
+
+    .ctrl-btn {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        width: 44px;
+        height: 44px;
+        border-radius: 12px;
+        border: 1px solid var(--border);
+        background: var(--card-color);
+        color: var(--chess-secondary);
+        cursor: pointer;
+        font-size: 1.2rem;
+        transition: all 0.15s ease;
+    }
+
+    .ctrl-btn:hover {
+        border-color: var(--chess-primary);
+        color: var(--chess-light);
+        background: oklch(24% 0.015 256);
+    }
+
+    .ctrl-btn.c-next {
+        border-color: rgba(119, 149, 86, 0.4);
+        color: var(--chess-primary);
+    }
+
+    .ctrl-btn.c-prev {
+        border-color: rgba(96, 165, 250, 0.3);
+        color: #60a5fa;
+    }
+
+    .ctrl-btn.c-reset {
+        border-color: rgba(200, 75, 75, 0.3);
+        color: var(--chess-red);
+    }
+
+    .ctrl-btn.c-flip {
+        border-color: rgba(245, 158, 11, 0.3);
+        color: #f59e0b;
+    }
+
+    #board-comments {
+        font-size: 0.85rem;
+        color: var(--chess-secondary);
+        line-height: 1.5;
+        background: rgba(0, 0, 0, 0.2);
+        border-radius: 12px;
+        padding: 10px 12px;
+        border: 1px solid var(--border);
+    }
+
+    .section-label {
+        font-size: 0.7rem;
+        font-weight: 700;
+        letter-spacing: 2px;
+        text-transform: uppercase;
+        color: var(--color-gray-400);
+        margin-bottom: 8px;
+    }
+
+    .info-panel {
+        background: oklch(18% 0.01 256);
+        border: 1px solid var(--border);
+        border-radius: 16px;
+        padding: 16px;
+    }
+
+    .info-panel:first-child {
+        padding: 10px 14px;
+    }
+
+    .game-title-text {
+        font-size: 1rem;
+        font-weight: 700;
+        color: var(--chess-light);
+        text-align: left;
+        margin: 0;
+        line-height: 1.2;
+        word-break: break-word;
+    }
+
+
+    #moves-list {
+        max-height: 280px;
+        overflow-y: auto;
+        font-size: 0.9rem;
+    }
+
+    #moves-list::-webkit-scrollbar {
+        width: 5px;
+    }
+
+    #moves-list::-webkit-scrollbar-thumb {
+        background: var(--border);
+        border-radius: 99px;
+    }
+
+    .move-pair-row {
+        display: flex;
+        align-items: center;
+        margin-bottom: 4px;
+        border-radius: 8px;
+        padding: 2px 4px;
+    }
+
+    .move-num {
+        color: var(--color-gray-400);
+        font-weight: 700;
+        font-size: 0.8rem;
+        min-width: 32px;
+    }
+
+    .move-icon {
+        padding: 5px 8px;
+        border-radius: 8px;
+        cursor: pointer;
+        color: var(--chess-secondary);
+        flex: 1;
+        transition: all 0.12s ease;
+        font-size: 0.9rem;
+    }
+
+    .move-icon:hover {
+        background: oklch(26% 0.015 256);
+        color: var(--chess-light);
+    }
+
+    .move-icon.active-move {
+        background: rgba(119, 149, 86, 0.2);
+        color: var(--chess-primary);
+        font-weight: 700;
+    }
+
+    .initial-pos {
+        display: block;
+        padding: 6px 10px;
+        color: var(--color-gray-400);
+        font-size: 0.85rem;
+        font-style: italic;
+        cursor: pointer;
+        border-radius: 8px;
+        margin-bottom: 6px;
+    }
+
+    .initial-pos:hover {
+        background: oklch(24% 0.01 256);
+        color: var(--chess-light);
+    }
+
+    .initial-pos.active-move {
+        color: var(--chess-primary);
+        font-weight: 700;
+        font-style: normal;
+        background: rgba(118, 150, 86, 0.15);
+    }
+
+    #comments-list {
+        max-height: 160px;
+        overflow-y: auto;
+        font-size: 0.85rem;
+    }
+
+    .comment-item {
+        border-bottom: 1px solid var(--border);
+        padding: 8px 0;
+    }
+
+    .comment-user {
+        font-size: 0.8rem;
+        font-weight: 700;
+        color: var(--chess-accent);
+    }
+
+    .comment-move-tag {
+        font-size: 0.7rem;
+        background: var(--card-color);
+        padding: 2px 8px;
+        border-radius: 30px;
+    }
+
+    .comment-text {
+        color: var(--chess-secondary);
+        margin-top: 5px;
+        line-height: 1.4;
+    }
+
+    .no-comments {
+        color: var(--color-gray-400);
+        font-size: 0.85rem;
+        text-align: center;
+        padding: 12px;
+    }
+
+    .comment-form-label {
+        font-size: 0.8rem;
+        font-weight: 700;
+        color: var(--color-gray-400);
+        margin-bottom: 8px;
+        display: block;
+    }
+
+    #id_comment {
+        width: 100%;
+        background: oklch(14% 0.008 256);
+        border: 1px solid var(--border);
+        border-radius: 12px;
+        color: var(--chess-light);
+        font-size: 0.9rem;
+        padding: 10px 12px;
+        resize: vertical;
+        font-family: inherit;
+    }
+
+    #id_comment:focus {
+        outline: none;
+        border-color: var(--chess-primary);
+    }
+
+    .comment-submit-btn {
+        margin-top: 12px;
+        padding: 8px 20px;
+        font-size: 0.85rem;
+        font-weight: 700;
+        border-radius: 40px;
+        border: none;
+        background: var(--chess-primary);
+        color: #fff;
+        cursor: pointer;
+        transition: all 0.18s ease;
+    }
+
+    .comment-submit-btn:hover {
+        background: #5f7343;
+        transform: translateY(-1px);
+    }
+
+    .notification-container {
+        position: fixed;
+        top: 20px;
+        right: 20px;
+        z-index: 1000;
+        max-width: 340px;
+    }
+
+    .notification {
+        background: var(--card-color);
+        border: 1px solid var(--border);
+        border-left: 4px solid var(--chess-primary);
+        color: var(--chess-light);
+        padding: 12px 16px;
+        border-radius: 12px;
+        box-shadow: 0 8px 24px rgba(0, 0, 0, 0.5);
+        margin-bottom: 12px;
+        transform: translateX(120%);
+        transition: transform 0.3s ease, opacity 0.3s ease;
+        opacity: 0;
+        position: relative;
+    }
+
+    .notification.show {
+        transform: translateX(0);
+        opacity: 1;
+    }
+
+    .notification.success {
+        border-left-color: var(--chess-primary);
+    }
+
+    .notification.error {
+        border-left-color: var(--chess-red);
+    }
+
+    .notification-close {
+        background: none;
+        border: none;
+        color: #aaa;
+        font-size: 1.2rem;
+        cursor: pointer;
+    }
+
+    .notification-progress-bar {
+        position: absolute;
+        bottom: 0;
+        left: 0;
+        height: 3px;
+        background: var(--chess-primary);
+        width: 0%;
+        animation: progressShrink 5s linear forwards;
+    }
+
+    @keyframes progressShrink {
+        from {
+            width: 100%;
+        }
+
+        to {
+            width: 0%;
+        }
+    }
+
+    @media (max-width: 780px) {
+        .game-layout {
+            grid-template-columns: 1fr;
+            gap: 20px;
+            padding: 16px;
+        }
+
+        .ctrl-btn {
+            width: 48px;
+            height: 48px;
+        }
+    }
+</style>
+
+<div class="game-layout">
+    <!-- LEFT COLUMN: BOARD (50% width, fully expanded) -->
+    <div class="board-col">
+        <div class="player-label">
+            <span class="player-color-dot dot-black"></span>
+            <span id="black-player-name">{{ game.black_player }}</span>
+        </div>
+        <div class="eval-track">
+            <div id="white-bar" style="width:50%;"></div>
+            <div id="black-bar" style="width:50%;"></div>
+        </div>
+        <div class="board-wrapper">
+            <div id="game-board"></div>
+        </div>
+        <div class="player-label">
+            <span class="player-color-dot dot-white"></span>
+            <span id="white-player-name">{{ game.white_player }}</span>
+        </div>
+        <div class="board-controls">
+            <button class="ctrl-btn c-prev" id="prevBtn" title="Previous (←)"><i class="bi bi-arrow-left"></i></button>
+            <button class="ctrl-btn c-next" id="nextBtn" title="Next (→)"><i class="bi bi-arrow-right"></i></button>
+            <button class="ctrl-btn c-reset" id="resetBtn" title="Reset (R)"><i
+                    class="bi bi-skip-backward-fill"></i></button>
+            <button class="ctrl-btn c-flip" id="flipBtn" title="Flip (F)"><i class="bi bi-shuffle"></i></button>
+        </div>
+    </div>
+
+    <!-- RIGHT COLUMN: INFO (50% width, perfectly equal) -->
+    <div class="info-col">
+        <div class="info-panel">
+            <p class="game-title-text">{{ game.title }}</p>
+        </div>
+        <div class="info-panel">
+            <p class="section-label">📋 Move Notation</p>
+            <div id="moves-list"></div>
+        </div>
+        <div class="info-panel">
+            <p class="section-label">💬 Comments — Move <span id="comment-move-number">0</span></p>
+            <div id="comments-list"></div>
+        </div>
+        <div class="info-panel">
+            <p class="section-label">✏️ Add a Comment</p>
+            <form id="commentForm" method="post" action="{% url 'add_comment' game.slug_link %}">
+                {% csrf_token %}
+                <label class="comment-form-label" for="id_comment">
+                    Comment for move <span id="form-move-label">0</span>
+                </label>
+                <textarea name="comment" id="id_comment" rows="3" placeholder="Share your thoughts on this position…"
+                    required></textarea>
+                <input type="hidden" name="move_number" id="hidden-move-number" value="0">
+                <button type="submit" class="comment-submit-btn">Add Comment</button>
+            </form>
+        </div>
+    </div>
+</div>
+
+<div class="notification-container" id="notification-container"></div>
+
+<script>
+    /* ── Audio elements (preserved) ───────────────────────────────── */
+    const moveSound = document.getElementById('moveSound');
+    const captureSound = document.getElementById('captureSound');
+    const checkSound = document.getElementById('checkSound');
+
+    function safePlay(el) { if (el) { el.currentTime = 0; el.play().catch(() => { }); } }
+    function playSoundForMove(move) {
+        if (!move) return;
+        if (move.flags && move.flags.includes('c')) safePlay(captureSound);
+        else if (chess && chess.in_check()) safePlay(checkSound);
+        else safePlay(moveSound);
+    }
+
+    /* ── Chess initialization from Django context ────────────────── */
+    const chess = new Chess();
+    const pgn = `{{ game.pgn|escapejs }}`;
+    try { chess.load_pgn(pgn); } catch (e) { console.error("PGN error:", e); }
+
+    const movesHistoryVerbose = chess.history({ verbose: true });
+    const movesHistory = chess.history({ verbose: true });
+
+    let moveIndex = 0;
+    let orientation = "white";
+    let currentMoveNumber = 0;
+    const commentsData = {{ comments_json| safe }};
+    let board;
+    let fenOpenings = {};
+    fetch("{% static 'openings/openings.json' %}")
+        .then(r => r.json())
+        .then(d => { fenOpenings = d; })
+        .catch(() => { });
+
+    /* ── Notifications ───────────────────────────────────────────── */
+    function showNotification(title, message, type = 'info', duration = 3000) {
+        const container = document.getElementById('notification-container');
+        const el = document.createElement('div');
+        el.className = `notification ${type}`;
+        el.innerHTML = `
+      <div class="notification-header">
+        <span class="notification-title">${title}</span>
+        <button class="notification-close">×</button>
+      </div>
+      <div class="notification-body">${message}</div>
+      <div class="notification-progress-bar"></div>`;
+        container.appendChild(el);
+        requestAnimationFrame(() => el.classList.add('show'));
+        el.querySelector('.notification-close').addEventListener('click', () => hideNotif(el));
+        const progressBar = el.querySelector('.notification-progress-bar');
+        if (progressBar) progressBar.style.animation = `progressShrink ${duration}ms linear forwards`;
+        setTimeout(() => hideNotif(el), duration);
+    }
+    function hideNotif(el) { el.classList.remove('show'); setTimeout(() => el.remove(), 400); }
+    function showMessage(msg, type = 'info') {
+        const titles = { success: 'Done', error: 'Error', warning: 'Warning', info: 'Info' };
+        showNotification(titles[type] || 'Info', msg, type, 2500);
+    }
+
+    /* ── Move formatting ─────────────────────────────────────────── */
+    const wSym = { p: '', n: '♞', b: '♝', r: '♜', q: '♛', k: '♚' };
+    const bSym = { p: '', n: '♘', b: '♗', r: '♖', q: '♕', k: '♔' };
+    function formatMove(move) {
+        const syms = move.color === 'w' ? wSym : bSym;
+        const icon = syms[move.piece] || '';
+        const cap = move.flags && move.flags.includes('c');
+        if (move.piece === 'p') return cap && move.san.length >= 4 ? `${move.san[0]}x${move.to}` : move.to;
+        return `${icon}${cap ? 'x' : ''}${move.to}`;
+    }
+
+    /* ── Render move list ────────────────────────────────────────── */
+    function renderMovesList() {
+        const div = document.getElementById('moves-list');
+        div.innerHTML = '';
+        const frag = document.createDocumentFragment();
+
+        const initSpan = document.createElement('div');
+        initSpan.className = 'initial-pos';
+        initSpan.dataset.moveIndex = '0';
+        initSpan.textContent = 'Initial Position';
+        initSpan.addEventListener('click', () => { moveIndex = 0; currentMoveNumber = 0; updateBoard(); renderComments(); });
+        frag.appendChild(initSpan);
+
+        for (let i = 0; i < movesHistoryVerbose.length; i += 2) {
+            const row = document.createElement('div');
+            row.className = 'move-pair-row';
+            const num = document.createElement('span');
+            num.className = 'move-num';
+            num.textContent = (Math.floor(i / 2) + 1) + '.';
+            row.appendChild(num);
+
+            const wSpan = document.createElement('span');
+            wSpan.className = 'move-icon';
+            wSpan.dataset.moveIndex = i + 1;
+            wSpan.textContent = formatMove(movesHistoryVerbose[i]);
+            wSpan.addEventListener('click', () => { moveIndex = i + 1; currentMoveNumber = moveIndex; updateBoard(); renderComments(); });
+            row.appendChild(wSpan);
+
+            if (i + 1 < movesHistoryVerbose.length) {
+                const bSpan = document.createElement('span');
+                bSpan.className = 'move-icon';
+                bSpan.dataset.moveIndex = i + 2;
+                bSpan.textContent = formatMove(movesHistoryVerbose[i + 1]);
+                bSpan.addEventListener('click', () => { moveIndex = i + 2; currentMoveNumber = moveIndex; updateBoard(); renderComments(); });
+                row.appendChild(bSpan);
+            }
+            frag.appendChild(row);
+        }
+        div.appendChild(frag);
+    }
+
+    function highlightMove() {
+        document.querySelectorAll('.move-icon, .initial-pos').forEach(el => el.classList.remove('active-move'));
+        const active = document.querySelector(`[data-move-index="${moveIndex}"]`);
+        if (active) active.classList.add('active-move');
+    }
+
+    /* ── Update board & evaluation ───────────────────────────────── */
+    let lastOpeningName = 'Initial Position';
+    function updateBoard() {
+        chess.reset();
+        for (let i = 0; i < moveIndex; i++) { try { chess.move(movesHistory[i]); } catch (e) { } }
+        requestAnimationFrame(() => { board.position(chess.fen()); highlightMove(); });
+
+        document.getElementById('comment-move-number').textContent = currentMoveNumber;
+        document.getElementById('form-move-label').textContent = currentMoveNumber;
+        document.getElementById('hidden-move-number').value = currentMoveNumber;
+        analyzeWithStockfish();
+
+        const fen0 = chess.fen().split(' ')[0];
+        const initSpan = document.querySelector('[data-move-index="0"]');
+        if (initSpan) {
+            if (moveIndex === 0) lastOpeningName = 'Initial Position';
+            else if (fenOpenings[fen0]) lastOpeningName = fenOpenings[fen0];
+            initSpan.textContent = lastOpeningName;
+        }
+    }
+
+    function renderComments() {
+        const div = document.getElementById('comments-list');
+        const filtered = commentsData.filter(c => c.move_number == currentMoveNumber);
+        if (!filtered.length) { div.innerHTML = `<p class="no-comments">No comments for this position yet.</p>`; return; }
+        div.innerHTML = filtered.map(c => `<div class="comment-item"><div style="display:flex;justify-content:space-between;"><span class="comment-user">${c.user__username}</span><span class="comment-move-tag">${c.move_number === 0 ? 'Opening' : `Move ${c.move_number}`}</span></div><p class="comment-text">${c.comment}</p></div>`).join('');
+    }
+
+    let engineTimeout = null, isAnalyzing = false, lastScore = null;
+    function analyzeWithStockfish() {
+        if (engineTimeout) clearTimeout(engineTimeout);
+        if (isAnalyzing) return;
+        engineTimeout = setTimeout(() => {
+            isAnalyzing = true;
+            fetch("/analyze/", {
+                method: "POST",
+                headers: { "Content-Type": "application/json", "X-CSRFToken": "{{ csrf_token }}" },
+                body: JSON.stringify({ fen: chess.fen() })
+            })
+                .then(r => r.json())
+                .then(data => { if (!data.error && data.evaluation) updateEvaluationBar(data.evaluation); })
+                .catch(() => { })
+                .finally(() => { isAnalyzing = false; });
+        }, 500);
+    }
+
+    function updateEvaluationBar(evaluation) {
+        const whiteBar = document.getElementById('white-bar'), blackBar = document.getElementById('black-bar');
+        if (!whiteBar || !evaluation) return;
+        const MAX = 10, isWhite = chess.turn() === 'w';
+        let score = 0;
+        if (evaluation.type === 'mate') {
+            const mateIn = Math.abs(evaluation.value);
+            score = (evaluation.value > 0 && isWhite) || (evaluation.value < 0 && !isWhite) ? MAX : -MAX;
+            const text = `M${mateIn}`;
+            const wp = 50 + (score / MAX) * 50;
+            whiteBar.style.width = wp + '%'; blackBar.style.width = (100 - wp) + '%';
+            whiteBar.textContent = score > 0 ? text : ''; blackBar.textContent = score < 0 ? text : '';
+        } else if (evaluation.type === 'cp') {
+            score = evaluation.value / 100;
+            if (!isWhite) score = -score;
+            score = Math.max(-MAX, Math.min(MAX, score));
+            if (score === lastScore) return;
+            lastScore = score;
+            const text = Math.abs(score) < 0.05 ? '' : Math.abs(score).toFixed(1);
+            const wp = 50 + (score / MAX) * 50;
+            whiteBar.style.width = wp + '%'; blackBar.style.width = (100 - wp) + '%';
+            whiteBar.textContent = score > 0.05 ? text : ''; blackBar.textContent = score < -0.05 ? text : '';
+        }
+    }
+
+    /* ── Navigation & resize (board fills 50% column) ────────────── */
+    function handleNextMove(e) { if (e) e.preventDefault(); if (moveIndex < movesHistory.length) { moveIndex++; currentMoveNumber = moveIndex; const mv = chess.move(movesHistory[currentMoveNumber - 1]); playSoundForMove(mv); updateBoard(); renderComments(); } }
+    function handlePrevMove(e) { if (e) e.preventDefault(); if (moveIndex > 0) { const mv = chess.undo(); moveIndex--; currentMoveNumber = moveIndex; playSoundForMove(mv); updateBoard(); renderComments(); } }
+    function autoResizeBoard() { if (board) setTimeout(() => board.resize(), 30); }
+
+    /* ── DOM Ready ───────────────────────────────────────────────── */
+    document.addEventListener('DOMContentLoaded', () => {
+        board = Chessboard('game-board', {
+            position: 'start', draggable: false,
+            pieceTheme: "{% static 'chessboardjs-1.0.0/img/chesspieces/wikipedia/' %}{piece}.png",
+            dropOffBoard: 'snapback',
+        });
+        document.getElementById('nextBtn').addEventListener('click', handleNextMove);
+        document.getElementById('prevBtn').addEventListener('click', handlePrevMove);
+        document.getElementById('resetBtn').addEventListener('click', e => { e.preventDefault(); moveIndex = 0; currentMoveNumber = 0; chess.reset(); for (let i = 0; i < moveIndex; i++) chess.move(movesHistory[i]); updateBoard(); renderComments(); showMessage('Reset to start', 'info'); });
+        document.getElementById('flipBtn').addEventListener('click', e => { e.preventDefault(); orientation = orientation === 'white' ? 'black' : 'white'; board.orientation(orientation); const wn = document.getElementById('white-player-name'), bn = document.getElementById('black-player-name');[wn.textContent, bn.textContent] = [bn.textContent, wn.textContent]; showMessage(`Flipped to ${orientation}`, 'info'); });
+        document.addEventListener('keydown', e => { if (['INPUT', 'TEXTAREA'].includes(e.target.tagName)) return; if (e.key === 'ArrowRight') { e.preventDefault(); handleNextMove(); } else if (e.key === 'ArrowLeft') { e.preventDefault(); handlePrevMove(); } else if (e.key === 'r' || e.key === 'R') { e.preventDefault(); document.getElementById('resetBtn').click(); } else if (e.key === 'f' || e.key === 'F') { e.preventDefault(); document.getElementById('flipBtn').click(); } });
+        document.getElementById('commentForm').addEventListener('submit', function (e) { e.preventDefault(); const form = e.target; const data = new FormData(form); data.set('move_number', currentMoveNumber); fetch(form.action, { method: 'POST', body: data, headers: { 'X-CSRFToken': data.get('csrfmiddlewaretoken'), 'X-Requested-With': 'XMLHttpRequest' } }).then(r => r.json()).then(res => { if (res.status === 'success') { commentsData.push({ user__username: res.username, move_number: res.move_number, comment: res.comment, }); renderComments(); form.reset(); showMessage('Comment added!', 'success'); } else { showMessage('Error: ' + (res.errors || 'Unknown'), 'error'); } }).catch(() => showMessage('Network error', 'error')); });
+        renderMovesList();
+        moveIndex = 1; currentMoveNumber = 1;
+        updateBoard(); renderComments();
+        autoResizeBoard();
+        window.addEventListener('resize', () => autoResizeBoard());
+    });
+</script>
+{% endblock %}

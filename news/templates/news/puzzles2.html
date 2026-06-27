@@ -1,0 +1,1348 @@
+{% extends 'news/base.html' %}
+{% load static %}
+
+{% block title %}Chess Puzzles{% endblock %}
+
+{% block content %}
+<link rel="stylesheet" href="{% static 'chessboardjs-1.0.0/css/chessboard-1.0.0.min.css' %}">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+
+<style>
+  * {
+    font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+  }
+
+  :root {
+    --chesscom-green: #81b64c;
+    --chesscom-green-hover: #99c961;
+    --chesscom-green-dark: #6fa13c;
+    --chesscom-brown: #b58863;
+    --chesscom-tan: #f0d9b5;
+    --chesscom-gray: #312e2b;
+    --chesscom-gray-light: #484644;
+    --chesscom-gray-lighter: #5a5856;
+    --chesscom-bg: #262421;
+    --chesscom-bg-light: #2f2d2a;
+    --chesscom-text: #c5c3bd;
+    --chesscom-text-muted: #928f8a;
+    --chesscom-border: #3d3a36;
+    --chesscom-success: #59a657;
+    --chesscom-error: #cc3333;
+    --chesscom-warning: #e59c3b;
+    --chesscom-info: #5996cc;
+  }
+
+  body {
+    background: var(--chesscom-bg);
+    color: var(--chesscom-text);
+  }
+
+  /* ══════════════════════════════════════════════════════════
+     LAYOUT
+     ══════════════════════════════════════════════════════════ */
+  
+  #main-layout {
+    display: grid;
+    grid-template-columns: 320px 1fr 380px;
+    gap: 24px;
+    max-width: 1600px;
+    margin: 0 auto;
+    padding: 24px;
+    min-height: calc(100vh - 100px);
+  }
+
+  @media (max-width: 1400px) {
+    #main-layout {
+      grid-template-columns: 280px 1fr 340px;
+      gap: 20px;
+    }
+  }
+
+  @media (max-width: 1200px) {
+    #main-layout {
+      grid-template-columns: 1fr 360px;
+    }
+    #puzzle-list {
+      display: none !important;
+    }
+  }
+
+  @media (max-width: 900px) {
+    #main-layout {
+      grid-template-columns: 1fr;
+      gap: 16px;
+      padding: 16px;
+    }
+    #controls-container {
+      order: 2;
+    }
+    .puzzle-timer {
+      display: none !important;
+    }
+  }
+
+  /* ══════════════════════════════════════════════════════════
+     LEFT SIDEBAR - PUZZLE LIST
+     ══════════════════════════════════════════════════════════ */
+  
+  #puzzle-list {
+    background: var(--chesscom-bg-light);
+    border-radius: 12px;
+    border: 1px solid var(--chesscom-border);
+    overflow: hidden;
+    max-height: calc(100vh - 120px);
+    display: flex;
+    flex-direction: column;
+  }
+
+  .puzzle-list-header {
+    padding: 20px 20px 16px;
+    border-bottom: 1px solid var(--chesscom-border);
+    background: var(--chesscom-gray);
+  }
+
+  .puzzle-list-header h3 {
+    font-size: 1.1rem;
+    font-weight: 700;
+    color: #fff;
+    margin: 0 0 14px 0;
+    letter-spacing: -0.01em;
+  }
+
+  /* Difficulty tabs */
+  .diff-tabs {
+    display: grid;
+    grid-template-columns: 1fr 1fr 1fr;
+    gap: 6px;
+  }
+
+  .diff-tab {
+    padding: 8px 12px;
+    font-size: 0.8rem;
+    font-weight: 600;
+    text-align: center;
+    cursor: pointer;
+    border: none;
+    border-radius: 6px;
+    background: var(--chesscom-gray-light);
+    color: var(--chesscom-text-muted);
+    transition: all 0.15s ease;
+  }
+
+  .diff-tab:hover {
+    background: var(--chesscom-gray-lighter);
+    color: var(--chesscom-text);
+  }
+
+  .diff-tab.active-easy {
+    background: var(--chesscom-green);
+    color: #fff;
+  }
+
+  .diff-tab.active-medium {
+    background: var(--chesscom-warning);
+    color: #fff;
+  }
+
+  .diff-tab.active-hard {
+    background: var(--chesscom-error);
+    color: #fff;
+  }
+
+  /* Puzzle list panel */
+  .puzzle-list-panel {
+    padding: 12px;
+    overflow-y: auto;
+    flex: 1;
+  }
+
+  .puzzle-list-panel::-webkit-scrollbar {
+    width: 6px;
+  }
+
+  .puzzle-list-panel::-webkit-scrollbar-track {
+    background: transparent;
+  }
+
+  .puzzle-list-panel::-webkit-scrollbar-thumb {
+    background: var(--chesscom-border);
+    border-radius: 3px;
+  }
+
+  .puzzle-list-panel::-webkit-scrollbar-thumb:hover {
+    background: var(--chesscom-gray-lighter);
+  }
+
+  /* Individual puzzle buttons */
+  .puzzle-btn {
+    border-radius: 8px;
+    padding: 12px 14px;
+    text-align: left;
+    margin-bottom: 8px;
+    width: 100%;
+    border: 1px solid transparent;
+    transition: all 0.15s ease;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    cursor: pointer;
+  }
+
+  .puzzle-btn-content {
+    flex: 1;
+  }
+
+  .puzzle-btn strong {
+    font-size: 0.9rem;
+    font-weight: 600;
+    display: block;
+    margin-bottom: 4px;
+    color: inherit;
+  }
+
+  .puzzle-rating {
+    font-size: 0.75rem;
+    color: var(--chesscom-text-muted);
+    font-weight: 500;
+  }
+
+  .solved-puzzle {
+    background: var(--chesscom-gray);
+    color: var(--chesscom-text-muted);
+    border-color: var(--chesscom-border);
+  }
+
+  .solved-puzzle .puzzle-rating {
+    color: #6b6865;
+  }
+
+  .solved-check {
+    color: var(--chesscom-green);
+    font-size: 1.1rem;
+    font-weight: 700;
+  }
+
+  .unsolved-puzzle {
+    background: var(--chesscom-gray-light);
+    color: var(--chesscom-text);
+  }
+
+  .unsolved-puzzle:hover {
+    border-color: var(--chesscom-green);
+    background: var(--chesscom-gray-lighter);
+    transform: translateX(2px);
+  }
+
+  .diff-badge {
+    display: inline-block;
+    padding: 3px 10px;
+    border-radius: 4px;
+    font-size: 0.7rem;
+    font-weight: 600;
+    letter-spacing: 0.02em;
+    text-transform: uppercase;
+  }
+
+  .diff-badge.easy {
+    background: rgba(129, 182, 76, 0.2);
+    color: var(--chesscom-green);
+  }
+
+  .diff-badge.medium {
+    background: rgba(229, 156, 59, 0.2);
+    color: var(--chesscom-warning);
+  }
+
+  .diff-badge.hard {
+    background: rgba(204, 51, 51, 0.2);
+    color: var(--chesscom-error);
+  }
+
+  /* ══════════════════════════════════════════════════════════
+     CENTER - CHESS BOARD
+     ══════════════════════════════════════════════════════════ */
+  
+  #board-container {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+  }
+
+  .puzzle-header {
+    text-align: center;
+    margin-bottom: 20px;
+    width: 100%;
+    max-width: 600px;
+  }
+
+  .puzzle-header h2 {
+    font-size: 1.4rem;
+    font-weight: 700;
+    color: #fff;
+    margin: 0 0 8px 0;
+    letter-spacing: -0.02em;
+  }
+
+  .puzzle-meta {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 16px;
+    font-size: 0.9rem;
+    color: var(--chesscom-text-muted);
+  }
+
+  .puzzle-meta span {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+  }
+
+  #board-wrapper {
+    position: relative;
+    width: 100%;
+    max-width: 600px;
+    aspect-ratio: 1/1;
+    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.3);
+    border-radius: 8px;
+    overflow: hidden;
+  }
+
+  #board {
+    width: 100% !important;
+    height: 100% !important;
+  }
+
+  /* Board coordinates */
+  .board-coords {
+    position: absolute;
+    pointer-events: none;
+    z-index: 10;
+  }
+
+  .board-files {
+    bottom: 2px;
+    left: 0;
+    right: 0;
+    display: flex;
+    justify-content: space-around;
+    padding: 0 6px;
+  }
+
+  .board-ranks {
+    top: 0;
+    left: 2px;
+    display: flex;
+    flex-direction: column-reverse;
+    justify-content: space-around;
+    height: 100%;
+    padding: 6px 0;
+  }
+
+  .coord {
+    font-size: 0.7rem;
+    font-weight: 600;
+    color: rgba(255, 255, 255, 0.5);
+    text-shadow: 0 1px 2px rgba(0, 0, 0, 0.3);
+    width: 12.5%;
+    text-align: center;
+  }
+
+  /* Mobile select button */
+  #puzzle-title-small {
+    background: var(--chesscom-gray-light);
+    border: 1px solid var(--chesscom-border);
+    color: var(--chesscom-text);
+    border-radius: 8px;
+    font-weight: 600;
+    font-size: 1rem;
+    padding: 14px;
+    width: 100%;
+    max-width: 600px;
+    transition: all 0.15s;
+    margin-bottom: 16px;
+  }
+
+  #puzzle-title-small:hover {
+    border-color: var(--chesscom-green);
+    background: var(--chesscom-gray-lighter);
+  }
+
+  /* ══════════════════════════════════════════════════════════
+     RIGHT SIDEBAR - CONTROLS & NOTATION
+     ══════════════════════════════════════════════════════════ */
+  
+  #controls-container {
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+  }
+
+  /* Timer */
+  .puzzle-timer {
+    background: var(--chesscom-bg-light);
+    border: 1px solid var(--chesscom-border);
+    border-radius: 8px;
+    padding: 14px 18px;
+    text-align: center;
+    font-size: 0.85rem;
+    font-weight: 600;
+    color: var(--chesscom-text-muted);
+    letter-spacing: 0.5px;
+  }
+
+  .puzzle-timer span {
+    color: var(--chesscom-green);
+    font-size: 1.3rem;
+    font-weight: 700;
+    display: block;
+    margin-top: 4px;
+    font-variant-numeric: tabular-nums;
+  }
+
+  /* Status indicator */
+  #puzzle-status {
+    padding: 16px 20px;
+    border-radius: 8px;
+    text-align: center;
+    font-size: 0.95rem;
+    font-weight: 600;
+    min-height: 56px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border: 1px solid transparent;
+    transition: all 0.2s ease;
+  }
+
+  #puzzle-status.correct {
+    background: rgba(89, 166, 87, 0.15);
+    color: var(--chesscom-success);
+    border-color: rgba(89, 166, 87, 0.3);
+  }
+
+  #puzzle-status.wrong {
+    background: rgba(204, 51, 51, 0.15);
+    color: var(--chesscom-error);
+    border-color: rgba(204, 51, 51, 0.3);
+  }
+
+  #puzzle-status.info {
+    background: rgba(89, 150, 204, 0.15);
+    color: var(--chesscom-info);
+    border-color: rgba(89, 150, 204, 0.3);
+  }
+
+  #puzzle-status.solved {
+    background: rgba(129, 182, 76, 0.2);
+    color: var(--chesscom-green);
+    border-color: rgba(129, 182, 76, 0.4);
+    font-size: 1.05rem;
+  }
+
+  /* Quote box */
+  #quote-box {
+    background: var(--chesscom-bg-light);
+    border: 1px solid var(--chesscom-border);
+    border-left: 3px solid var(--chesscom-green);
+    border-radius: 8px;
+    padding: 16px 18px;
+  }
+
+  #quote-author {
+    font-size: 0.85rem;
+    font-weight: 700;
+    color: var(--chesscom-green);
+    margin-bottom: 8px;
+  }
+
+  #quote-text {
+    font-size: 0.9rem;
+    color: var(--chesscom-text);
+    font-style: italic;
+    margin: 0;
+    line-height: 1.5;
+  }
+
+  .quote-none {
+    display: none !important;
+  }
+
+  /* Notation box */
+  #notation-box {
+    background: var(--chesscom-bg-light);
+    border: 1px solid var(--chesscom-border);
+    border-radius: 8px;
+    padding: 16px;
+    max-height: 340px;
+    overflow-y: auto;
+  }
+
+  #notation-box::-webkit-scrollbar {
+    width: 6px;
+  }
+
+  #notation-box::-webkit-scrollbar-thumb {
+    background: var(--chesscom-border);
+    border-radius: 3px;
+  }
+
+  .notation-heading {
+    font-size: 0.75rem;
+    font-weight: 700;
+    letter-spacing: 1px;
+    text-transform: uppercase;
+    color: var(--chesscom-text-muted);
+    text-align: center;
+    margin-bottom: 12px;
+  }
+
+  /* Move pairs */
+  .move-pair {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    padding: 4px 8px;
+    margin-bottom: 2px;
+    border-radius: 4px;
+    transition: background 0.1s ease;
+  }
+
+  .move-pair:hover {
+    background: var(--chesscom-gray);
+  }
+
+  .move-number {
+    font-weight: 700;
+    color: var(--chesscom-text-muted);
+    min-width: 32px;
+    font-size: 0.85rem;
+  }
+
+  .move-white,
+  .move-black {
+    flex: 1;
+    color: var(--chesscom-text);
+    padding: 6px 10px;
+    border-radius: 4px;
+    cursor: pointer;
+    font-size: 0.9rem;
+    font-weight: 500;
+    transition: all 0.1s ease;
+    text-align: center;
+    font-family: 'Courier New', monospace;
+  }
+
+  .move-white:hover,
+  .move-black:hover {
+    background: var(--chesscom-gray-lighter);
+    color: #fff;
+  }
+
+  .move-white.active,
+  .move-black.active {
+    background: var(--chesscom-green);
+    color: #fff;
+    font-weight: 600;
+  }
+
+  /* Action buttons */
+  .action-btn-row {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 10px;
+  }
+
+  .action-btn {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    padding: 14px 16px;
+    font-size: 0.9rem;
+    font-weight: 600;
+    border-radius: 8px;
+    border: 1px solid var(--chesscom-border);
+    background: var(--chesscom-gray-light);
+    color: var(--chesscom-text);
+    cursor: pointer;
+    transition: all 0.15s ease;
+  }
+
+  .action-btn:hover {
+    background: var(--chesscom-gray-lighter);
+    border-color: var(--chesscom-green);
+    color: #fff;
+    transform: translateY(-1px);
+  }
+
+  .action-btn:active {
+    transform: translateY(0);
+  }
+
+  #reset-btn:hover {
+    border-color: var(--chesscom-text-muted);
+  }
+
+  #hint-btn:hover {
+    border-color: var(--chesscom-info);
+    color: var(--chesscom-info);
+  }
+
+  #next-btn {
+    background: var(--chesscom-green);
+    border-color: var(--chesscom-green);
+    color: #fff;
+  }
+
+  #next-btn:hover {
+    background: var(--chesscom-green-hover);
+    border-color: var(--chesscom-green-hover);
+    transform: translateY(-1px);
+  }
+
+  .btn-icon {
+    font-size: 1.1rem;
+  }
+
+  /* Modal */
+  .modal-content {
+    background: var(--chesscom-bg-light);
+    border: 1px solid var(--chesscom-border);
+    color: var(--chesscom-text);
+  }
+
+  .modal-header {
+    border-bottom: 1px solid var(--chesscom-border);
+    background: var(--chesscom-gray);
+  }
+
+  .modal-title {
+    color: #fff;
+    font-weight: 700;
+  }
+
+  .modal-body {
+    background: var(--chesscom-bg);
+    max-height: 70vh;
+    overflow-y: auto;
+  }
+
+  .btn-close {
+    filter: invert(1);
+  }
+
+  /* Toast notifications */
+  .toast {
+    border-radius: 10px !important;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+  }
+
+  /* Animations */
+  @keyframes slideInRight {
+    from {
+      opacity: 0;
+      transform: translateX(20px);
+    }
+    to {
+      opacity: 1;
+      transform: translateX(0);
+    }
+  }
+
+  @keyframes pulse {
+    0%, 100% {
+      transform: scale(1);
+    }
+    50% {
+      transform: scale(1.05);
+    }
+  }
+
+  .animate-in {
+    animation: slideInRight 0.3s ease-out;
+  }
+
+  .pulse {
+    animation: pulse 0.5s ease-in-out;
+  }
+
+  /* Mobile adjustments */
+  @media (max-width: 900px) {
+    .puzzle-header h2 {
+      font-size: 1.2rem;
+    }
+
+    .action-btn-row {
+      grid-template-columns: 1fr 1fr;
+    }
+
+    #next-btn {
+      grid-column: 1 / -1;
+    }
+
+    #notation-box {
+      max-height: 280px;
+    }
+
+    .puzzle-meta {
+      font-size: 0.85rem;
+      gap: 12px;
+    }
+  }
+</style>
+
+<!-- Audio -->
+<audio id="correctSound" src="{% static 'sound/puzzle-correct.mp3' %}"></audio>
+<audio id="wrongSound" src="{% static 'sound/puzzle-wrong.mp3' %}"></audio>
+<audio id="moveSound">
+  <source src="{% static 'sound/move-self.mp3' %}" type="audio/mpeg">
+</audio>
+<audio id="captureSound">
+  <source src="{% static 'sound/capture.mp3' %}" type="audio/mpeg">
+</audio>
+<audio id="checkSound">
+  <source src="{% static 'sound/move-check.mp3' %}" type="audio/mpeg">
+</audio>
+
+<div id="main-layout">
+
+  <!-- ══════════════════════════════════════════════════════════
+       LEFT SIDEBAR - PUZZLE LIST (desktop)
+       ══════════════════════════════════════════════════════════ -->
+  <div id="puzzle-list">
+    <div class="puzzle-list-header">
+      <h3>📋 Puzzle Library</h3>
+      <div class="diff-tabs">
+        <button class="diff-tab active-easy" id="easy-tab" data-category="easy">Easy</button>
+        <button class="diff-tab" id="medium-tab" data-category="medium">Medium</button>
+        <button class="diff-tab" id="hard-tab" data-category="hard">Hard</button>
+      </div>
+    </div>
+
+    <div class="puzzle-list-panel">
+      {% for puzzle in puzzles %}
+      <button
+        class="puzzle-btn puzzle-item {% if puzzle.id in solved_ids %}solved-puzzle{% else %}unsolved-puzzle{% endif %}"
+        data-category="{{ puzzle.difficulty }}"
+        data-fen="{{ puzzle.fen }}"
+        data-solution="{{ puzzle.solution }}"
+        data-title="{{ puzzle.title }}"
+        data-turn="{{ puzzle.turn }}"
+        data-index="{{ forloop.counter0 }}"
+        data-puzzle-id="{{ puzzle.id }}"
+        {% if puzzle.quote %}
+        data-quote-name="{{ puzzle.quote.name }}"
+        data-quote-text="{{ puzzle.quote.Quote }}"
+        {% endif %}
+        style="{% if puzzle.difficulty != 'easy' %}display:none;{% endif %}">
+        <div class="puzzle-btn-content">
+          <strong>{{ puzzle.title }}</strong>
+          <div class="puzzle-rating">
+            <span class="diff-badge {{ puzzle.difficulty }}">{{ puzzle.difficulty|title }}</span>
+          </div>
+        </div>
+        {% if puzzle.id in solved_ids %}
+        <span class="solved-check">✓</span>
+        {% endif %}
+      </button>
+      {% empty %}
+      <p style="color:var(--chesscom-text-muted);text-align:center;padding:32px 16px;">
+        No puzzles available yet.
+      </p>
+      {% endfor %}
+    </div>
+  </div>
+
+  <!-- ══════════════════════════════════════════════════════════
+       CENTER - CHESS BOARD
+       ══════════════════════════════════════════════════════════ -->
+  <div id="board-container">
+    <!-- Mobile: select puzzle button -->
+    <button id="puzzle-title-small" class="d-lg-none" data-bs-toggle="modal" data-bs-target="#mobile-puzzle-modal">
+      📋 Select a puzzle
+    </button>
+
+    <div class="puzzle-header">
+      <h2 id="puzzle-title-large">Select a puzzle to begin</h2>
+      <div class="puzzle-meta">
+        <span id="puzzle-turn-display">
+          <svg width="16" height="16" viewBox="0 0 16 16" fill="currentColor">
+            <circle cx="8" cy="8" r="6"/>
+          </svg>
+          <span id="puzzle-turn-text">White to play</span>
+        </span>
+        <span id="puzzle-difficulty-display">
+          <svg width="16" height="16" viewBox="0 0 16 16" fill="currentColor">
+            <path d="M8 2l1.5 5h5.5l-4.5 3 1.5 5-4.5-3-4.5 3 1.5-5-4.5-3h5.5z"/>
+          </svg>
+          <span>Medium</span>
+        </span>
+      </div>
+    </div>
+
+    <div id="board-wrapper">
+      <div id="board"></div>
+      <!-- Board coordinates will be added via JS -->
+    </div>
+  </div>
+
+  <!-- ══════════════════════════════════════════════════════════
+       RIGHT SIDEBAR - CONTROLS
+       ══════════════════════════════════════════════════════════ -->
+  <div id="controls-container">
+    
+    <div class="puzzle-timer">
+      ⏱️ TIME ELAPSED
+      <span id="timer">0:00</span>
+    </div>
+
+    <div id="puzzle-status" class="info d-none">
+      Ready to solve
+    </div>
+
+    <!-- Quote -->
+    <div id="quote-box" class="quote-none">
+      <div id="quote-author"></div>
+      <p id="quote-text"></p>
+    </div>
+
+    <!-- Notation -->
+    <div id="notation-box">
+      <p class="notation-heading">Move History</p>
+      <div id="move-history"></div>
+    </div>
+
+    <!-- Action buttons -->
+    <div class="action-btn-row">
+      <button id="reset-btn" class="action-btn">
+        <span class="btn-icon">↺</span>
+        Reset
+      </button>
+      <button id="hint-btn" class="action-btn">
+        <span class="btn-icon">💡</span>
+        Hint
+      </button>
+      <button id="next-btn" class="action-btn" style="display:none;">
+        <span class="btn-icon">→</span>
+        Next
+      </button>
+    </div>
+
+    <!-- Toasts -->
+    {% if messages %}
+    <div class="position-fixed bottom-0 end-0 p-3" style="z-index:2000;">
+      {% for message in messages %}
+      <div
+        class="toast fade show border-0 shadow-lg mb-2
+          {% if message.tags == 'info' %}bg-success text-white{% elif message.tags == 'warning' %}bg-danger text-white{% else %}bg-dark text-white{% endif %}"
+        role="alert" style="min-width:320px;">
+        <div class="d-flex align-items-center">
+          <div class="toast-body fs-6">
+            {% if "days left" in message.message %}
+            {{ message|safe }}
+            <a href="{% url 'buy_premium' %}" class="btn btn-light btn-sm fw-bold ms-2">🔑 Buy Premium</a>
+            {% else %}
+            {{ message|safe }}
+            {% endif %}
+          </div>
+          <button type="button" class="btn-close btn-close-white me-3 m-auto" data-bs-dismiss="toast"></button>
+        </div>
+      </div>
+      {% endfor %}
+    </div>
+    {% endif %}
+
+  </div>
+</div>
+
+<!-- Mobile Puzzle Modal -->
+<div class="modal fade" id="mobile-puzzle-modal" tabindex="-1">
+  <div class="modal-dialog modal-dialog-centered modal-dialog-scrollable">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title">📋 Select a Puzzle</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+      </div>
+      <div class="modal-body">
+        {% for puzzle in puzzles %}
+        <button
+          class="puzzle-btn {% if puzzle.id in solved_ids %}solved-puzzle{% else %}unsolved-puzzle{% endif %}"
+          data-fen="{{ puzzle.fen }}"
+          data-solution="{{ puzzle.solution }}"
+          data-title="{{ puzzle.title }}"
+          data-turn="{{ puzzle.turn }}"
+          data-index="{{ forloop.counter0 }}"
+          data-puzzle-id="{{ puzzle.id }}"
+          data-bs-dismiss="modal"
+          {% if puzzle.quote %}
+          data-quote-name="{{ puzzle.quote.name }}"
+          data-quote-text="{{ puzzle.quote.Quote }}"
+          {% endif %}>
+          <div class="puzzle-btn-content">
+            <strong>{{ puzzle.title }}</strong>
+            <div class="puzzle-rating">
+              <span class="diff-badge {{ puzzle.difficulty }}">{{ puzzle.difficulty|title }}</span>
+            </div>
+          </div>
+          {% if puzzle.id in solved_ids %}
+          <span class="solved-check">✓</span>
+          {% endif %}
+        </button>
+        {% empty %}
+        <p style="color:var(--chesscom-text-muted);text-align:center;padding:32px;">
+          No puzzles available yet.
+        </p>
+        {% endfor %}
+      </div>
+    </div>
+  </div>
+</div>
+
+<script src="{% static 'jquery.min.js' %}"></script>
+<script src="{% static 'chessboardjs-1.0.0/js/chessboard-1.0.0.min.js' %}"></script>
+<script src="{% static 'chess.min.js' %}"></script>
+<script src="{% static 'bootstrap.bundle.min.js' %}"></script>
+
+<script>
+  /* ══════════════════════════════════════════════════════════
+     DIFFICULTY TAB SWITCHING
+     ══════════════════════════════════════════════════════════ */
+  document.addEventListener("DOMContentLoaded", function () {
+    const tabs = document.querySelectorAll(".diff-tab");
+    const items = document.querySelectorAll(".puzzle-item");
+
+    tabs.forEach(tab => {
+      tab.addEventListener("click", function () {
+        const cat = this.dataset.category;
+
+        // Reset all tab styles
+        tabs.forEach(t => t.className = 'diff-tab');
+        this.classList.add('active-' + cat);
+
+        // Show/hide puzzles
+        items.forEach(item => {
+          item.style.display = item.dataset.category === cat ? "flex" : "none";
+        });
+      });
+    });
+  });
+
+  /* ══════════════════════════════════════════════════════════
+     TOAST INITIALIZATION
+     ══════════════════════════════════════════════════════════ */
+  document.addEventListener('DOMContentLoaded', function () {
+    document.querySelectorAll('.toast').forEach(el => {
+      new bootstrap.Toast(el, { delay: 8000, autohide: true }).show();
+    });
+  });
+</script>
+
+<script>
+  /* ══════════════════════════════════════════════════════════
+     MAIN PUZZLE LOGIC
+     ══════════════════════════════════════════════════════════ */
+  $(document).ready(function () {
+    // Audio elements
+    const moveSound = document.getElementById('moveSound');
+    const captureSound = document.getElementById('captureSound');
+    const checkSound = document.getElementById('checkSound');
+
+    function safePlay(el) {
+      el.currentTime = 0;
+      el.play().catch(() => { });
+    }
+
+    function playSoundForMove(move) {
+      if (move.flags.includes('c')) safePlay(captureSound);
+      else if (game.in_check()) safePlay(checkSound);
+      else safePlay(moveSound);
+    }
+
+    function playSound(src) {
+      const a = new Audio(src);
+      a.play().catch(() => { });
+    }
+
+    // DOM elements
+    const $buttons = $('.puzzle-btn');
+    const $puzzleTitleSmallBtn = $('#puzzle-title-small');
+    const $puzzleTitleLarge = $('#puzzle-title-large');
+    const $puzzleTurnDisplay = $('#puzzle-turn-display');
+    const $puzzleTurnText = $('#puzzle-turn-text');
+    const $puzzleDifficultyDisplay = $('#puzzle-difficulty-display');
+    const $puzzleStatus = $('#puzzle-status');
+    const $nextBtn = $('#next-btn');
+    const $resetBtn = $('#reset-btn');
+    const $hintBtn = $('#hint-btn');
+    const $moveHistory = $('#move-history');
+
+    // Game state
+    let board = null, game = null;
+    let currentSolutionMoves = [], currentMoveIndex = 0;
+    let currentPuzzleIndex = 0, currentPuzzleTurn = 'w';
+    let currentFen = '', moveHistory = [];
+    let solveStartTime = null, timerInterval = null;
+    let wrongCounted = false;
+    let currentDifficulty = 'easy';
+
+    /* ──────────────────────────────────────────────────────
+       TIMER
+       ────────────────────────────────────────────────────── */
+    function startTimerDisplay() {
+      clearInterval(timerInterval);
+      $('#timer').text('0:00');
+      timerInterval = setInterval(() => {
+        const elapsed = Math.floor((Date.now() - solveStartTime) / 1000);
+        const mins = Math.floor(elapsed / 60);
+        const secs = elapsed % 60;
+        $('#timer').text(`${mins}:${secs.toString().padStart(2, '0')}`);
+      }, 1000);
+    }
+
+    function stopTimerDisplay() {
+      clearInterval(timerInterval);
+    }
+
+    /* ──────────────────────────────────────────────────────
+       BOARD INITIALIZATION
+       ────────────────────────────────────────────────────── */
+    function initBoard(fen, orientation) {
+      if (board) board.destroy();
+      
+      board = Chessboard('board', {
+        position: fen,
+        orientation: orientation,
+        draggable: true,
+        dropOffBoard: 'snapback',
+        pieceTheme: "{% static 'chessboardjs-1.0.0/img/chesspieces/wikipedia/' %}" + '{piece}' + '.png',
+        onDragStart: onDragStart,
+        onDrop: onDrop,
+      });
+
+      $(window).resize(board.resize);
+      
+      // Add board coordinates
+      addBoardCoordinates(orientation);
+    }
+
+    function addBoardCoordinates(orientation) {
+      // Remove existing coordinates
+      $('.board-coords').remove();
+      
+      const files = orientation === 'white' ? 
+        ['a', 'b', 'c', 'd', 'e', 'f', 'g', 'h'] : 
+        ['h', 'g', 'f', 'e', 'd', 'c', 'b', 'a'];
+      const ranks = orientation === 'white' ? 
+        ['8', '7', '6', '5', '4', '3', '2', '1'] : 
+        ['1', '2', '3', '4', '5', '6', '7', '8'];
+      
+      // Add file labels
+      const $filesDiv = $('<div class="board-coords board-files"></div>');
+      files.forEach(file => {
+        $filesDiv.append(`<div class="coord">${file}</div>`);
+      });
+      $('#board-wrapper').append($filesDiv);
+      
+      // Add rank labels
+      const $ranksDiv = $('<div class="board-coords board-ranks"></div>');
+      ranks.forEach(rank => {
+        $ranksDiv.append(`<div class="coord">${rank}</div>`);
+      });
+      $('#board-wrapper').append($ranksDiv);
+    }
+
+    /* ──────────────────────────────────────────────────────
+       MOVE LOGIC
+       ────────────────────────────────────────────────────── */
+    function onDragStart(source, piece) {
+      if ((game.turn() === 'w' && piece.startsWith('b')) ||
+        (game.turn() === 'b' && piece.startsWith('w'))) return false;
+      if (game.game_over()) return false;
+    }
+
+    function normalizeSAN(san) {
+      return san.replace(/[+#]/g, '').replace(/=/g, '').toLowerCase();
+    }
+
+    function onDrop(source, target, piece) {
+      function getPromotion(source, target, piece) {
+        if (!piece.toLowerCase().startsWith('p')) return null;
+        const rank = target[1];
+        if ((piece.startsWith('w') && rank === '8') || (piece.startsWith('b') && rank === '1')) {
+          const c = prompt("Promote to (q, r, b, n):", "q");
+          return (c && ['q', 'r', 'b', 'n'].includes(c.toLowerCase())) ? c.toLowerCase() : 'q';
+        }
+        return null;
+      }
+
+      const promotion = getPromotion(source, target, piece) || 'q';
+      const tempGame = new Chess(game.fen());
+      const move = tempGame.move({ from: source, to: target, promotion });
+
+      if (!move) {
+        showStatus("❌ Illegal move", "wrong");
+        return 'snapback';
+      }
+
+      if (normalizeSAN(move.san) === normalizeSAN(currentSolutionMoves[currentMoveIndex])) {
+        const realMove = game.move({ from: source, to: target, promotion });
+        playSoundForMove(realMove);
+        addToMoveHistory(realMove);
+        currentMoveIndex++;
+        board.position(game.fen(), false);
+        showStatus("✓ Correct!", "correct");
+
+        if (currentMoveIndex >= currentSolutionMoves.length) {
+          showStatus("🎉 Puzzle solved!", "solved");
+          playSound("{% static 'sound/puzzle-correct.mp3' %}");
+          stopTimerDisplay();
+          
+          const puzzleId = $buttons.eq(currentPuzzleIndex).data('puzzle-id');
+          const timeTaken = Math.floor((Date.now() - solveStartTime) / 1000);
+          
+          $.ajax({
+            url: `/puzzles/mark_solved/${puzzleId}/`,
+            method: 'POST',
+            headers: { 'X-CSRFToken': '{{ csrf_token }}', 'Content-Type': 'application/json' },
+            data: JSON.stringify({ time_taken: timeTaken }),
+            success: () => {
+              $buttons.eq(currentPuzzleIndex)
+                .removeClass('unsolved-puzzle')
+                .addClass('solved-puzzle')
+                .append('<span class="solved-check">✓</span>');
+            }
+          });
+          
+          $nextBtn.show().addClass('pulse');
+          setTimeout(() => $nextBtn.removeClass('pulse'), 500);
+        } else {
+          setTimeout(makeOpponentMove, 500);
+        }
+
+      } else {
+        showStatus("❌ Wrong move, try again", "wrong");
+        playSound("{% static 'sound/puzzle-wrong.mp3' %}");
+        
+        if (!wrongCounted) {
+          wrongCounted = true;
+          $.ajax({
+            url: `/puzzles/mark_wrong/${$buttons.eq(currentPuzzleIndex).data('puzzle-id')}/`,
+            method: 'POST',
+            headers: { 'X-CSRFToken': '{{ csrf_token }}' }
+          });
+        }
+        
+        return 'snapback';
+      }
+    }
+
+    function makeOpponentMove() {
+      if (currentMoveIndex >= currentSolutionMoves.length) return;
+      
+      const moveSAN = currentSolutionMoves[currentMoveIndex];
+      const move = game.move(moveSAN);
+      
+      if (!move) {
+        showStatus("⚠️ Error in solution", "wrong");
+        return;
+      }
+      
+      playSoundForMove(move);
+      addToMoveHistory(move);
+      board.position(game.fen());
+      currentMoveIndex++;
+      
+      showStatus(`Opponent played ${moveSAN}`, "info");
+      
+      if (currentMoveIndex >= currentSolutionMoves.length) {
+        showStatus("🎉 Puzzle solved!", "solved");
+        $nextBtn.show();
+      }
+    }
+
+    /* ──────────────────────────────────────────────────────
+       PUZZLE LOADING
+       ────────────────────────────────────────────────────── */
+    function loadPuzzle(index) {
+      wrongCounted = false;
+      const btn = $buttons.eq(index);
+      const fen = btn.data('fen');
+      const solution = btn.data('solution').trim();
+      const title = btn.data('title');
+      const quoteName = btn.data('quote-name');
+      const quoteText = btn.data('quote-text');
+      currentDifficulty = btn.data('category');
+
+      localStorage.setItem('lastPuzzleId', btn.data('puzzle-id'));
+
+      // Show quote if available
+      if (quoteName && quoteText) {
+        $('#quote-author').text(quoteName);
+        $('#quote-text').html(quoteText);
+        $('#quote-box').removeClass('quote-none').addClass('animate-in');
+        setTimeout(() => {
+          $('#quote-box').fadeOut(500, function () {
+            $(this).addClass('quote-none').css('display', '');
+          });
+        }, 12000);
+      } else {
+        $('#quote-box').addClass('quote-none');
+        $('#quote-author').text('');
+        $('#quote-text').text('');
+      }
+
+      currentPuzzleTurn = btn.data('turn');
+      currentPuzzleIndex = index;
+      currentSolutionMoves = solution.split(/\s+/);
+      currentMoveIndex = 0;
+      currentFen = fen;
+      moveHistory = [];
+      game = new Chess(fen);
+
+      solveStartTime = Date.now();
+      startTimerDisplay();
+
+      // Update UI
+      $puzzleTitleLarge.text(title).addClass('animate-in');
+      $puzzleTitleSmallBtn.text(title);
+      
+      const turnColor = currentPuzzleTurn === 'w' ? 'White' : 'Black';
+      $puzzleTurnText.text(`${turnColor} to play`);
+      $puzzleTurnDisplay.find('svg circle').css('fill', 
+        currentPuzzleTurn === 'w' ? '#fff' : '#312e2b'
+      );
+      
+      // Update difficulty display
+      const diffText = currentDifficulty.charAt(0).toUpperCase() + currentDifficulty.slice(1);
+      $puzzleDifficultyDisplay.find('span').text(diffText);
+      
+      showStatus("Your turn to move", "info");
+      $nextBtn.hide();
+      updateMoveHistory();
+
+      initBoard(fen, currentPuzzleTurn === 'w' ? 'white' : 'black');
+
+      if (game.turn() !== currentPuzzleTurn) {
+        showStatus("Opponent moves first...", "info");
+        setTimeout(makeOpponentMove, 800);
+      } else {
+        showStatus("Your turn to move", "info");
+      }
+      
+      setTimeout(() => $puzzleTitleLarge.removeClass('animate-in'), 300);
+    }
+
+    /* ──────────────────────────────────────────────────────
+       STATUS & MOVE HISTORY
+       ────────────────────────────────────────────────────── */
+    function showStatus(message, type) {
+      $puzzleStatus
+        .removeClass('d-none correct wrong info solved')
+        .addClass(type || '')
+        .text(message)
+        .addClass('animate-in');
+      
+      setTimeout(() => $puzzleStatus.removeClass('animate-in'), 300);
+    }
+
+    function addToMoveHistory(move) {
+      moveHistory.push({
+        san: move.san,
+        piece: move.piece,
+        to: move.to,
+        color: move.color,
+        flags: move.flags
+      });
+      updateMoveHistory();
+    }
+
+    function formatMove(move) {
+      const pieceSymbols = {
+        p: '', n: '♘', b: '♗', r: '♖', q: '♕', k: '♔'
+      };
+      
+      const icon = pieceSymbols[move.piece] || '';
+      const isCapture = move.flags && move.flags.includes('c');
+      
+      if (move.piece === 'p') {
+        return isCapture && move.san.length >= 4 ? 
+          `${move.san[0]}x${move.to}` : move.to;
+      }
+      
+      return `${icon}${isCapture ? 'x' : ''}${move.to}`;
+    }
+
+    function updateMoveHistory() {
+      $moveHistory.empty();
+      
+      if (moveHistory.length === 0) {
+        $moveHistory.append('<p style="text-align:center;color:var(--chesscom-text-muted);padding:20px 0;font-size:0.85rem;">No moves yet</p>');
+        return;
+      }
+      
+      for (let i = 0; i < moveHistory.length; i += 2) {
+        const pair = $('<div class="move-pair"></div>');
+        pair.append(`<div class="move-number">${Math.floor(i / 2) + 1}.</div>`);
+        
+        if (i < moveHistory.length) {
+          pair.append(`<div class="move-white">${formatMove(moveHistory[i])}</div>`);
+        }
+        
+        if (i + 1 < moveHistory.length) {
+          pair.append(`<div class="move-black">${formatMove(moveHistory[i + 1])}</div>`);
+        }
+        
+        $moveHistory.append(pair);
+      }
+      
+      // Auto-scroll to bottom
+      $moveHistory.scrollTop($moveHistory[0].scrollHeight);
+    }
+
+    /* ──────────────────────────────────────────────────────
+       EVENT HANDLERS
+       ────────────────────────────────────────────────────── */
+    $buttons.on('click', function () {
+      loadPuzzle($(this).data('index'));
+    });
+
+    $nextBtn.on('click', function () {
+      loadPuzzle((currentPuzzleIndex + 1) % $buttons.length);
+    });
+
+    $resetBtn.on('click', function () {
+      if (currentFen) {
+        loadPuzzle(currentPuzzleIndex);
+      }
+    });
+
+    $hintBtn.on('click', function () {
+      if (currentMoveIndex < currentSolutionMoves.length) {
+        const hint = currentSolutionMoves[currentMoveIndex];
+        showStatus(`💡 Hint: ${hint}`, "info");
+        setTimeout(() => {
+          if ($puzzleStatus.text() === `💡 Hint: ${hint}`) {
+            showStatus("Your turn to move", "info");
+          }
+        }, 4000);
+      }
+    });
+
+    /* ──────────────────────────────────────────────────────
+       INITIALIZATION
+       ────────────────────────────────────────────────────── */
+    const lastId = localStorage.getItem('lastPuzzleId');
+    if (lastId) {
+      const lastBtn = $(`.puzzle-btn[data-puzzle-id="${lastId}"]`);
+      loadPuzzle(lastBtn.length ? lastBtn.data('index') : 0);
+    } else if ($buttons.length) {
+      loadPuzzle(0);
+    }
+  });
+</script>
+
+{% endblock %}

@@ -2,11 +2,13 @@ from django.contrib import admin
 from .models import Article, \
     Category, TopPlayerImg, TournamentBanner, BangladeshiTopPlayer, \
     Book, Puzzle, EmailOTP, Quote, PuzzleSolve, UserProfile, BoardVision, \
-    Ticket, UploadedGame, GameComment, Events, Comment, Message, MemoryPosition
+    Ticket, UploadedGame, GameComment, Events, Comment, Message, MemoryPosition, SecurityQuestion
     
 admin.site.site_header = "ChessBD AdminPanel"
 admin.site.site_title = "ChessBD"
 admin.site.index_title = "Welcome to ChessBD Admin Panel"
+
+admin.site.register(SecurityQuestion)
 
 @admin.register(Article)
 class ArticleAdmin(admin.ModelAdmin):

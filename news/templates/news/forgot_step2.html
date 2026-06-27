@@ -1,0 +1,107 @@
+{% extends 'news/base.html' %}
+{% load static %}
+{% block title %}Verify Identity — GM Bangladesh{% endblock %}
+
+{% block content %}
+<style>
+  .auth-wrap { min-height:calc(100vh - 120px); display:flex; align-items:center; justify-content:center; padding:32px 16px; }
+  .auth-card { width:100%; max-width:440px; background:var(--card-color); border:1px solid var(--border); border-radius:16px; overflow:hidden; animation:fadeUp .4s ease-out; }
+  @keyframes fadeUp { from{opacity:0;transform:translateY(20px)} to{opacity:1;transform:translateY(0)} }
+  .auth-card::before { content:''; display:block; height:3px; background:linear-gradient(90deg,#7c3aed,var(--chess-accent)); }
+  .auth-header { padding:24px 28px 16px; text-align:center; border-bottom:1px solid var(--border); }
+  .auth-logo { width:52px; height:52px; background:#7c3aed; border-radius:12px; display:inline-flex; align-items:center; justify-content:center; font-size:1.5rem; margin-bottom:12px; box-shadow:0 4px 16px rgba(124,58,237,.3); }
+  .auth-title { font-size:1.2rem; font-weight:800; color:var(--chess-light); margin-bottom:3px; }
+  .auth-sub   { font-size:0.78rem; color:var(--color-gray-400); }
+  .auth-body  { padding:20px 28px 24px; }
+
+  .steps { display:flex; align-items:center; justify-content:center; gap:6px; margin-bottom:18px; }
+  .step { width:28px; height:28px; border-radius:50%; border:2px solid var(--border); color:var(--color-gray-400); background:var(--card-color); display:flex; align-items:center; justify-content:center; font-size:.72rem; font-weight:800; }
+  .step.done   { background:var(--chess-primary); border-color:var(--chess-primary); color:#fff; }
+  .step.active { background:#7c3aed; border-color:#7c3aed; color:#fff; }
+  .step-line   { flex:1; max-width:36px; height:2px; background:var(--border); border-radius:99px; }
+  .step-line.done { background:var(--chess-primary); }
+
+  .question-card { background:oklch(20% .012 256); border:1px solid var(--border); border-left:3px solid #7c3aed; border-radius:10px; padding:14px 16px; margin-bottom:16px; }
+  .q-label { font-size:.63rem; font-weight:700; letter-spacing:2px; text-transform:uppercase; color:#a78bfa; margin-bottom:6px; }
+  .q-text  { font-size:.95rem; font-weight:700; color:var(--chess-light); line-height:1.4; }
+
+  .error-box { background:rgba(200,75,75,.1); border:1px solid rgba(200,75,75,.3); border-radius:8px; padding:9px 13px; font-size:.82rem; color:var(--chess-red); margin-bottom:14px; display:flex; align-items:center; gap:7px; }
+
+  .field-wrap { margin-bottom:14px; }
+  .field-label { font-size:.68rem; font-weight:700; letter-spacing:1.5px; text-transform:uppercase; color:var(--color-gray-400); margin-bottom:6px; display:flex; align-items:center; gap:5px; }
+  .field-label i { color:#7c3aed; font-size:.73rem; }
+  .auth-input { width:100%; background:oklch(14% .008 256); border:1px solid var(--border); border-radius:8px; color:var(--chess-light); font-size:.9rem; padding:11px 14px; font-family:inherit; outline:none; transition:border-color .15s,box-shadow .15s; box-sizing:border-box; }
+  .auth-input:focus { border-color:#7c3aed; box-shadow:0 0 0 3px rgba(124,58,237,.15); }
+  .auth-input::placeholder { color:var(--color-gray-400); }
+  .hint { font-size:.72rem; color:var(--color-gray-400); margin-top:5px; display:flex; align-items:center; gap:4px; }
+
+  .auth-submit { width:100%; padding:12px; font-size:.88rem; font-weight:700; border-radius:8px; border:none; background:#7c3aed; color:#fff; cursor:pointer; display:flex; align-items:center; justify-content:center; gap:7px; margin-top:4px; transition:all .2s; }
+  .auth-submit:hover { background:#6d28d9; transform:translateY(-1px); box-shadow:0 5px 16px rgba(124,58,237,.35); }
+
+  .back-link { display:inline-flex; align-items:center; gap:4px; font-size:.76rem; color:var(--color-gray-400); font-weight:600; margin-top:12px; }
+  .back-link:hover { color:var(--chess-light); }
+
+  .auth-footer { padding:12px 28px 16px; text-align:center; border-top:1px solid var(--border); }
+  .auth-footer p { font-size:.78rem; color:var(--color-gray-400); margin:0; }
+  .auth-footer a { color:var(--chess-primary); font-weight:700; }
+</style>
+
+<div class="auth-wrap">
+  <div class="auth-card">
+
+    <div class="auth-header">
+      <div class="auth-logo">🛡️</div>
+      <div class="auth-title">Verify Identity</div>
+      <div class="auth-sub">Answer your security question</div>
+    </div>
+
+    <div class="auth-body">
+      <div class="steps">
+        <div class="step done">✓</div>
+        <div class="step-line done"></div>
+        <div class="step active">2</div>
+        <div class="step-line"></div>
+        <div class="step">3</div>
+      </div>
+
+      <div class="question-card">
+        <div class="q-label"><i class="bi bi-shield-fill"></i> Your Security Question</div>
+        <div class="q-text">{{ question }}</div>
+      </div>
+
+      {% if error %}
+      <div class="error-box"><i class="bi bi-exclamation-triangle-fill"></i> {{ error }}</div>
+      {% endif %}
+
+      <form method="post" novalidate>
+        {% csrf_token %}
+        <div class="field-wrap">
+          <div class="field-label"><i class="bi bi-key-fill"></i> Your Answer</div>
+          <input type="text" name="answer"
+                 class="auth-input {% if form.answer.errors %}err{% endif %}"
+                 placeholder="Type your answer…"
+                 autocomplete="off" autocorrect="off" autocapitalize="off">
+          {% for e in form.answer.errors %}
+          <div class="hint" style="color:var(--chess-red);"><i class="bi bi-x-circle-fill"></i> {{ e }}</div>
+          {% endfor %}
+          <div class="hint"><i class="bi bi-info-circle"></i> Answer is not case-sensitive</div>
+        </div>
+
+        <button type="submit" class="auth-submit">
+          <i class="bi bi-patch-check-fill"></i> Verify Answer
+        </button>
+      </form>
+
+      <div style="text-align:center;">
+        <a href="{% url 'forgot_step1' %}" class="back-link">
+          <i class="bi bi-arrow-left"></i> Use a different email
+        </a>
+      </div>
+    </div>
+
+    <div class="auth-footer">
+      <p>Remember your password? <a href="{% url 'login' %}">Sign in →</a></p>
+    </div>
+  </div>
+</div>
+{% endblock %}

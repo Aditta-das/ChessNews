@@ -13,39 +13,27 @@ from django.contrib import messages
 from django.contrib.auth import login, authenticate
 from django.conf import settings
 from django.views.decorators.csrf import csrf_exempt
-from django.http import JsonResponse
 from django.contrib.auth.decorators import login_required
 from .decorators import premium_required
 from django.utils import timezone
 from django.db.models import Sum, F, ExpressionWrapper, IntegerField
-from django.views.decorators.csrf import csrf_exempt
 from django.template.loader import render_to_string
 from django.http import JsonResponse, HttpResponseForbidden
 from django.views.decorators.http import require_POST
-
 from django.core.cache import cache
-import requests
-from django.http import JsonResponse
-from django.shortcuts import render
-from django.core.cache import cache
-from django.views.decorators.csrf import csrf_exempt
 from django.views.decorators.cache import never_cache
-import requests
-from .models import Article, TopPlayerImg, BangladeshiTopPlayer, TournamentBanner, Events, UserProfile
-from django.contrib.auth.models import User
 
 @csrf_exempt
 def api_world_players(request):
-    """API endpoint for world players"""
     players = cache.get('world_players_api')
     if not players:
         try:
             response = requests.get(
-                'https://fide-api.vercel.app/top_players/?limit=5&history=false',
+                # 'https://fide-v4.vercel.app/top_players?limit=5',
+                'http://0.0.0.0:10000/top_players?limit=5',
                 timeout=20
             )
             if response.status_code == 200:
-                print(response.status_code)
                 players = response.json()
                 cache.set('world_players_api', players, 300)
             else:
@@ -71,13 +59,13 @@ def api_world_players(request):
 
 @csrf_exempt
 def api_bd_players(request):
-    """API endpoint for Bangladeshi players"""
     top_bd_players = cache.get('bd_players_api')
     
     if not top_bd_players:
         try:
             bd_response = requests.get(
-                'https://fide.onrender.com/bangladesh_players/?limit=5',
+                # 'https://fide-v4.vercel.app/top_country_players?limit=5&country=BAN&gender=M',
+                'http://0.0.0.0:10000/top_country_players?limit=5&country=BAN&gender=M',
                 timeout=20
             )
             if bd_response.status_code == 200:
@@ -102,6 +90,70 @@ def api_bd_players(request):
     
     return JsonResponse({'players': top_bd_players, 'success': True})
 
+# Add these two new views to your views.py
+
+@csrf_exempt
+def api_world_women_players(request):
+    players = cache.get('world_women_players_api')
+    if not players:
+        try:
+            response = requests.get(
+                # 'https://fide-v4.vercel.app/top_players?limit=5&gender=women',
+                'http://0.0.0.0:10000/top_players?limit=5&gender=women',
+                timeout=20
+            )
+            if response.status_code == 200:
+                players = response.json()
+                print(players)
+                cache.set('world_women_players_api', players, 300)
+            else:
+                players = []
+        except Exception as e:
+            print("WORLD WOMEN API ERROR:", e)
+            players = []
+
+    world_map = {p.fide_id: p for p in TopPlayerImg.objects.all()}
+
+    for player in players:
+        obj = world_map.get(player.get('fide_id'))
+        player['image_url'] = obj.image.url if obj and obj.image else None
+        player['rank']    = int(player.get('rank', 0))
+        player['rating']  = int(player.get('rating', 0))
+        player['country'] = player.get('country', '')
+
+    return JsonResponse({'players': players, 'success': True})
+
+
+@csrf_exempt
+def api_bd_women_players(request):
+    players = cache.get('bd_women_players_api')
+    if not players:
+        try:
+            response = requests.get(
+                # 'https://fide-v4.vercel.app/top_country_players?limit=5&country=BAN&gender=F',
+                'http://0.0.0.0:10000/top_country_players?limit=5&country=BAN&gender=F',
+                timeout=20
+            )
+            if response.status_code == 200:
+                players = response.json()
+                cache.set('bd_women_players_api', players, 300)
+            else:
+                players = []
+        except Exception as e:
+            print("BD WOMEN API ERROR:", e)
+            players = []
+
+    bd_map = {p.fide_id: p for p in BangladeshiTopPlayer.objects.all()}
+
+    for player in players:
+        obj = bd_map.get(player.get('fide_id'))
+        player['image_url'] = obj.image.url if obj and obj.image else None
+        player['rank']    = int(player.get('rank', 0))
+        player['rating']  = int(player.get('rating', 0))
+        player['country'] = 'BAN'
+
+    return JsonResponse({'players': players, 'success': True})
+
 
 def home(request):
     # ── Big news ─────────────────────────────
@@ -113,13 +165,6 @@ def home(request):
 
     best_reporter = User.objects.order_by('-article__id').first()
 
-    # ─────────────────────────────────────────
-    # REMOVED API CALLS - Now loading via JavaScript
-    # ─────────────────────────────────────────
-    
-    # ─────────────────────────────────────────
-    # 📅 Other data (database only - fast)
-    # ─────────────────────────────────────────
     banner = TournamentBanner.objects.filter(
         show_banner=True
     ).order_by('-created_at').first()
@@ -454,8 +499,8 @@ def mark_puzzle_solved(request, puzzle_id):
     return JsonResponse({'error': 'invalid request'}, status=400)
 
 
-def games(request):
-    return render(request, 'news/games.html', {})
+# def games(request):
+#     return render(request, 'news/games.html', {})
 
 
 
@@ -495,33 +540,98 @@ from django.contrib.auth.models import User
 from django.core.validators import validate_email
 from django.core.exceptions import ValidationError
 from .forms import EmailLoginForm
+from .forms import ForgotStep1Form
+from .forms import ForgotStep2Form
+from .models import SecurityQuestion
+from .forms import ResetPasswordForm
 
 def register_view(request):
     form = EmailLoginForm(request.POST or None, is_register=True)
-
+ 
     if request.method == "POST" and form.is_valid():
-        email = form.cleaned_data["email"].lower()
+        email    = form.cleaned_data["email"].lower()
         password = form.cleaned_data["password"]
-
-        username_from_email = email.split("@")[0]
-
-        username = username_from_email
-        counter = 1
-
+ 
+        base = email.split("@")[0]
+        username, counter = base, 1
         while User.objects.filter(username=username).exists():
-            username = f"{username_from_email}{counter}"
+            username = f"{base}{counter}"
             counter += 1
-
-        user = User.objects.create_user(
-            username=username,
-            email=email,
-            password=password
-        )
-
+ 
+        user = User.objects.create_user(username=username, email=email, password=password)
+ 
+        # Save security question (posted as sq_question / sq_answer)
+        question = request.POST.get("sq_question", "").strip()
+        answer   = request.POST.get("sq_answer",   "").strip().lower()
+        if question and answer:
+            SecurityQuestion.objects.create(user=user, question=question, answer=answer)
+ 
         login(request, user)
         return redirect("home")
-
+ 
     return render(request, "news/register.html", {"form": form})
+ 
+ 
+def forgot_step1(request):
+    form = ForgotStep1Form(request.POST or None)
+    if request.method == "POST" and form.is_valid():
+        request.session["pw_reset_email"] = form.cleaned_data["email"]
+        request.session.pop("pw_reset_verified", None)
+        return redirect("forgot_step2")
+    return render(request, "news/forgot_step1.html", {"form": form})
+ 
+ 
+def forgot_step2(request):
+
+    email = request.session.get("pw_reset_email")
+    if not email:
+        return redirect("forgot_step1")
+ 
+    try:
+        user = User.objects.get(email=email)
+        sq   = user.security_question
+    except Exception:
+        request.session.pop("pw_reset_email", None)
+        return redirect("forgot_step1")
+ 
+    form  = ForgotStep2Form(request.POST or None)
+    error = None
+ 
+    if request.method == "POST" and form.is_valid():
+        if sq.check_answer(form.cleaned_data["answer"]):
+            request.session["pw_reset_verified"] = True
+            return redirect("forgot_reset")
+        else:
+            error = "Incorrect answer. Please try again."
+ 
+    return render(request, "news/forgot_step2.html", {
+        "form": form, "question": sq.get_question_display(), "error": error,
+    })
+ 
+ 
+def forgot_reset(request):
+    
+    email    = request.session.get("pw_reset_email")
+    verified = request.session.get("pw_reset_verified")
+ 
+    if not email or not verified:
+        return redirect("forgot_step1")
+ 
+    try:
+        user = User.objects.get(email=email)
+    except User.DoesNotExist:
+        return redirect("forgot_step1")
+ 
+    form = ResetPasswordForm(request.POST or None)
+    if request.method == "POST" and form.is_valid():
+        user.set_password(form.cleaned_data["new_password"])
+        user.save()
+        request.session.pop("pw_reset_email",    None)
+        request.session.pop("pw_reset_verified", None)
+        messages.success(request, "Password reset successfully. Please log in.")
+        return redirect("login")
+ 
+    return render(request, "news/forgot_reset.html", {"form": form})
 
 
 def login_view(request):
@@ -540,7 +650,7 @@ def login_view(request):
                 login(request, user_auth)
                 return redirect("home")
             else:
-                form.add_error("password", "Incorrect password.")
+                form.add_error("password", "Incorrect email or password.")
         except User.DoesNotExist:
             form.add_error("email", "No account found with this email.")
     return render(request, "news/login.html", {"form": form})
@@ -776,36 +886,145 @@ def analyze_position(request):
 
 
 def all_events(request):
-    return render(request, 'news/events.html')
+    return render(request, "news/events.html")
+
 
 def events_json(request):
-    events = Events.objects.all()
-    event_list = []
-    for event in events:
-        event_list.append({
-            'title': event.title,
-            'start': event.start.isoformat(),
-            'end': event.end.isoformat(),
-            'description': event.description,
+    start_param = request.GET.get('start')
+    end_param   = request.GET.get('end')
+ 
+    qs = Events.objects.all().order_by('start')
+    if start_param:
+        try:
+            from datetime import datetime, timezone
+            start_dt = datetime.fromisoformat(start_param.replace('Z', '+00:00'))
+            qs = qs.filter(end__gte=start_dt)
+        except (ValueError, AttributeError):
+            pass
+ 
+    if end_param:
+        try:
+            from datetime import datetime, timezone
+            end_dt = datetime.fromisoformat(end_param.replace('Z', '+00:00'))
+            qs = qs.filter(start__lte=end_dt)
+        except (ValueError, AttributeError):
+            pass
+ 
+    events = []
+    for e in qs:
+        events.append({
+            'id':    e.id,
+            'title': e.title,
+            'start': e.start.isoformat(),
+            'end':   e.end.isoformat(),
+            'allDay': False,
+            'extendedProps': {
+                'source':      'db',
+                'description': e.description or '',
+                'url':         e.url or '',
+                'location':    '',
+            }
         })
-    return JsonResponse(event_list, safe=False)
+ 
+    return JsonResponse(events, safe=False)
 
+
+@csrf_exempt
 def add_event(request):
-    if request.method == 'POST':
-        title = request.POST.get('title')
-        description = request.POST.get('description')
-        start = request.POST.get('start')
-        end = request.POST.get('end')
+    """
+    Creates a new Event from the calendar modal.
+    POST fields: title, description, start, end, url
+    """
+    if request.method != 'POST':
+        return JsonResponse({'status': 'error', 'error': 'POST required'}, status=405)
+ 
+    from datetime import datetime, timezone as dt_tz
+ 
+    title       = request.POST.get('title', '').strip()
+    description = request.POST.get('description', '').strip()
+    start_str   = request.POST.get('start', '').strip()
+    end_str     = request.POST.get('end', '').strip()
+    url         = request.POST.get('url', '').strip() or None
+ 
+    if not title:
+        return JsonResponse({'status': 'error', 'error': 'Title is required'}, status=400)
+ 
+    if not start_str or not end_str:
+        return JsonResponse({'status': 'error', 'error': 'Start and end are required'}, status=400)
+ 
+    try:
+        # datetime-local input: "2026-04-17T14:30"
+        start_dt = datetime.fromisoformat(start_str)
+        end_dt   = datetime.fromisoformat(end_str)
+ 
+        # Make timezone-aware if your DB uses aware datetimes
+        if start_dt.tzinfo is None:
+            start_dt = start_dt.replace(tzinfo=dt_tz.utc)
+        if end_dt.tzinfo is None:
+            end_dt = end_dt.replace(tzinfo=dt_tz.utc)
+ 
+        # Sanity: swap if end < start
+        if end_dt < start_dt:
+            start_dt, end_dt = end_dt, start_dt
+ 
+    except ValueError as e:
+        return JsonResponse({'status': 'error', 'error': f'Invalid date: {e}'}, status=400)
+ 
+    event = Events.objects.create(
+        title=title,
+        description=description or None,
+        start=start_dt,
+        end=end_dt,
+        url=url,
+    )
+ 
+    return JsonResponse({
+        'status':   'success',
+        'event_id': event.id,
+        'title':    event.title,
+        'start':    event.start.isoformat(),
+        'end':      event.end.isoformat(),
+    })
 
-        event = Events.objects.create(
-            title=title,
-            description=description,
-            start=start,
-            end=end
-        )
-        return JsonResponse({'status': 'success', 'event_id': event.id})
-    return JsonResponse({'status': 'error'}, status=400)
+def api_events_data(request):
+    cache_key = "events_api"
+    data = cache.get(cache_key)
+    if not data:
+        try:
+            response = requests.get(
+                "http://0.0.0.0:10000/tournaments",
+                timeout=20
+            )
+            if response.status_code == 200:
+                data = response.json()
+                cache.set(cache_key, data, 60*24*7)
+            else:
+                data = {"tournaments": []}
+        except Exception as e:
+            print("EVENTS API ERROR:", e)
+            data = {"tournaments": []}
 
+    return JsonResponse(data)
+
+def api_bd_events_data(request):
+    cache_key = "bd_events_api"
+    data = cache.get(cache_key)
+    if not data:
+        try:
+            response = requests.get(
+                "http://0.0.0.0:10000/get_country_tournaments",
+                timeout=20
+            )
+            if response.status_code == 200:
+                data = response.json()
+                cache.set(cache_key, data, 60*24*7)
+            else:
+                data = {"country_tournaments": []}
+        except Exception as e:
+            print("EVENTS API ERROR:", e)
+            data = {"country_tournaments": []}
+
+    return JsonResponse(data)
 
 import json
 from django.core.serializers.json import DjangoJSONEncoder

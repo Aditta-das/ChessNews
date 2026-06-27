@@ -1,0 +1,1023 @@
+{% extends 'news/base.html' %}
+{% load static %}
+{% block content %}
+
+<link rel="stylesheet" href="{% static 'chessboardjs-1.0.0/css/chessboard-1.0.0.min.css' %}">
+<script src="{% static 'jquery.min.js' %}"></script>
+<script src="{% static 'chessboardjs-1.0.0/js/chessboard-1.0.0.min.js' %}"></script>
+<script src="{% static 'chess.min.js' %}"></script>
+
+<audio id="moveSound">
+    <source src="{% static 'sound/move-self.mp3' %}" type="audio/mpeg">
+</audio>
+<audio id="captureSound">
+    <source src="{% static 'sound/capture.mp3' %}" type="audio/mpeg">
+</audio>
+<audio id="checkSound">
+    <source src="{% static 'sound/move-check.mp3' %}" type="audio/mpeg">
+</audio>
+
+<style>
+    /* ── Layout ─────────────────────────────────────────────────── */
+    .game-layout {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 20px;
+        max-width: 1400px;
+        margin: 16px auto;
+        padding: 0 16px;
+        align-items: start;
+    }
+
+    /* ── Board column ────────────────────────────────────────────── */
+    .board-col {
+        display: flex;
+        flex-direction: column;
+        gap: 10px;
+        width: 100%;
+    }
+
+    .player-label {
+        font-size: 0.92rem;
+        font-weight: 700;
+        color: var(--chess-light);
+        display: flex;
+        align-items: center;
+        gap: 8px;
+    }
+
+    .player-color-dot {
+        width: 11px;
+        height: 11px;
+        border-radius: 50%;
+        border: 1px solid rgba(255, 255, 255, 0.2);
+        flex-shrink: 0;
+    }
+
+    .dot-black {
+        background: #1a1a1a;
+    }
+
+    .dot-white {
+        background: #f0f0f0;
+    }
+
+    /* Eval bar */
+    .eval-track {
+        width: 100%;
+        height: 16px;
+        background: #1a1a1a;
+        border-radius: 99px;
+        overflow: hidden;
+        border: 1px solid var(--border);
+        position: relative;
+    }
+
+    #white-bar {
+        height: 100%;
+        background: #f0f0f0;
+        position: absolute;
+        left: 0;
+        top: 0;
+        transition: width 0.35s ease;
+        display: flex;
+        align-items: center;
+        font-size: 10px;
+        font-weight: 800;
+        color: #000;
+        padding-left: 5px;
+        white-space: nowrap;
+    }
+
+    #black-bar {
+        height: 100%;
+        background: #1a1a1a;
+        position: absolute;
+        right: 0;
+        top: 0;
+        transition: width 0.35s ease;
+        display: flex;
+        align-items: center;
+        justify-content: flex-end;
+        font-size: 10px;
+        font-weight: 800;
+        color: #fff;
+        padding-right: 5px;
+        white-space: nowrap;
+    }
+
+    /* Board */
+    .board-wrapper {
+        width: auto;
+    }
+
+    #game-board {
+        width: 100% !important;
+        aspect-ratio: 1/1;
+        outline: none;
+    }
+
+    #game-board .white-1e1d7 {
+        background-color: #eeeed2 !important;
+    }
+
+    #game-board .black-3c85d {
+        background-color: #769656 !important;
+    }
+
+    #game-board .piece {
+        user-select: none;
+    }
+
+    /* Controls */
+    .board-controls {
+        display: flex;
+        gap: 8px;
+        justify-content: center;
+    }
+
+    .ctrl-btn {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        width: 40px;
+        height: 40px;
+        border-radius: 10px;
+        border: 1px solid var(--border);
+        background: var(--card-color);
+        color: var(--chess-secondary);
+        cursor: pointer;
+        font-size: 1rem;
+        transition: all 0.15s ease;
+    }
+
+    .ctrl-btn:hover {
+        border-color: var(--chess-primary);
+        color: var(--chess-light);
+        background: oklch(24% 0.015 256);
+    }
+
+    .ctrl-btn:focus {
+        outline: none;
+        box-shadow: none;
+    }
+
+    .ctrl-btn.c-next {
+        border-color: rgba(119, 149, 86, 0.4);
+        color: var(--chess-primary);
+    }
+
+    .ctrl-btn.c-prev {
+        border-color: rgba(96, 165, 250, 0.3);
+        color: #60a5fa;
+    }
+
+    .ctrl-btn.c-reset {
+        border-color: rgba(200, 75, 75, 0.3);
+        color: var(--chess-red);
+    }
+
+    .ctrl-btn.c-flip {
+        border-color: rgba(245, 158, 11, 0.3);
+        color: #f59e0b;
+    }
+
+    .ctrl-btn.c-next:hover {
+        background: rgba(119, 149, 86, 0.12);
+    }
+
+    .ctrl-btn.c-prev:hover {
+        background: rgba(96, 165, 250, 0.08);
+    }
+
+    .ctrl-btn.c-reset:hover {
+        background: rgba(200, 75, 75, 0.08);
+    }
+
+    .ctrl-btn.c-flip:hover {
+        background: rgba(245, 158, 11, 0.08);
+    }
+
+    /* ── Info column ─────────────────────────────────────────────── */
+    .info-col {
+        display: flex;
+        flex-direction: column;
+        gap: 12px;
+        min-width: 0;
+        width: 100%;
+    }
+
+    .section-label {
+        font-size: 0.65rem;
+        font-weight: 700;
+        letter-spacing: 2px;
+        text-transform: uppercase;
+        color: var(--color-gray-400);
+        margin-bottom: 8px;
+        display: flex;
+        align-items: center;
+        gap: 5px;
+    }
+
+    .info-panel {
+        background: var(--card-color);
+        border: 1px solid var(--border);
+        border-radius: 12px;
+        padding: 14px 16px;
+    }
+
+    .game-title-text {
+        font-size: 1rem;
+        font-weight: 700;
+        color: var(--chess-light);
+        margin: 0;
+        line-height: 1.3;
+        word-break: break-word;
+    }
+
+    /* Moves list */
+    #moves-list {
+        max-height: 260px;
+        overflow-y: auto;
+        font-size: 0.88rem;
+    }
+
+    #moves-list::-webkit-scrollbar {
+        width: 4px;
+    }
+
+    #moves-list::-webkit-scrollbar-thumb {
+        background: var(--border);
+        border-radius: 99px;
+    }
+
+    .move-pair-row {
+        display: flex;
+        align-items: center;
+        margin-bottom: 3px;
+        border-radius: 6px;
+        padding: 1px 2px;
+    }
+
+    .move-num {
+        color: var(--color-gray-400);
+        font-weight: 700;
+        font-size: 0.78rem;
+        min-width: 30px;
+        opacity: 0.7;
+    }
+
+    .move-icon {
+        padding: 4px 8px;
+        border-radius: 6px;
+        cursor: pointer;
+        color: var(--chess-secondary);
+        flex: 1;
+        transition: all 0.12s ease;
+        font-size: 0.88rem;
+    }
+
+    .move-icon:hover {
+        background: oklch(26% 0.015 256);
+        color: var(--chess-light);
+    }
+
+    .move-icon.active-move {
+        background: rgba(119, 149, 86, 0.18);
+        color: var(--chess-primary);
+        font-weight: 700;
+    }
+
+    .initial-pos {
+        display: block;
+        padding: 5px 8px;
+        color: var(--color-gray-400);
+        font-size: 0.82rem;
+        font-style: italic;
+        cursor: pointer;
+        border-radius: 6px;
+        margin-bottom: 6px;
+        transition: all 0.12s;
+    }
+
+    .initial-pos:hover {
+        background: oklch(24% 0.01 256);
+        color: var(--chess-light);
+    }
+
+    .initial-pos.active-move {
+        color: var(--chess-primary);
+        font-weight: 700;
+        font-style: normal;
+        background: rgba(119, 149, 86, 0.12);
+    }
+
+    /* Comments */
+    #comments-list {
+        max-height: 150px;
+        overflow-y: auto;
+        font-size: 0.83rem;
+    }
+
+    #comments-list::-webkit-scrollbar {
+        width: 4px;
+    }
+
+    #comments-list::-webkit-scrollbar-thumb {
+        background: var(--border);
+        border-radius: 99px;
+    }
+
+    .comment-item {
+        border-bottom: 1px solid var(--border);
+        padding: 7px 0;
+    }
+
+    .comment-item:last-child {
+        border-bottom: none;
+    }
+
+    .comment-user {
+        font-size: 0.78rem;
+        font-weight: 700;
+        color: var(--chess-accent);
+    }
+
+    .comment-move-tag {
+        font-size: 0.68rem;
+        background: oklch(20% 0.01 256);
+        border: 1px solid var(--border);
+        padding: 1px 7px;
+        border-radius: 99px;
+        color: var(--color-gray-400);
+    }
+
+    .comment-text {
+        color: var(--chess-secondary);
+        margin: 4px 0 0;
+        line-height: 1.45;
+    }
+
+    .no-comments {
+        color: var(--color-gray-400);
+        font-size: 0.82rem;
+        text-align: center;
+        padding: 12px 0;
+        font-style: italic;
+    }
+
+    /* Comment form */
+    .comment-form-label {
+        font-size: 0.68rem;
+        font-weight: 700;
+        color: var(--color-gray-400);
+        margin-bottom: 6px;
+        display: block;
+        letter-spacing: 1px;
+        text-transform: uppercase;
+    }
+
+    #id_comment {
+        width: 100%;
+        background: oklch(14% 0.008 256);
+        border: 1px solid var(--border);
+        border-radius: 8px;
+        color: var(--chess-light);
+        font-size: 0.86rem;
+        padding: 9px 11px;
+        resize: vertical;
+        font-family: inherit;
+        transition: border-color 0.15s;
+        outline: none;
+    }
+
+    #id_comment:focus {
+        border-color: var(--chess-primary);
+    }
+
+    #id_comment::placeholder {
+        color: var(--color-gray-400);
+    }
+
+    .comment-submit-btn {
+        margin-top: 8px;
+        padding: 7px 18px;
+        font-size: 0.78rem;
+        font-weight: 700;
+        border-radius: 99px;
+        border: none;
+        background: var(--chess-primary);
+        color: #fff;
+        cursor: pointer;
+        transition: all 0.18s;
+    }
+
+    .comment-submit-btn:hover {
+        background: #67804a;
+        transform: translateY(-1px);
+    }
+
+    /* ── Notification ────────────────────────────────────────────── */
+    .notification-container {
+        position: fixed;
+        top: 20px;
+        right: 20px;
+        z-index: 1000;
+        max-width: 320px;
+    }
+
+    .notification {
+        background: var(--card-color);
+        border: 1px solid var(--border);
+        border-left: 4px solid var(--chess-primary);
+        color: var(--chess-light);
+        padding: 11px 15px;
+        border-radius: 10px;
+        box-shadow: 0 6px 20px rgba(0, 0, 0, 0.4);
+        margin-bottom: 10px;
+        transform: translateX(120%);
+        transition: transform 0.3s ease, opacity 0.3s ease;
+        opacity: 0;
+        position: relative;
+    }
+
+    .notification.show {
+        transform: translateX(0);
+        opacity: 1;
+    }
+
+    .notification.error {
+        border-left-color: var(--chess-red);
+    }
+
+    .notification.info {
+        border-left-color: #60a5fa;
+    }
+
+    .notification-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 3px;
+    }
+
+    .notification-title {
+        font-weight: 700;
+        font-size: 0.82rem;
+        color: var(--chess-light);
+    }
+
+    .notification-close {
+        background: none;
+        border: none;
+        color: var(--color-gray-400);
+        font-size: 1rem;
+        cursor: pointer;
+        transition: color 0.15s;
+    }
+
+    .notification-close:hover {
+        color: var(--chess-light);
+    }
+
+    .notification-body {
+        font-size: 0.8rem;
+        color: var(--chess-secondary);
+    }
+
+    .notification-progress-bar {
+        position: absolute;
+        bottom: 0;
+        left: 0;
+        height: 3px;
+        background: var(--chess-primary);
+        width: 0%;
+        animation: progressShrink 2.5s linear forwards;
+    }
+
+    @keyframes progressShrink {
+        from {
+            width: 100%;
+        }
+
+        to {
+            width: 0%;
+        }
+    }
+
+    /* ── Responsive ──────────────────────────────────────────────── */
+    @media (max-width: 780px) {
+        .game-layout {
+            grid-template-columns: 1fr;
+            padding: 12px;
+            gap: 14px;
+        }
+    }
+</style>
+
+<div class="game-layout">
+
+    <!-- ── LEFT: Board ─────────────────────────────────────────── -->
+    <div class="board-col">
+
+        <div class="player-label">
+            <span class="player-color-dot dot-black"></span>
+            <span id="black-player-name">{{ game.black_player }}</span>
+        </div>
+
+        <div class="eval-track">
+            <div id="white-bar" style="width:50%;"></div>
+            <div id="black-bar" style="width:50%;"></div>
+        </div>
+
+        <div class="board-wrapper">
+            <div id="game-board"></div>
+        </div>
+
+        <div class="player-label">
+            <span class="player-color-dot dot-white"></span>
+            <span id="white-player-name">{{ game.white_player }}</span>
+        </div>
+
+        <div class="board-controls">
+            <button class="ctrl-btn c-prev" id="prevBtn" title="Previous (←)"><i class="bi bi-arrow-left"></i></button>
+            <button class="ctrl-btn c-next" id="nextBtn" title="Next (→)"><i class="bi bi-arrow-right"></i></button>
+            <button class="ctrl-btn c-reset" id="resetBtn" title="Reset (R)"><i
+                    class="bi bi-skip-backward-fill"></i></button>
+            <button class="ctrl-btn c-flip" id="flipBtn" title="Flip (F)"><i class="bi bi-shuffle"></i></button>
+        </div>
+
+    </div>
+
+    <!-- ── RIGHT: Info ─────────────────────────────────────────── -->
+    <div class="info-col">
+
+        <!-- Title -->
+        <div class="info-panel">
+            <p class="game-title-text">{{ game.title }}</p>
+        </div>
+
+        <!-- Move notation -->
+        <div class="info-panel">
+            <p class="section-label"><i class="bi bi-list-ol"></i> Move Notation</p>
+            <div id="moves-list"></div>
+        </div>
+
+        <!-- Comments -->
+        <div class="info-panel">
+            <p class="section-label">
+                <i class="bi bi-chat-fill"></i>
+                Comments — Move <span id="comment-move-number">0</span>
+            </p>
+            <div id="comments-list"></div>
+        </div>
+
+        <!-- Add comment -->
+        <div class="info-panel">
+            <p class="section-label"><i class="bi bi-pencil"></i> Add a Comment</p>
+            <form id="commentForm" method="post" action="{% url 'add_comment' game.slug_link %}">
+                {% csrf_token %}
+                <label class="comment-form-label" for="id_comment">
+                    For move <span id="form-move-label">0</span>
+                </label>
+                <textarea name="comment" id="id_comment" rows="3" placeholder="Share your thoughts on this position…"
+                    required></textarea>
+                <input type="hidden" name="move_number" id="hidden-move-number" value="0">
+                <button type="submit" class="comment-submit-btn">
+                    <i class="bi bi-send me-1"></i> Post
+                </button>
+            </form>
+        </div>
+
+    </div>
+</div>
+
+<div class="notification-container" id="notification-container"></div>
+
+<script>
+    /* ── Audio ───────────────────────────────────────────────────── */
+    const moveSound = document.getElementById('moveSound');
+    const captureSound = document.getElementById('captureSound');
+    const checkSound = document.getElementById('checkSound');
+
+    function safePlay(el) {
+        if (!el) return;
+        el.currentTime = 0;
+        el.play().catch(() => { });
+    }
+
+    function playSoundForMove(move) {
+        if (!move) return;
+        if (move.flags && move.flags.includes('c')) safePlay(captureSound);
+        else if (chess.in_check()) safePlay(checkSound);
+        else safePlay(moveSound);
+    }
+
+    /* ── Chess init ──────────────────────────────────────────────── */
+    const chess = new Chess();
+    const pgn = `{{ game.pgn|escapejs }}`;
+    try { chess.load_pgn(pgn); } catch (e) { console.error("PGN error:", e); }
+
+    const movesHistoryVerbose = chess.history({ verbose: true });
+    const movesHistory = chess.history({ verbose: true });
+
+    let moveIndex = 0;
+    let orientation = "white";
+    let currentMoveNumber = 0;
+    let lastOpeningName = "Initial Position";
+    let lastScore = null;
+    let lastText = null;
+
+    const commentsData = {{ comments_json| safe }};
+
+    let board;
+    let fenOpenings = {};
+    fetch("{% static 'openings/openings.json' %}")
+        .then(r => r.json())
+        .then(d => { fenOpenings = d; })
+        .catch(() => { });
+
+    /* ── Notifications ───────────────────────────────────────────── */
+    function showNotification(title, message, type = 'info', duration = 2500) {
+        const container = document.getElementById('notification-container');
+        const el = document.createElement('div');
+        el.className = `notification ${type}`;
+        el.innerHTML = `
+      <div class="notification-header">
+        <span class="notification-title">${title}</span>
+        <button class="notification-close">×</button>
+      </div>
+      <div class="notification-body">${message}</div>
+      <div class="notification-progress-bar" style="animation-duration:${duration}ms;"></div>`;
+        container.appendChild(el);
+        requestAnimationFrame(() => el.classList.add('show'));
+        el.querySelector('.notification-close').addEventListener('click', () => hideNotif(el));
+        setTimeout(() => hideNotif(el), duration);
+    }
+
+    function hideNotif(el) {
+        el.classList.remove('show');
+        setTimeout(() => el.parentNode && el.parentNode.removeChild(el), 400);
+    }
+
+    function showMessage(msg, type = 'info') {
+        const titles = { success: 'Done', error: 'Error', warning: 'Warning', info: 'Info' };
+        showNotification(titles[type] || 'Info', msg, type);
+    }
+
+    /* ── Move formatting ─────────────────────────────────────────── */
+    const blackSymbols = { p: '', n: '♘', b: '♗', r: '♖', q: '♕', k: '♔' };
+    const whiteSymbols = { p: '', n: '♞', b: '♝', r: '♜', q: '♛', k: '♚' };
+
+    function formatMove(move) {
+        const color = move.color || 'w';
+        const piece = move.piece || 'p';
+        const to = move.to || '';
+        const isCapture = move.flags && move.flags.includes('c');
+        const symbols = color === 'w' ? whiteSymbols : blackSymbols;
+        const icon = symbols[piece] || '';
+        if (piece === 'p') return isCapture && move.san && move.san.length >= 4 ? `${move.san[0]}x${to}` : to;
+        return `${icon}${isCapture ? 'x' : ''}${to}`;
+    }
+
+    /* ── Render move list ────────────────────────────────────────── */
+    function renderMovesList() {
+        const div = document.getElementById('moves-list');
+        div.innerHTML = '';
+        const frag = document.createDocumentFragment();
+
+        // Initial position span
+        const startSpan = document.createElement('span');
+        startSpan.textContent = 'Initial Position';
+        startSpan.dataset.moveIndex = '0';
+        startSpan.className = 'initial-pos';
+        startSpan.addEventListener('click', () => { moveIndex = 0; currentMoveNumber = 0; updateBoard(); renderComments(); });
+        frag.appendChild(startSpan);
+
+        let moveCounter = 1;
+        for (let i = 0; i < movesHistoryVerbose.length; i += 2) {
+            const row = document.createElement('div');
+            row.className = 'move-pair-row';
+
+            const num = document.createElement('span');
+            num.className = 'move-num';
+            num.textContent = `${moveCounter}.`;
+            row.appendChild(num);
+
+            // White
+            const wSpan = document.createElement('span');
+            wSpan.className = 'move-icon';
+            wSpan.dataset.moveIndex = i + 1;
+            wSpan.innerHTML = formatMove(movesHistoryVerbose[i]);
+            wSpan.addEventListener('click', () => { moveIndex = i + 1; currentMoveNumber = moveIndex; updateBoard(); renderComments(); });
+            row.appendChild(wSpan);
+
+            // Black
+            if (i + 1 < movesHistoryVerbose.length) {
+                const bSpan = document.createElement('span');
+                bSpan.className = 'move-icon';
+                bSpan.dataset.moveIndex = i + 2;
+                bSpan.innerHTML = formatMove(movesHistoryVerbose[i + 1]);
+                bSpan.addEventListener('click', () => { moveIndex = i + 2; currentMoveNumber = moveIndex; updateBoard(); renderComments(); });
+                row.appendChild(bSpan);
+            }
+
+            frag.appendChild(row);
+            moveCounter++;
+        }
+        div.appendChild(frag);
+    }
+
+    /* ── Highlight active move ───────────────────────────────────── */
+    function highlightMove() {
+        document.querySelectorAll('.move-icon').forEach(s => {
+            s.classList.remove('active-move');
+        });
+        document.querySelectorAll('.initial-pos').forEach(s => s.classList.remove('active-move'));
+
+        const currentSpan = document.querySelector(`[data-move-index="${moveIndex}"]`);
+        if (currentSpan) {
+            currentSpan.classList.add('active-move');
+            currentSpan.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+        }
+    }
+
+    /* ── Update board ────────────────────────────────────────────── */
+    function updateBoard() {
+        chess.reset();
+        for (let i = 0; i < moveIndex; i++) {
+            try { chess.move(movesHistory[i]); } catch (e) { }
+        }
+
+        requestAnimationFrame(() => {
+            board.position(chess.fen());
+            highlightMove();
+        });
+
+        document.getElementById('comment-move-number').textContent = currentMoveNumber;
+        document.getElementById('form-move-label').textContent = currentMoveNumber;
+        document.getElementById('hidden-move-number').value = currentMoveNumber;
+
+        analyzeWithStockfish();
+
+        // Opening name update
+        const fen0 = chess.fen().split(' ')[0];
+        const initSpan = document.querySelector('span[data-move-index="0"]');
+        if (initSpan) {
+            if (moveIndex === 0) lastOpeningName = 'Initial Position';
+            else if (fenOpenings[fen0]) lastOpeningName = fenOpenings[fen0];
+            initSpan.textContent = lastOpeningName;
+        }
+    }
+
+    /* ── Render comments ─────────────────────────────────────────── */
+    function renderComments() {
+        const div = document.getElementById('comments-list');
+        div.innerHTML = '';
+        const filtered = commentsData.filter(c => c.move_number == currentMoveNumber);
+        if (!filtered.length) {
+            div.innerHTML = `<p class="no-comments">No comments for this position yet.</p>`;
+            return;
+        }
+        const frag = document.createDocumentFragment();
+        filtered.forEach(c => {
+            const item = document.createElement('div');
+            item.className = 'comment-item';
+            const tag = c.move_number === 0 ? 'Opening' : `Move ${c.move_number}`;
+            item.innerHTML = `
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:3px;">
+          <span class="comment-user">${c.user__username}</span>
+          <span class="comment-move-tag">${tag}</span>
+        </div>
+        <p class="comment-text">${c.comment}</p>`;
+            frag.appendChild(item);
+        });
+        div.appendChild(frag);
+        requestAnimationFrame(() => { div.scrollTop = div.scrollHeight; });
+    }
+
+    /* ── Stockfish eval ──────────────────────────────────────────── */
+    let engineTimeout = null, isAnalyzing = false;
+
+    function analyzeWithStockfish() {
+        if (engineTimeout) clearTimeout(engineTimeout);
+        if (isAnalyzing) return;
+        engineTimeout = setTimeout(() => {
+            isAnalyzing = true;
+            const evalBar = document.getElementById('evaluation-bar');
+            if (evalBar) evalBar.style.opacity = '0.5';
+
+            fetch("/analyze/", {
+                method: "POST",
+                headers: { "Content-Type": "application/json", "X-CSRFToken": "{{ csrf_token }}" },
+                body: JSON.stringify({ fen: chess.fen() })
+            })
+                .then(r => r.json())
+                .then(data => {
+                    if (!data.error && data.evaluation) {
+                        updateEvaluationBar(data.evaluation);
+                        updateBestMoveInList(currentMoveNumber, data.best_move_san);
+                    }
+                })
+                .catch(() => { })
+                .finally(() => {
+                    isAnalyzing = false;
+                    if (evalBar) evalBar.style.opacity = '1';
+                });
+        }, 500);
+    }
+
+    function updateEvaluationBar(evaluation) {
+        const whiteBar = document.getElementById('white-bar');
+        const blackBar = document.getElementById('black-bar');
+        if (!whiteBar || !blackBar || !evaluation) return;
+
+        const MAX = 10;
+        let score = 0;
+        const isWhiteToPlay = chess.turn() === 'w';
+
+        if (evaluation.type === "mate") {
+            const mateIn = Math.abs(evaluation.value);
+            if (evaluation.value > 0) score = isWhiteToPlay ? MAX : -MAX;
+            else score = isWhiteToPlay ? -MAX : MAX;
+            const text = `M${mateIn}`;
+            requestAnimationFrame(() => {
+                const wp = 50 + (score / MAX) * 50;
+                whiteBar.style.width = wp + '%'; blackBar.style.width = (100 - wp) + '%';
+                whiteBar.style.transition = 'width 0.3s ease'; blackBar.style.transition = 'width 0.3s ease';
+                whiteBar.textContent = score > 0 ? text : '';
+                blackBar.textContent = score < 0 ? text : '';
+            });
+        } else if (evaluation.type === "cp") {
+            score = evaluation.value / 100;
+            if (!isWhiteToPlay) score = -score;
+            score = Math.max(-MAX, Math.min(MAX, score));
+            if (score === lastScore) return;
+            lastScore = score;
+            const text = Math.abs(score) < 0.05 ? '' : Math.abs(score).toFixed(1);
+            requestAnimationFrame(() => {
+                const wp = 50 + (score / MAX) * 50;
+                whiteBar.style.width = wp + '%'; blackBar.style.width = (100 - wp) + '%';
+                whiteBar.style.transition = 'width 0.3s ease'; blackBar.style.transition = 'width 0.3s ease';
+                whiteBar.style.paddingLeft = '6px'; blackBar.style.paddingRight = '6px';
+                whiteBar.textContent = score > 0.05 ? text : '';
+                blackBar.textContent = score < -0.05 ? text : '';
+            });
+        }
+    }
+
+    /* ── Best move hint in notation ──────────────────────────────── */
+    const reversedBlack = {}, reversedWhite = {};
+    Object.entries(whiteSymbols).forEach(([k, v]) => { if (v) reversedWhite[v] = k.toUpperCase(); });
+    Object.entries(blackSymbols).forEach(([k, v]) => { if (v) reversedBlack[v] = k.toUpperCase(); });
+
+    function symbolToLetter(moveStr) {
+        const first = moveStr[0];
+        return reversedWhite[first] ? reversedWhite[first] + moveStr.slice(1) :
+            reversedBlack[first] ? reversedBlack[first] + moveStr.slice(1) : moveStr;
+    }
+
+    function updateBestMoveInList(mi, bestMove) {
+        if (mi < 2 || !bestMove) return;
+        const span = document.querySelector(`[data-move-index="${mi + 1}"]`);
+        if (!span || span.innerText.includes('→')) return;
+        if (bestMove === symbolToLetter(span.innerHTML)) return;
+        const hint = document.createElement('span');
+        hint.style.cssText = 'opacity:0.42;font-size:0.76em;margin-left:4px;';
+        hint.textContent = `→ ${bestMove}`;
+        span.appendChild(hint);
+    }
+
+    /* ── Navigation ──────────────────────────────────────────────── */
+    function handleNextMove(e) {
+        if (e) e.preventDefault();
+        if (moveIndex < movesHistory.length) {
+            moveIndex++;
+            currentMoveNumber = moveIndex;
+            const sanMove = movesHistory[currentMoveNumber - 1];
+            const moveObj = chess.move(sanMove);
+            playSoundForMove(moveObj);
+            requestAnimationFrame(() => { updateBoard(); renderComments(); });
+        }
+    }
+
+    function handlePrevMove(e) {
+        if (e) e.preventDefault();
+        if (moveIndex > 0) {
+            const undoneMove = chess.undo();
+            moveIndex--;
+            currentMoveNumber = moveIndex;
+            playSoundForMove(undoneMove);
+            requestAnimationFrame(() => { updateBoard(); renderComments(); });
+        }
+    }
+
+    /* ── Auto resize ─────────────────────────────────────────────── */
+    function autoResizeBoard() {
+        requestAnimationFrame(() => {
+            const screenWidth = window.innerWidth;
+            let boardSize;
+            if (screenWidth >= 1920) boardSize = 650;
+            else if (screenWidth >= 1600) boardSize = 600;
+            else if (screenWidth >= 1370) boardSize = 550;
+            else if (screenWidth >= 1200) boardSize = 488;
+            else if (screenWidth >= 992) boardSize = 430;
+            else if (screenWidth >= 768) boardSize = 380;
+            else boardSize = Math.min(screenWidth * 0.95, 340);
+
+            const wrapper = document.querySelector('.board-wrapper');
+            if (wrapper) wrapper.style.maxWidth = boardSize + 'px';
+            if (board) board.resize(boardSize);
+        });
+    }
+
+    const throttledResize = (function () {
+        let t; return function () { clearTimeout(t); t = setTimeout(autoResizeBoard, 80); };
+    })();
+
+    window.addEventListener('resize', throttledResize);
+
+    /* ── DOM Ready ───────────────────────────────────────────────── */
+    document.addEventListener('DOMContentLoaded', () => {
+        requestAnimationFrame(() => {
+
+            board = Chessboard('game-board', {
+                position: 'start',
+                draggable: false,
+                showNotation: true,
+                pieceTheme: "{% static 'chessboardjs-1.0.0/img/chesspieces/wikipedia/' %}{piece}.png",
+                dropOffBoard: 'snapback',
+            });
+
+            document.getElementById('nextBtn').addEventListener('click', handleNextMove);
+            document.getElementById('prevBtn').addEventListener('click', handlePrevMove);
+
+            document.getElementById('resetBtn').addEventListener('click', e => {
+                e.preventDefault();
+                moveIndex = 0; currentMoveNumber = 0;
+                chess.reset();
+                requestAnimationFrame(() => { updateBoard(); renderComments(); });
+                showMessage('Reset to start', 'info');
+            });
+
+            document.getElementById('flipBtn').addEventListener('click', e => {
+                e.preventDefault();
+                orientation = orientation === 'white' ? 'black' : 'white';
+                board.orientation(orientation);
+                const wn = document.getElementById('white-player-name');
+                const bn = document.getElementById('black-player-name');
+                [wn.textContent, bn.textContent] = [bn.textContent, wn.textContent];
+                showMessage(`Flipped to ${orientation}`, 'info');
+            });
+
+            document.addEventListener('keydown', e => {
+                if (['INPUT', 'TEXTAREA'].includes(e.target.tagName) || e.target.isContentEditable) return;
+                switch (e.key) {
+                    case 'ArrowRight': case ' ': e.preventDefault(); handleNextMove(); break;
+                    case 'ArrowLeft': e.preventDefault(); handlePrevMove(); break;
+                    case 'r': case 'R': e.preventDefault(); document.getElementById('resetBtn').click(); break;
+                    case 'f': case 'F': e.preventDefault(); document.getElementById('flipBtn').click(); break;
+                    case 'Home': e.preventDefault(); document.getElementById('resetBtn').click(); break;
+                }
+            });
+
+            // Comment form
+            document.getElementById('commentForm').addEventListener('submit', function (e) {
+                e.preventDefault();
+                const form = e.target;
+                const data = new FormData(form);
+                data.set('move_number', currentMoveNumber);
+                fetch(form.action, {
+                    method: 'POST', body: data,
+                    headers: { 'X-CSRFToken': data.get('csrfmiddlewaretoken'), 'X-Requested-With': 'XMLHttpRequest' }
+                })
+                    .then(r => r.json())
+                    .then(res => {
+                        if (res.status === 'success') {
+                            commentsData.push({ user__username: res.username, move_number: res.move_number, comment: res.comment });
+                            renderComments(); form.reset();
+                            showMessage('Comment added!', 'success');
+                        } else {
+                            showMessage('Error: ' + (res.errors || 'Unknown'), 'error');
+                        }
+                    })
+                    .catch(() => showMessage('Network error', 'error'));
+            });
+
+            // Initial render
+            renderMovesList();
+            moveIndex = 1; currentMoveNumber = 1;
+            updateBoard(); renderComments();
+            autoResizeBoard();
+
+            // board focus for keyboard
+            const boardEl = document.getElementById('game-board');
+            if (boardEl) {
+                boardEl.setAttribute('tabindex', '-1');
+                boardEl.addEventListener('click', () => boardEl.focus());
+            }
+        });
+    });
+</script>
+
+{% endblock %}

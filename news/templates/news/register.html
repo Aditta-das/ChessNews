@@ -337,6 +337,48 @@
                     </div>
                 </div>
 
+                <!-- Security Question (for password recovery) -->
+                <div
+                    style="margin-top:8px;padding:14px;background:oklch(20% 0.012 256);border:1px solid var(--border);border-left:3px solid #f59e0b;border-radius:10px;margin-bottom:14px;">
+                    <div
+                        style="font-size:0.7rem;font-weight:700;letter-spacing:1.5px;text-transform:uppercase;color:#f59e0b;margin-bottom:10px;display:flex;align-items:center;gap:6px;">
+                        <i class="bi bi-shield-lock-fill"></i> Recovery Security Question
+                    </div>
+                    <p style="font-size:0.76rem;color:var(--color-gray-400);margin-bottom:12px;line-height:1.45;">
+                        This is how you'll recover your account if you forget your password — no email needed.
+                    </p>
+
+                    <div class="field-wrap" style="margin-bottom:10px;">
+                        <div class="field-label" style="margin-bottom:5px;"><i class="bi bi-question-circle-fill"
+                                style="color:#f59e0b;"></i> Choose a Question</div>
+                        <select name="sq_question"
+                            style="width:100%;background:oklch(14% 0.008 256);border:1px solid var(--border);border-radius:8px;color:var(--chess-light);font-size:0.86rem;padding:10px 12px;font-family:inherit;outline:none;transition:border-color 0.15s;">
+                            <option value="mother">What is your mother's maiden name?</option>
+                            <option value="pet">What was the name of your first pet?</option>
+                            <option value="city">What city were you born in?</option>
+                            <option value="school">What was the name of your primary school?</option>
+                            <option value="friend">What is the name of your childhood best friend?</option>
+                            <option value="food">What is your favourite food?</option>
+                            <option value="teacher">What was your favourite teacher's name?</option>
+                            <option value="car">What was the model of your first car or bicycle?</option>
+                        </select>
+                    </div>
+
+                    <div class="field-wrap" style="margin-bottom:0;">
+                        <div class="field-label" style="margin-bottom:5px;"><i class="bi bi-key-fill"
+                                style="color:#f59e0b;"></i> Your Answer</div>
+                        <input type="text" name="sq_answer"
+                            style="width:100%;background:oklch(14% 0.008 256);border:1px solid var(--border);border-radius:8px;color:var(--chess-light);font-size:0.86rem;padding:10px 12px;font-family:inherit;outline:none;box-sizing:border-box;"
+                            placeholder="Your answer (not case-sensitive)" autocomplete="off" autocorrect="off"
+                            autocapitalize="off" required>
+                        <div
+                            style="font-size:0.7rem;color:var(--color-gray-400);margin-top:4px;display:flex;align-items:center;gap:3px;">
+                            <i class="bi bi-info-circle" style="font-size:0.65rem;"></i> Store this somewhere safe —
+                            you'll need it to reset your password
+                        </div>
+                    </div>
+                </div>
+
                 <button type="submit" class="auth-submit">
                     <i class="bi bi-person-plus-fill"></i> Create Account
                 </button>

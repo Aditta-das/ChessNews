@@ -1,0 +1,421 @@
+{% extends 'news/base.html' %}
+{% load static %}
+{% block title %}Reset Password — GM Bangladesh{% endblock %}
+
+{% block content %}
+<style>
+    .auth-wrap {
+        min-height: calc(100vh - 120px);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        padding: 32px 16px;
+    }
+
+    .auth-card {
+        width: 100%;
+        max-width: 420px;
+        background: var(--card-color);
+        border: 1px solid var(--border);
+        border-radius: 16px;
+        overflow: hidden;
+        animation: fadeUp .4s ease-out;
+    }
+
+    @keyframes fadeUp {
+        from {
+            opacity: 0;
+            transform: translateY(20px)
+        }
+
+        to {
+            opacity: 1;
+            transform: translateY(0)
+        }
+    }
+
+    .auth-card::before {
+        content: '';
+        display: block;
+        height: 3px;
+        background: linear-gradient(90deg, var(--chess-primary), var(--chess-accent));
+    }
+
+    .auth-header {
+        padding: 24px 28px 16px;
+        text-align: center;
+        border-bottom: 1px solid var(--border);
+    }
+
+    .auth-logo {
+        width: 52px;
+        height: 52px;
+        background: var(--chess-primary);
+        border-radius: 12px;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 1.5rem;
+        margin-bottom: 12px;
+        box-shadow: 0 4px 16px rgba(119, 149, 86, .35);
+    }
+
+    .auth-title {
+        font-size: 1.2rem;
+        font-weight: 800;
+        color: var(--chess-light);
+        margin-bottom: 3px;
+    }
+
+    .auth-sub {
+        font-size: 0.78rem;
+        color: var(--color-gray-400);
+    }
+
+    .auth-body {
+        padding: 20px 28px 24px;
+    }
+
+    .steps {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 6px;
+        margin-bottom: 18px;
+    }
+
+    .step {
+        width: 28px;
+        height: 28px;
+        border-radius: 50%;
+        border: 2px solid var(--border);
+        color: var(--color-gray-400);
+        background: var(--card-color);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: .72rem;
+        font-weight: 800;
+    }
+
+    .step.done {
+        background: var(--chess-primary);
+        border-color: var(--chess-primary);
+        color: #fff;
+    }
+
+    .step.active {
+        background: var(--chess-primary);
+        border-color: var(--chess-primary);
+        color: #fff;
+    }
+
+    .step-line {
+        flex: 1;
+        max-width: 36px;
+        height: 2px;
+        background: var(--border);
+        border-radius: 99px;
+    }
+
+    .step-line.done {
+        background: var(--chess-primary);
+    }
+
+    .field-wrap {
+        margin-bottom: 14px;
+    }
+
+    .field-label {
+        font-size: .68rem;
+        font-weight: 700;
+        letter-spacing: 1.5px;
+        text-transform: uppercase;
+        color: var(--color-gray-400);
+        margin-bottom: 6px;
+        display: flex;
+        align-items: center;
+        gap: 5px;
+    }
+
+    .field-label i {
+        color: var(--chess-primary);
+        font-size: .73rem;
+    }
+
+    .auth-input {
+        width: 100%;
+        background: oklch(14% .008 256);
+        border: 1px solid var(--border);
+        border-radius: 8px;
+        color: var(--chess-light);
+        font-size: .9rem;
+        padding: 11px 14px;
+        font-family: inherit;
+        outline: none;
+        transition: border-color .15s, box-shadow .15s;
+        box-sizing: border-box;
+    }
+
+    .auth-input:focus {
+        border-color: var(--chess-primary);
+        box-shadow: 0 0 0 3px rgba(119, 149, 86, .15);
+    }
+
+    .auth-input.err {
+        border-color: var(--chess-red);
+    }
+
+    .auth-input::placeholder {
+        color: var(--color-gray-400);
+    }
+
+    .field-error {
+        font-size: .74rem;
+        color: var(--chess-red);
+        margin-top: 4px;
+        display: flex;
+        align-items: center;
+        gap: 4px;
+    }
+
+    /* Strength */
+    .strength-track {
+        height: 4px;
+        background: oklch(20% .01 256);
+        border-radius: 99px;
+        margin-top: 8px;
+        overflow: hidden;
+    }
+
+    .strength-bar {
+        height: 100%;
+        width: 0%;
+        border-radius: 99px;
+        transition: width .3s, background .3s;
+    }
+
+    .strength-label {
+        font-size: .72rem;
+        font-weight: 700;
+        margin-top: 4px;
+        min-height: 16px;
+    }
+
+    .req-list {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 4px 8px;
+        margin-top: 8px;
+    }
+
+    .req-item {
+        font-size: .7rem;
+        color: var(--color-gray-400);
+        display: flex;
+        align-items: center;
+        gap: 4px;
+        transition: color .2s;
+    }
+
+    .req-item.met {
+        color: var(--chess-primary);
+    }
+
+    .req-item.met i::before {
+        content: "\f26a";
+    }
+
+    .match-ok {
+        font-size: .74rem;
+        color: var(--chess-primary);
+        margin-top: 4px;
+        display: none;
+        align-items: center;
+        gap: 4px;
+    }
+
+    .match-err {
+        font-size: .74rem;
+        color: var(--chess-red);
+        margin-top: 4px;
+        display: none;
+        align-items: center;
+        gap: 4px;
+    }
+
+    .form-err-box {
+        background: rgba(200, 75, 75, .1);
+        border: 1px solid rgba(200, 75, 75, .3);
+        border-radius: 8px;
+        padding: 9px 13px;
+        font-size: .82rem;
+        color: var(--chess-red);
+        margin-bottom: 14px;
+        display: flex;
+        align-items: center;
+        gap: 7px;
+    }
+
+    .auth-submit {
+        width: 100%;
+        padding: 12px;
+        font-size: .88rem;
+        font-weight: 700;
+        border-radius: 8px;
+        border: none;
+        background: var(--chess-primary);
+        color: #fff;
+        cursor: pointer;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 7px;
+        margin-top: 6px;
+        transition: all .2s;
+    }
+
+    .auth-submit:hover {
+        background: #67804a;
+        transform: translateY(-1px);
+        box-shadow: 0 5px 16px rgba(119, 149, 86, .35);
+    }
+
+    .auth-footer {
+        padding: 12px 28px 16px;
+        text-align: center;
+        border-top: 1px solid var(--border);
+    }
+
+    .auth-footer p {
+        font-size: .78rem;
+        color: var(--color-gray-400);
+        margin: 0;
+    }
+
+    .auth-footer a {
+        color: var(--chess-primary);
+        font-weight: 700;
+    }
+</style>
+
+<div class="auth-wrap">
+    <div class="auth-card">
+
+        <div class="auth-header">
+            <div class="auth-logo">🔒</div>
+            <div class="auth-title">Set New Password</div>
+            <div class="auth-sub">Identity verified — choose a strong password</div>
+        </div>
+
+        <div class="auth-body">
+            <div class="steps">
+                <div class="step done">✓</div>
+                <div class="step-line done"></div>
+                <div class="step done">✓</div>
+                <div class="step-line done"></div>
+                <div class="step active">3</div>
+            </div>
+
+            {% if form.non_field_errors %}
+            <div class="form-err-box">
+                <i class="bi bi-exclamation-triangle-fill"></i>
+                {% for e in form.non_field_errors %}{{ e }} {% endfor %}
+            </div>
+            {% endif %}
+
+            <form method="post" novalidate>
+                {% csrf_token %}
+
+                <div class="field-wrap">
+                    <div class="field-label"><i class="bi bi-lock-fill"></i> New Password</div>
+                    <input type="password" name="new_password" id="np"
+                        class="auth-input {% if form.new_password.errors %}err{% endif %}"
+                        placeholder="Create a strong password" autocomplete="new-password">
+                    {% for e in form.new_password.errors %}
+                    <div class="field-error"><i class="bi bi-x-circle-fill"></i> {{ e }}</div>
+                    {% endfor %}
+                    <div class="strength-track">
+                        <div class="strength-bar" id="sbar"></div>
+                    </div>
+                    <div class="strength-label" id="slbl"></div>
+                    <div class="req-list">
+                        <div class="req-item" id="r-len"> <i class="bi bi-circle"></i> 8+ chars</div>
+                        <div class="req-item" id="r-up"> <i class="bi bi-circle"></i> Uppercase</div>
+                        <div class="req-item" id="r-lo"> <i class="bi bi-circle"></i> Lowercase</div>
+                        <div class="req-item" id="r-num"> <i class="bi bi-circle"></i> Number</div>
+                        <div class="req-item" id="r-sym"> <i class="bi bi-circle"></i> Symbol</div>
+                    </div>
+                </div>
+
+                <div class="field-wrap">
+                    <div class="field-label"><i class="bi bi-lock-fill"></i> Confirm Password</div>
+                    <input type="password" name="confirm_password" id="cp"
+                        class="auth-input {% if form.confirm_password.errors %}err{% endif %}"
+                        placeholder="Repeat your password" autocomplete="new-password">
+                    <div class="match-ok" id="mok"> <i class="bi bi-check-circle-fill"></i> Passwords match</div>
+                    <div class="match-err" id="merr"> <i class="bi bi-x-circle-fill"></i> Passwords do not match</div>
+                </div>
+
+                <button type="submit" class="auth-submit">
+                    <i class="bi bi-check-circle-fill"></i> Reset Password
+                </button>
+            </form>
+        </div>
+
+        <div class="auth-footer">
+            <p>Remember your password? <a href="{% url 'login' %}">Sign in →</a></p>
+        </div>
+    </div>
+</div>
+
+<script>
+    const np = document.getElementById('np');
+    const cp = document.getElementById('cp');
+    const bar = document.getElementById('sbar');
+    const lbl = document.getElementById('slbl');
+
+    const reqs = [
+        { el: document.getElementById('r-len'), test: v => v.length >= 8 },
+        { el: document.getElementById('r-up'), test: v => /[A-Z]/.test(v) },
+        { el: document.getElementById('r-lo'), test: v => /[a-z]/.test(v) },
+        { el: document.getElementById('r-num'), test: v => /[0-9]/.test(v) },
+        { el: document.getElementById('r-sym'), test: v => /[!@#$%^&*(),.?":{}|<>]/.test(v) },
+    ];
+
+    const levels = [
+        { pct: '20%', bg: '#ef4444', label: 'Very Weak', lc: '#ef4444' },
+        { pct: '40%', bg: '#f97316', label: 'Weak', lc: '#f97316' },
+        { pct: '60%', bg: '#eab308', label: 'Fair', lc: '#eab308' },
+        { pct: '80%', bg: '#60a5fa', label: 'Good', lc: '#60a5fa' },
+        { pct: '100%', bg: '#779556', label: 'Strong ✓', lc: '#779556' },
+    ];
+
+    np.addEventListener('input', () => {
+        const v = np.value;
+        let score = 0;
+        reqs.forEach(r => {
+            const ok = r.test(v);
+            r.el.classList.toggle('met', ok);
+            r.el.querySelector('i').className = ok ? 'bi bi-check-circle-fill' : 'bi bi-circle';
+            if (ok) score++;
+        });
+        if (!v) { bar.style.width = '0%'; lbl.textContent = ''; return; }
+        const l = levels[score - 1] || levels[0];
+        bar.style.width = l.pct; bar.style.background = l.bg;
+        lbl.textContent = l.label; lbl.style.color = l.lc;
+        checkMatch();
+    });
+
+    function checkMatch() {
+        const ok = document.getElementById('mok');
+        const err = document.getElementById('merr');
+        if (!cp.value) { ok.style.display = 'none'; err.style.display = 'none'; return; }
+        const match = cp.value === np.value;
+        ok.style.display = match ? 'flex' : 'none';
+        err.style.display = match ? 'none' : 'flex';
+    }
+
+    cp.addEventListener('input', checkMatch);
+</script>
+{% endblock %}
