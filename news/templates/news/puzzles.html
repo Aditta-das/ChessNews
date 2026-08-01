@@ -68,14 +68,19 @@
     #reset-btn,
     #hint-btn,
     #next-btn {
-      width: 50% !important;
-      margin: 0 auto;
-      padding: 10px;
-      font-size: 1rem;
+      flex: 1;
       display: flex;
-      justify-content: center;
       align-items: center;
-      gap: 8px;
+      justify-content: center;
+      gap: 6px;
+      padding: 9px 10px;
+      font-size: 0.8rem;
+      font-weight: 700;
+      border-radius: 8px;
+      border: 1px solid transparent;
+      cursor: pointer;
+      transition: all .2s ease;
+      letter-spacing: .3px;
     }
 
     .modal-body {
@@ -442,28 +447,37 @@
     letter-spacing: 0.3px;
   }
 
+  #reset-btn {
+    background: #374151;
+    color: #f9fafb;
+    border-color: #4b5563;
+  }
+
   #reset-btn:hover {
-    border-color: var(--color-gray-400);
-    color: var(--chess-light);
-    background: oklch(24% 0.01 256);
+    background: #4b5563;
+    border-color: #6b7280;
+  }
+
+  #hint-btn {
+    background: #2563eb;
+    color: white;
+    border-color: #3b82f6;
   }
 
   #hint-btn:hover {
+    background: #1d4ed8;
     border-color: #60a5fa;
-    color: #60a5fa;
-    background: rgba(96, 165, 250, 0.08);
   }
 
   #next-btn {
-    border-color: rgba(119, 149, 86, 0.4);
-    color: var(--chess-primary);
-    background: rgba(119, 149, 86, 0.08);
+    background: #16a34a;
+    color: white;
+    border-color: #22c55e;
   }
 
   #next-btn:hover {
-    background: var(--chess-primary);
-    border-color: var(--chess-primary);
-    color: #fff;
+    background: #15803d;
+    border-color: #4ade80;
   }
 
   .notation-btn-img {
@@ -513,6 +527,35 @@
   /* Toast */
   .toast {
     border-radius: 12px !important;
+  }
+
+  .selected-square {
+    box-shadow: inset 0 0 0 3px #2563eb;
+  }
+
+  .move-marker {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    width: 26%;
+    height: 26%;
+    transform: translate(-50%, -50%);
+    border-radius: 50%;
+    background: rgba(0, 0, 0, 0.28);
+    pointer-events: none;
+    z-index: 5;
+  }
+
+  #board .square-55d63 {
+    position: relative;
+  }
+
+  .move-marker.capture-marker {
+    width: 82%;
+    height: 82%;
+    background: transparent;
+    border: 4px solid rgba(0, 0, 0, 0.28);
+    box-sizing: border-box;
   }
 </style>
 
@@ -700,24 +743,74 @@
 
 <script>
   $(document).ready(function () {
+    const correctSound = document.getElementById('correctSound');
+    const wrongSound = document.getElementById('wrongSound');
     const moveSound = document.getElementById('moveSound');
     const captureSound = document.getElementById('captureSound');
     const checkSound = document.getElementById('checkSound');
 
-    function safePlay(el) {
-      el.currentTime = 0;
-      el.play().catch(() => { });
+    let selectedSquare = null;
+
+    document.addEventListener("pointerdown", function unlock() {
+      [moveSound, captureSound, checkSound, correctSound, wrongSound].forEach(audio => {
+        const promise = audio.play();
+
+        if (promise !== undefined) {
+          promise.then(() => {
+            audio.pause();
+            audio.currentTime = 0;
+          }).catch(() => { });
+        }
+      });
+    }, { once: true });
+
+    function safePlay(audio) {
+      if (!audio) return;
+
+      audio.pause();
+      audio.currentTime = 0;
+
+      const promise = audio.play();
+
+      if (promise !== undefined) {
+        promise.catch(() => { });
+      }
     }
 
     function playSoundForMove(move) {
-      if (move.flags.includes('c')) safePlay(captureSound);
-      else if (game.in_check()) safePlay(checkSound);
-      else safePlay(moveSound);
+      if (move.flags.includes('c')) {
+        safePlay(captureSound);
+      } else if (game.in_check()) {
+        safePlay(checkSound);
+      } else {
+        safePlay(moveSound);
+      }
     }
 
-    function playSound(src) {
-      const a = new Audio(src);
-      a.play().catch(() => { });
+    function squareFromEl(el) {
+      const cls = el.className.split(' ').find(c => /^square-[a-h][1-8]$/.test(c));
+      return cls ? cls.replace('square-', '') : null;
+    }
+
+    function clearSquareSelection() {
+      $('#board .square-55d63').removeClass('selected-square');
+      $('#board .move-marker').remove();
+      selectedSquare = null;
+    }
+
+    function highlightSelectedSquare(square) {
+      $('.square-' + square).addClass('selected-square');
+    }
+
+    function showLegalMoveMarkers(square) {
+      const legalMoves = game.moves({ square: square, verbose: true });
+      legalMoves.forEach(function (m) {
+        const isCapture = m.flags.indexOf('c') !== -1 || m.flags.indexOf('e') !== -1;
+        const marker = $('<div class="move-marker"></div>');
+        if (isCapture) marker.addClass('capture-marker');
+        $('.square-' + m.to).append(marker);
+      });
+      return legalMoves.map(function (m) { return m.to; });
     }
 
     const $buttons = $('.puzzle-btn');
@@ -773,6 +866,10 @@
     }
 
     function onDrop(source, target, piece) {
+      if (source !== target) {
+        clearSquareSelection();
+      }
+
       function getPromotion(source, target, piece) {
         if (!piece.toLowerCase().startsWith('p')) return null;
         const rank = target[1];
@@ -787,7 +884,9 @@
       const tempGame = new Chess(game.fen());
       const move = tempGame.move({ from: source, to: target, promotion });
 
-      if (!move) { showStatus("Illegal move", "wrong"); return 'snapback'; }
+      if (!move) {
+        return 'snapback';
+      }
 
       if (normalizeSAN(move.san) === normalizeSAN(currentSolutionMoves[currentMoveIndex])) {
         const realMove = game.move({ from: source, to: target, promotion });
@@ -799,7 +898,7 @@
 
         if (currentMoveIndex >= currentSolutionMoves.length) {
           showStatus("🎉 Puzzle solved!", "solved");
-          playSound("{% static 'sound/puzzle-correct.mp3' %}");
+          safePlay(correctSound);
           stopTimerDisplay();
           const puzzleId = $buttons.eq(currentPuzzleIndex).data('puzzle-id');
           const timeTaken = Math.floor((Date.now() - solveStartTime) / 1000);
@@ -817,7 +916,7 @@
 
       } else {
         showStatus("Wrong move, try again.", "wrong");
-        playSound("{% static 'sound/puzzle-wrong.mp3' %}");
+        safePlay(wrongSound);
         if (!wrongCounted) {
           wrongCounted = true;
           $.ajax({
@@ -848,6 +947,7 @@
 
     function loadPuzzle(index) {
       wrongCounted = false;
+      clearSquareSelection();
       const btn = $buttons.eq(index);
       const fen = btn.data('fen');
       const solution = btn.data('solution').trim();
@@ -928,6 +1028,52 @@
     }
 
     $buttons.on('click', function () { loadPuzzle($(this).data('index')); });
+
+    function handleBoardPointerDown(e) {
+      if (!game) return;
+      if (e.type === 'mousedown' && e.button !== 0) return;
+      const targetEl = e.target.closest ? e.target.closest('.square-55d63') : null;
+      if (!targetEl) return;
+      const square = squareFromEl(targetEl);
+      if (!square) return;
+
+      if (selectedSquare) {
+        if (selectedSquare === square) {
+          clearSquareSelection();
+          return;
+        }
+
+        const legalTargets = game.moves({ square: selectedSquare, verbose: true }).map(function (m) { return m.to; });
+        const piece = game.get(selectedSquare);
+        const pieceCode = piece ? piece.color + piece.type.toUpperCase() : '';
+        const fromSquare = selectedSquare;
+        const clickedOwnPiece = game.get(square) && game.get(square).color === game.turn();
+
+        if (legalTargets.indexOf(square) !== -1) {
+          onDrop(fromSquare, square, pieceCode);
+          clearSquareSelection();
+        } else if (clickedOwnPiece) {
+          clearSquareSelection();
+          selectedSquare = square;
+          highlightSelectedSquare(square);
+          showLegalMoveMarkers(square);
+        } else {
+          clearSquareSelection();
+        }
+      } else {
+        const piece = game.get(square);
+        if (piece && piece.color === game.turn()) {
+          selectedSquare = square;
+          highlightSelectedSquare(square);
+          showLegalMoveMarkers(square);
+        }
+      }
+    }
+
+    const boardEl = document.getElementById('board');
+    boardEl.addEventListener('mousedown', handleBoardPointerDown, true);
+    boardEl.addEventListener('touchstart', handleBoardPointerDown, true);
+
     $nextBtn.on('click', function () { loadPuzzle((currentPuzzleIndex + 1) % $buttons.length); });
     $resetBtn.on('click', function () { if (currentFen) loadPuzzle(currentPuzzleIndex); });
     $hintBtn.on('click', function () {

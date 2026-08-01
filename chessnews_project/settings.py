@@ -5,6 +5,10 @@ import os
 BASE_DIR = Path(__file__).resolve().parent.parent
 
 
+from dotenv import load_dotenv
+
+load_dotenv()
+
 # Quick-start development settings - unsuitable for production
 # See https://docs.djangoproject.com/en/5.2/howto/deployment/checklist/
 
@@ -43,6 +47,7 @@ MIDDLEWARE = [
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
     'whitenoise.middleware.WhiteNoiseMiddleware',
     'news.middleware.LastSeenMiddleware',
+    'news.middleware.UserStreakMiddleware',
 ]
 
 ROOT_URLCONF = 'chessnews_project.urls'

@@ -154,7 +154,8 @@ def api_bd_women_players(request):
 
     return JsonResponse({'players': players, 'success': True})
 
-
+from django.utils import timezone
+from datetime import date
 def home(request):
     # ── Big news ─────────────────────────────
     big_news = Article.objects.filter(is_big_news=True).first()
@@ -172,8 +173,20 @@ def home(request):
     home_banner = TournamentBanner.objects.filter(
         inside_home=True
     ).order_by('-created_at').first()
+    
+    today = timezone.localdate()
 
-    tournaments = Events.objects.all().order_by('start')
+    first_day = date(today.year, today.month, 1)
+
+    if today.month == 12:
+        next_month = date(today.year + 1, 1, 1)
+    else:
+        next_month = date(today.year, today.month + 1, 1)
+
+    tournaments = Events.objects.filter(
+        start__lt=next_month,
+        end__date__gte=first_day
+    ).order_by("start")
 
     profile = None
     if request.user.is_authenticated:

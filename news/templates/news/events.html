@@ -2,14 +2,12 @@
 {% block content %}
 
 <style>
-  /* ── Wrapper ──────────────────────────────────────────────────── */
   .calendar-wrap {
     max-width: 1200px;
     margin: 0 auto;
     padding-bottom: 48px;
   }
 
-  /* ── Page header ──────────────────────────────────────────────── */
   .cal-page-header {
     display: flex;
     align-items: flex-start;
@@ -51,7 +49,6 @@
     margin: 0;
   }
 
-  /* Source badges */
   .source-badges {
     display: flex;
     gap: 8px;
@@ -89,7 +86,6 @@
     border-color: rgba(0, 106, 78, 0.4);
   }
 
-  /* ── Legend ───────────────────────────────────────────────────── */
   .legend-row {
     display: flex;
     gap: 14px;
@@ -115,7 +111,6 @@
     flex-shrink: 0;
   }
 
-  /* ── Calendar card ────────────────────────────────────────────── */
   .calendar-card {
     background: var(--card-color);
     border: 1px solid var(--border);
@@ -146,6 +141,12 @@
     gap: 7px;
   }
 
+  .cal-header-actions {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+
   .add-event-btn {
     display: inline-flex;
     align-items: center;
@@ -167,11 +168,108 @@
     transform: translateY(-1px);
   }
 
+  .filter-wrap {
+    position: relative;
+  }
+
+  .filter-icon-btn {
+    width: 34px;
+    height: 34px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: oklch(22% 0.01 256);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    color: var(--chess-secondary);
+    cursor: pointer;
+    font-size: 0.85rem;
+    transition: all 0.15s;
+    position: relative;
+  }
+
+  .filter-icon-btn:hover {
+    border-color: var(--chess-primary);
+    color: var(--chess-primary);
+  }
+
+  .filter-icon-btn.active-filter::after {
+    content: '';
+    position: absolute;
+    top: -3px;
+    right: -3px;
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    background: var(--chess-red);
+    border: 2px solid var(--card-color);
+  }
+
+  .filter-menu {
+    position: absolute;
+    top: calc(100% + 8px);
+    right: 0;
+    background: var(--card-color);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    padding: 10px;
+    min-width: 195px;
+    box-shadow: 0 12px 30px rgba(0, 0, 0, 0.5);
+    z-index: 200;
+    display: none;
+    animation: tipIn 0.15s ease;
+  }
+
+  .filter-menu.open {
+    display: block;
+  }
+
+  .filter-menu-title {
+    font-size: 0.65rem;
+    font-weight: 800;
+    letter-spacing: 1px;
+    text-transform: uppercase;
+    color: var(--color-gray-400);
+    margin-bottom: 8px;
+    padding-bottom: 6px;
+    border-bottom: 1px solid var(--border);
+  }
+
+  .filter-check-row {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 6px 4px;
+    border-radius: 6px;
+    cursor: pointer;
+    font-size: 0.8rem;
+    color: var(--chess-light);
+    font-weight: 600;
+    transition: background 0.12s;
+  }
+
+  .filter-check-row:hover {
+    background: rgba(119, 149, 86, 0.08);
+  }
+
+  .filter-check-row input {
+    accent-color: var(--chess-primary);
+    width: 14px;
+    height: 14px;
+    cursor: pointer;
+  }
+
+  .filter-dot {
+    width: 9px;
+    height: 9px;
+    border-radius: 3px;
+    flex-shrink: 0;
+  }
+
   .cal-card-body {
     padding: 16px 20px 24px;
   }
 
-  /* ── FullCalendar overrides ───────────────────────────────────── */
   .fc {
     background: transparent !important;
   }
@@ -243,7 +341,6 @@
     font-weight: 700;
   }
 
-  /* Buttons */
   .fc-button {
     background: oklch(22% 0.01 256) !important;
     border: 1px solid var(--border) !important;
@@ -270,7 +367,6 @@
     color: #fff !important;
   }
 
-  /* Events */
   .fc-event {
     border: none !important;
     border-radius: 4px !important;
@@ -288,31 +384,22 @@
     box-shadow: 0 3px 8px rgba(0, 0, 0, 0.4) !important;
   }
 
-  /* ── Event color states ───────────────────────────────────────── */
-  .fc-event-past {
-    background: #6b1a2a !important;
+  .fc-event-bd {
+    background: #006747 !important;
     color: #fff !important;
+    border-left: 3px solid #4caf7d !important;
   }
 
-  .fc-event-ongoing {
-    background: #2f5396 !important;
-    color: #fff !important;
+  #calendar.filter-hide-db .fc-src-db {
+    display: none !important;
   }
 
-  .fc-event-future {
-    background: var(--chess-primary) !important;
-    color: #fff !important;
+  #calendar.filter-hide-world .fc-src-world {
+    display: none !important;
   }
 
-  /* DB-saved events get a slightly different shade to distinguish */
-  .fc-event-db.fc-event-future {
-    background: #5a7a3a !important;
-    border-left-color: var(--chess-secondary) !important;
-  }
-
-  .fc-event-db.fc-event-ongoing {
-    background: #1e4080 !important;
-    border-left-color: #8ab4f8 !important;
+  #calendar.filter-hide-bd .fc-src-bd {
+    display: none !important;
   }
 
   .fc-daygrid-more-link {
@@ -335,109 +422,6 @@
     border-radius: 99px;
   }
 
-  /* ── Tooltip ──────────────────────────────────────────────────── */
-  #eventTooltip {
-    position: fixed;
-    /* fixed so it never gets cut by overflow:hidden parents */
-    background: var(--card-color);
-    color: var(--chess-light);
-    padding: 12px 16px;
-    border-radius: 11px;
-    font-size: 0.82rem;
-    box-shadow: 0 12px 36px rgba(0, 0, 0, 0.65);
-    border: 1px solid var(--border);
-    border-left: 4px solid var(--chess-primary);
-    display: none;
-    z-index: 999999;
-    line-height: 1.5;
-    min-width: 220px;
-    max-width: 300px;
-    animation: tipIn 0.16s ease;
-    pointer-events: none;
-  }
-
-  @keyframes tipIn {
-    from {
-      opacity: 0;
-      transform: translateY(-5px);
-    }
-
-    to {
-      opacity: 1;
-      transform: translateY(0);
-    }
-  }
-
-  .tip-header {
-    display: flex;
-    align-items: flex-start;
-    gap: 7px;
-    margin-bottom: 9px;
-    padding-bottom: 8px;
-    border-bottom: 1px solid var(--border);
-  }
-
-  .tip-header i {
-    color: var(--chess-primary);
-    margin-top: 2px;
-    flex-shrink: 0;
-  }
-
-  .tip-header strong {
-    color: var(--chess-light);
-    font-size: 0.88rem;
-    font-weight: 700;
-    line-height: 1.35;
-  }
-
-  .tip-body {
-    background: oklch(20% 0.01 256);
-    border: 1px solid var(--border);
-    border-radius: 7px;
-    padding: 8px 10px;
-    display: flex;
-    flex-direction: column;
-    gap: 5px;
-  }
-
-  .tip-row {
-    display: flex;
-    align-items: center;
-    gap: 7px;
-    color: var(--chess-secondary);
-    font-size: 0.77rem;
-  }
-
-  .tip-row i {
-    color: var(--chess-primary);
-    width: 13px;
-    font-size: 0.72rem;
-    flex-shrink: 0;
-  }
-
-  .tip-source {
-    display: inline-block;
-    margin-top: 8px;
-    font-size: 0.68rem;
-    font-weight: 700;
-    padding: 2px 8px;
-    border-radius: 99px;
-    border: 1px solid;
-  }
-
-  .tip-source.db {
-    background: rgba(119, 149, 86, 0.12);
-    color: var(--chess-primary);
-    border-color: rgba(119, 149, 86, 0.35);
-  }
-
-  .tip-source.api {
-    background: rgba(96, 165, 250, 0.1);
-    color: #60a5fa;
-    border-color: rgba(96, 165, 250, 0.25);
-  }
-
-  /* ── Modal ────────────────────────────────────────────────────── */
   .modal-chess-overlay {
     display: none;
     position: fixed;
@@ -465,16 +449,14 @@
     animation: modalIn 0.26s ease;
   }
 
-  @keyframes modalIn {
-    from {
-      opacity: 0;
-      transform: translateY(-16px) scale(0.98);
-    }
+  @keyframes tipIn {
+    from { opacity: 0; transform: translateY(-5px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
 
-    to {
-      opacity: 1;
-      transform: translateY(0) scale(1);
-    }
+  @keyframes modalIn {
+    from { opacity: 0; transform: translateY(-16px) scale(0.98); }
+    to { opacity: 1; transform: translateY(0) scale(1); }
   }
 
   .modal-chess-header {
@@ -650,12 +632,267 @@
     transform: translateY(-1px);
   }
 
-  /* form error */
   .form-err {
     font-size: 0.73rem;
     color: var(--chess-red);
     margin-top: 4px;
     display: none;
+  }
+
+  .detail-modal {
+    width: 460px;
+    overflow: visible;
+  }
+
+  .detail-modal-accent {
+    height: 5px;
+    width: 100%;
+    border-radius: 14px 14px 0 0;
+  }
+
+  .detail-modal-accent.accent-db { background: var(--chess-primary); }
+  .detail-modal-accent.accent-world { background: #60a5fa; }
+  .detail-modal-accent.accent-bd { background: #006747; }
+
+  .detail-modal-header {
+    border-radius: 0;
+  }
+
+  .detail-icon-badge {
+    width: 42px;
+    height: 42px;
+    border-radius: 10px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.1rem;
+    flex-shrink: 0;
+  }
+
+  .detail-icon-badge.badge-db {
+    background: rgba(119, 149, 86, 0.15);
+    border: 1px solid rgba(119, 149, 86, 0.3);
+    color: var(--chess-primary);
+  }
+
+  .detail-icon-badge.badge-world {
+    background: rgba(96, 165, 250, 0.15);
+    border: 1px solid rgba(96, 165, 250, 0.3);
+    color: #60a5fa;
+  }
+
+  .detail-icon-badge.badge-bd {
+    background: rgba(0, 103, 71, 0.15);
+    border: 1px solid rgba(0, 103, 71, 0.35);
+    color: #00a878;
+  }
+
+  .detail-modal-header .modal-title h4 {
+    font-size: 1rem;
+    margin-bottom: 4px;
+  }
+
+  .detail-status-pill {
+    display: inline-block;
+    font-size: 0.63rem;
+    font-weight: 800;
+    letter-spacing: 0.5px;
+    text-transform: uppercase;
+    padding: 2px 9px;
+    border-radius: 99px;
+    border: 1px solid;
+  }
+
+  .detail-status-pill.status-upcoming {
+    background: rgba(119, 149, 86, 0.15);
+    color: var(--chess-primary);
+    border-color: rgba(119, 149, 86, 0.35);
+  }
+
+  .detail-status-pill.status-ongoing {
+    background: rgba(96, 165, 250, 0.15);
+    color: #60a5fa;
+    border-color: rgba(96, 165, 250, 0.35);
+  }
+
+  .detail-status-pill.status-past {
+    background: rgba(200, 75, 75, 0.15);
+    color: var(--chess-red);
+    border-color: rgba(200, 75, 75, 0.35);
+  }
+
+  .detail-info-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 10px;
+    margin-bottom: 14px;
+  }
+
+  .detail-info-card {
+    background: oklch(20% 0.01 256);
+    border: 1px solid var(--border);
+    border-radius: 9px;
+    padding: 10px 12px;
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+  }
+
+  .detail-info-label {
+    font-size: 0.63rem;
+    font-weight: 800;
+    letter-spacing: 0.8px;
+    text-transform: uppercase;
+    color: var(--color-gray-400);
+    display: flex;
+    align-items: center;
+    gap: 5px;
+  }
+
+  .detail-info-label i {
+    color: var(--chess-primary);
+  }
+
+  .detail-info-value {
+    font-size: 0.85rem;
+    font-weight: 700;
+    color: var(--chess-light);
+  }
+
+  .detail-loc-row {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 0.82rem;
+    color: var(--chess-secondary);
+    margin-bottom: 12px;
+    padding: 8px 12px;
+    background: oklch(20% 0.01 256);
+    border-radius: 8px;
+    border: 1px solid var(--border);
+  }
+
+  .detail-loc-row i {
+    color: var(--chess-primary);
+  }
+
+  .detail-desc-block {
+    margin-bottom: 14px;
+  }
+
+  .detail-desc-block p {
+    font-size: 0.82rem;
+    line-height: 1.6;
+    color: var(--chess-secondary);
+    margin: 6px 0 0;
+  }
+
+  .day-events-modal {
+    width: 440px;
+  }
+
+  .day-events-modal .modal-title h4 {
+    font-size: 1rem;
+    margin-bottom: 4px;
+  }
+
+  .day-events-list {
+    display: flex;
+    flex-direction: column;
+    gap: 7px;
+    max-height: 380px;
+    overflow-y: auto;
+    padding-right: 4px;
+    scrollbar-width: thin;
+    scrollbar-color: var(--chess-primary) transparent;
+  }
+
+  .day-events-list::-webkit-scrollbar {
+    width: 5px;
+  }
+
+  .day-events-list::-webkit-scrollbar-thumb {
+    background: var(--chess-primary);
+    border-radius: 99px;
+  }
+
+  .day-events-list::-webkit-scrollbar-track {
+    background: transparent;
+  }
+
+  .day-event-item {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 10px 12px;
+    border-radius: 9px;
+    background: oklch(20% 0.01 256);
+    border: 1px solid var(--border);
+    cursor: pointer;
+    transition: all 0.14s;
+  }
+
+  .day-event-item:hover {
+    border-color: var(--chess-primary);
+    background: rgba(119, 149, 86, 0.08);
+    transform: translateX(2px);
+  }
+
+  .day-event-dot {
+    width: 10px;
+    height: 10px;
+    border-radius: 3px;
+    flex-shrink: 0;
+  }
+
+  .day-event-main {
+    flex: 1;
+    min-width: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+  }
+
+  .day-event-title {
+    font-size: 0.83rem;
+    font-weight: 700;
+    color: var(--chess-light);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+
+  .day-event-sub {
+    font-size: 0.68rem;
+    color: var(--color-gray-400);
+    font-weight: 600;
+  }
+
+  .day-event-item i {
+    color: var(--color-gray-400);
+    font-size: 0.8rem;
+    flex-shrink: 0;
+  }
+
+  .tip-source {
+    display: inline-block;
+    font-size: 0.68rem;
+    font-weight: 700;
+    padding: 2px 8px;
+    border-radius: 99px;
+    border: 1px solid;
+  }
+
+  .tip-source.db {
+    background: rgba(119, 149, 86, 0.12);
+    color: var(--chess-primary);
+    border-color: rgba(119, 149, 86, 0.35);
+  }
+
+  .tip-source.api {
+    background: rgba(96, 165, 250, 0.1);
+    color: #60a5fa;
+    border-color: rgba(96, 165, 250, 0.25);
   }
 
   @media (max-width: 700px) {
@@ -670,18 +907,15 @@
     .cal-page-header {
       flex-direction: column;
     }
-  }
 
-  .fc-event-bd {
-    background: #006747 !important;
-    color: #fff !important;
-    border-left: 3px solid #4caf7d !important;
+    .detail-info-grid {
+      grid-template-columns: 1fr;
+    }
   }
 </style>
 
 <div class="calendar-wrap">
 
-  <!-- Page header -->
   <div class="cal-page-header">
     <div class="cal-header-left">
       <div class="cal-icon">♟</div>
@@ -697,37 +931,50 @@
     </div>
   </div>
 
-  <!-- Legend -->
   <div class="legend-row">
-    <div class="legend-item">
-      <div class="legend-dot" style="background:#4a1020;"></div> Past
-    </div>
-    <div class="legend-item">
-      <div class="legend-dot" style="background:#2f5396;"></div> Ongoing
-    </div>
-    <div class="legend-item">
-      <div class="legend-dot" style="background:var(--chess-primary);"></div> World (Upcoming)
-    </div>
-    <div class="legend-item">
-      <div class="legend-dot" style="background:#006a4e;"></div> 🇧🇩 BD (Upcoming)
-    </div>
-    <div class="legend-item" style="margin-left:auto;">
-      <div class="legend-dot" style="background:#4a6b2a;border-radius:50%;"></div> Your saved events
-    </div>
+    <div class="legend-item"><div class="legend-dot" style="background:#4a1020;"></div> Past</div>
+    <div class="legend-item"><div class="legend-dot" style="background:#2f5396;"></div> Ongoing</div>
+    <div class="legend-item"><div class="legend-dot" style="background:var(--chess-primary);"></div> World (Upcoming)</div>
+    <div class="legend-item"><div class="legend-dot" style="background:#006a4e;"></div> 🇧🇩 BD (Upcoming)</div>
+    <div class="legend-item" style="margin-left:auto;"><div class="legend-dot" style="background:#4a6b2a;border-radius:50%;"></div> Your saved events</div>
   </div>
 
-  <!-- Calendar card -->
   <div class="calendar-card">
     <div class="cal-card-header">
       <p class="cal-card-title">
         <i class="bi bi-calendar3" style="color:var(--chess-primary);"></i>
         GM Bangladesh — Chess Events
       </p>
-      {% if user.is_authenticated %}
-      <button class="add-event-btn" onclick="openModal()">
-        <i class="bi bi-plus-lg"></i> Add Event
-      </button>
-      {% endif %}
+      <div class="cal-header-actions">
+        <div class="filter-wrap">
+          <button class="filter-icon-btn" id="filterBtn" onclick="toggleFilterMenu(event)" title="Filter events">
+            <i class="bi bi-funnel-fill"></i>
+          </button>
+          <div class="filter-menu" id="filterMenu">
+            <div class="filter-menu-title">Show Events</div>
+            <label class="filter-check-row">
+              <input type="checkbox" checked data-source="db" onchange="toggleSourceFilter(this)">
+              <span class="filter-dot" style="background:#4a6b2a;"></span>
+              Saved Events
+            </label>
+            <label class="filter-check-row">
+              <input type="checkbox" checked data-source="world" onchange="toggleSourceFilter(this)">
+              <span class="filter-dot" style="background:var(--chess-primary);"></span>
+              FIDE World
+            </label>
+            <label class="filter-check-row">
+              <input type="checkbox" checked data-source="bd" onchange="toggleSourceFilter(this)">
+              <span class="filter-dot" style="background:#006747;"></span>
+              BD Tournaments
+            </label>
+          </div>
+        </div>
+        {% if user.is_authenticated %}
+        <button class="add-event-btn" onclick="openModal()">
+          <i class="bi bi-plus-lg"></i> Add Event
+        </button>
+        {% endif %}
+      </div>
     </div>
     <div class="cal-card-body">
       <div id="calendar"></div>
@@ -736,10 +983,72 @@
 
 </div>
 
-<!-- Tooltip (fixed position, pointer-events:none) -->
-<div id="eventTooltip"></div>
+<div id="eventDetailModal" class="modal-chess-overlay" onclick="if(event.target===this) closeEventDetail()">
+  <div class="modal-chess-container detail-modal">
+    <div class="detail-modal-accent" id="edAccent"></div>
+    <div class="modal-chess-header detail-modal-header">
+      <div class="modal-title">
+        <div class="detail-icon-badge" id="edIconBadge"><i class="bi bi-trophy-fill"></i></div>
+        <div>
+          <h4 id="edTitle">Event Title</h4>
+          <span class="detail-status-pill" id="edStatusPill">Upcoming</span>
+        </div>
+      </div>
+      <button class="modal-chess-close" onclick="closeEventDetail()">
+        <i class="bi bi-x-lg"></i>
+      </button>
+    </div>
+    <div class="modal-chess-body">
+      <div class="detail-info-grid">
+        <div class="detail-info-card">
+          <span class="detail-info-label"><i class="bi bi-play-circle-fill"></i> Starts</span>
+          <span class="detail-info-value" id="edStart">—</span>
+        </div>
+        <div class="detail-info-card">
+          <span class="detail-info-label"><i class="bi bi-stop-circle-fill"></i> Ends</span>
+          <span class="detail-info-value" id="edEnd">—</span>
+        </div>
+      </div>
+      <div class="detail-loc-row" id="edLocationRow" style="display:none;">
+        <i class="bi bi-geo-alt-fill"></i><span id="edLocation"></span>
+      </div>
+      <div class="detail-desc-block" id="edDescBlock" style="display:none;">
+        <span class="detail-info-label"><i class="bi bi-info-circle-fill"></i> Description</span>
+        <p id="edDesc"></p>
+      </div>
+      <span class="tip-source" id="edSourceBadge">Saved Event</span>
+    </div>
+    <div class="modal-chess-footer">
+      <button class="btn-chess-secondary" onclick="closeEventDetail()">
+        <i class="bi bi-x-circle"></i> Close
+      </button>
+      <a class="btn-chess-success" id="edLinkBtn" href="#" target="_blank" style="display:none;text-decoration:none;">
+        <i class="bi bi-box-arrow-up-right"></i> View Details
+      </a>
+    </div>
+  </div>
+</div>
 
-<!-- Create event modal -->
+<div id="dayEventsModal" class="modal-chess-overlay" onclick="if(event.target===this) closeDayEventsModal()">
+  <div class="modal-chess-container day-events-modal">
+    <div class="modal-chess-header">
+      <div class="modal-title">
+        <i class="bi bi-calendar3-week-fill"></i>
+        <div>
+          <h4 id="deTitle">Events</h4>
+          <span class="detail-status-pill status-upcoming" id="deCountPill">0 events</span>
+        </div>
+      </div>
+      <button class="modal-chess-close" onclick="closeDayEventsModal()">
+        <i class="bi bi-x-lg"></i>
+      </button>
+    </div>
+    <div class="modal-chess-body">
+      <div class="day-events-list" id="deList"></div>
+    </div>
+  </div>
+</div>
+
 <div id="eventModal" class="modal-chess-overlay">
   <div class="modal-chess-container">
 
@@ -800,16 +1109,6 @@
 </div>
 
 <script>
-  /* ─────────────────────────────────────────────────────────────── */
-  /*  HELPERS                                                        */
-  /* ─────────────────────────────────────────────────────────────── */
-  function escHtml(str) {
-    if (!str) return '';
-    return String(str)
-      .replace(/&/g, '&amp;').replace(/</g, '&lt;')
-      .replace(/>/g, '&gt;').replace(/"/g, '&quot;');
-  }
-
   function mapTournaments(list, source) {
     return list.map(item => {
       let start = new Date(item.start_date || item.start);
@@ -818,7 +1117,6 @@
       if (isNaN(end)) end = start;
       if (start > end) [start, end] = [end, start];
 
-      // FullCalendar all-day end is exclusive — add 1 day
       const endExcl = new Date(end);
       endExcl.setDate(endExcl.getDate() + 1);
 
@@ -838,12 +1136,6 @@
     }).filter(Boolean);
   }
 
-  /* ─────────────────────────────────────────────────────────────── */
-  /*  CALENDAR                                                       */
-  /* ─────────────────────────────────────────────────────────────── */
-
-  let selectedDateStr = null;
-
   document.addEventListener('DOMContentLoaded', () => {
     window.calendar = new FullCalendar.Calendar(document.getElementById('calendar'), {
       initialView: 'dayGridMonth',
@@ -854,17 +1146,14 @@
         right: 'dayGridMonth,timeGridWeek,listMonth'
       },
 
-      /* ── Event sources: DB + World + BD ────────────────────── */
       eventSources: [
         {
-          /* 1. Your own DB events */
           url: '/events/',
           method: 'GET',
           failure: () => console.warn('DB events failed to load'),
           extraParams: { source: 'db' },
         },
         {
-          /* 2. World FIDE tournaments */
           events: function (fetchInfo, successCb, failureCb) {
             fetch('/api/events/')
               .then(r => r.json())
@@ -873,7 +1162,6 @@
           }
         },
         {
-          /* 3. Bangladesh tournaments */
           events: function (fetchInfo, successCb, failureCb) {
             fetch('/api/events/bd/')
               .then(r => r.json())
@@ -883,7 +1171,6 @@
         }
       ],
 
-      /* ── Color events by source + status ───────────────────── */
       eventDidMount: function (info) {
         const el = info.el;
         const event = info.event;
@@ -897,6 +1184,7 @@
         const isPast = end && end < now;
         const isOngoing = start && end && start <= now && end >= now;
 
+        el.classList.add('fc-src-' + src);
         el.style.borderRadius = '4px';
         el.style.fontWeight = '600';
         el.style.fontSize = '0.74rem';
@@ -919,102 +1207,189 @@
         }
       },
 
-      /* ── Tooltip on event click ─────────────────────────────── */
       eventClick: function (info) {
-        info.jsEvent.stopPropagation();
-        const event = info.event;
-        const tip = document.getElementById('eventTooltip');
-        const src = event.extendedProps.source || 'db';
-        const srcLabel = src === 'bd' ? '🇧🇩 BD Tournament'
-          : src === 'world' ? '🌐 FIDE Tournament'
-            : '🏠 Saved Event';
-        const srcClass = src === 'db' ? 'db' : 'api';
-        const loc = event.extendedProps.location || '';
-        const desc = event.extendedProps.description || '';
-        const eUrl = event.extendedProps.url || event.url || '';
-
-        const fmt = (d, dateOnly = false) => {
-          if (!d) return '—';
-          const dt = new Date(d);
-          if (dateOnly) return dt.toLocaleDateString([], { year: 'numeric', month: 'short', day: 'numeric' });
-          return dt.toLocaleDateString([], { year: 'numeric', month: 'short', day: 'numeric' });
-        };
-
-        // For all-day events the end is exclusive — subtract 1 day to show real end
-        const rawEnd = event.end ? new Date(event.end.getTime() - 86400000) : null;
-
-        tip.innerHTML = `
-          <div class="tip-header">
-            <i class="bi bi-calendar-event-fill"></i>
-            <strong>${escHtml(event.title)}</strong>
-          </div>
-          <div class="tip-body">
-            ${loc ? `<div class="tip-row"><i class="bi bi-geo-alt-fill"></i>${escHtml(loc)}</div>` : ''}
-            <div class="tip-row"><i class="bi bi-play-fill"></i> ${fmt(event.start)} </div>
-            <div class="tip-row"><i class="bi bi-stop-fill"></i> ${fmt(rawEnd)}</div>
-            ${desc ? `<div class="tip-row"><i class="bi bi-info-circle-fill"></i>${escHtml(desc.slice(0, 80))}${desc.length > 80 ? '…' : ''}</div>` : ''}
-            ${eUrl ? `<div class="tip-row"><i class="bi bi-box-arrow-up-right"></i><a href="${escHtml(eUrl)}" target="_blank" style="color:#60a5fa;">View Details</a></div>` : ''}
-          </div>
-          <div style="margin-top:8px;">
-            <span class="tip-source ${srcClass}">${srcLabel}</span>
-          </div>`;
-
-        // Position — keep tooltip inside viewport
-        const jse = info.jsEvent;
-        const vpW = window.innerWidth, vpH = window.innerHeight;
-        const tipW = 300, tipH = 200;
-
-        let top = jse.clientY + 16;
-        let left = jse.clientX + 16;
-        if (left + tipW > vpW - 10) left = jse.clientX - tipW - 10;
-        if (top + tipH > vpH - 10) top = jse.clientY - tipH - 10;
-
-        tip.style.top = top + 'px';
-        tip.style.left = left + 'px';
-        tip.style.display = 'block';
-
         info.jsEvent.preventDefault();
+        openEventDetail(info.event);
       },
 
-      /* ── Open modal on date click ───────────────────────────── */
       dateClick: function (info) {
-        selectedDateStr = info.dateStr;
-        // Prefill start/end with clicked date
         document.getElementById('evStart').value = info.dateStr + 'T09:00';
         document.getElementById('evEnd').value = info.dateStr + 'T18:00';
         openModal();
       },
 
-      /* ── Misc ───────────────────────────────────────────────── */
       eventDisplay: 'block',
       dayMaxEvents: 3,
       moreLinkContent: args => `+${args.num} more`,
-      moreLinkClassNames: ['fc-more-link-custom'],
+      moreLinkClick: function (arg) {
+        const events = arg.allSegs.map(seg => seg.event);
+        openDayEventsModal(arg.date, events);
+      },
     });
 
     calendar.render();
   });
 
-  /* ─────────────────────────────────────────────────────────────── */
-  /*  TOOLTIP HIDE                                                   */
-  /* ─────────────────────────────────────────────────────────────── */
   document.addEventListener('click', e => {
-    const tip = document.getElementById('eventTooltip');
-    if (!e.target.closest('.fc-event') && tip.style.display === 'block') {
-      tip.style.display = 'none';
+    const menu = document.getElementById('filterMenu');
+    if (menu && menu.classList.contains('open') && !e.target.closest('.filter-wrap')) {
+      menu.classList.remove('open');
     }
   });
 
   document.addEventListener('keydown', e => {
     if (e.key === 'Escape') {
-      document.getElementById('eventTooltip').style.display = 'none';
+      document.getElementById('filterMenu').classList.remove('open');
+      closeEventDetail();
+      closeDayEventsModal();
       closeModal();
     }
   });
 
-  /* ─────────────────────────────────────────────────────────────── */
-  /*  MODAL                                                          */
-  /* ─────────────────────────────────────────────────────────────── */
+  function toggleFilterMenu(e) {
+    e.stopPropagation();
+    document.getElementById('filterMenu').classList.toggle('open');
+  }
+
+  function toggleSourceFilter(checkbox) {
+    const src = checkbox.dataset.source;
+    const calEl = document.getElementById('calendar');
+    calEl.classList.toggle('filter-hide-' + src, !checkbox.checked);
+    updateFilterBtnState();
+  }
+
+  function updateFilterBtnState() {
+    const anyUnchecked = Array.from(document.querySelectorAll('.filter-check-row input')).some(c => !c.checked);
+    document.getElementById('filterBtn').classList.toggle('active-filter', anyUnchecked);
+  }
+
+  function openEventDetail(event) {
+    const src = event.extendedProps.source || 'db';
+    const now = new Date();
+    const start = event.start;
+    const rawEnd = event.end ? new Date(event.end.getTime() - (event.allDay ? 86400000 : 0)) : start;
+
+    const modal = document.getElementById('eventDetailModal');
+    const accent = document.getElementById('edAccent');
+    const iconBadge = document.getElementById('edIconBadge');
+    const statusPill = document.getElementById('edStatusPill');
+    const sourceBadge = document.getElementById('edSourceBadge');
+
+    accent.className = 'detail-modal-accent accent-' + src;
+    iconBadge.className = 'detail-icon-badge badge-' + src;
+    iconBadge.innerHTML = src === 'bd'
+      ? '<i class="bi bi-flag-fill"></i>'
+      : src === 'world'
+        ? '<i class="bi bi-globe"></i>'
+        : '<i class="bi bi-bookmark-star-fill"></i>';
+
+    document.getElementById('edTitle').textContent = event.title;
+
+    const isPast = rawEnd && rawEnd < now;
+    const isOngoing = start && rawEnd && start <= now && rawEnd >= now;
+    statusPill.textContent = isPast ? 'Past' : isOngoing ? 'Ongoing' : 'Upcoming';
+    statusPill.className = 'detail-status-pill ' + (isPast ? 'status-past' : isOngoing ? 'status-ongoing' : 'status-upcoming');
+
+    const fmt = d => d ? new Date(d).toLocaleDateString([], { year: 'numeric', month: 'short', day: 'numeric' }) : '—';
+    document.getElementById('edStart').textContent = fmt(start);
+    document.getElementById('edEnd').textContent = fmt(rawEnd);
+
+    const loc = event.extendedProps.location || '';
+    const locRow = document.getElementById('edLocationRow');
+    if (loc) {
+      document.getElementById('edLocation').textContent = loc;
+      locRow.style.display = 'flex';
+    } else {
+      locRow.style.display = 'none';
+    }
+
+    const desc = event.extendedProps.description || '';
+    const descBlock = document.getElementById('edDescBlock');
+    if (desc) {
+      document.getElementById('edDesc').textContent = desc;
+      descBlock.style.display = 'block';
+    } else {
+      descBlock.style.display = 'none';
+    }
+
+    const srcLabel = src === 'bd' ? '🇧🇩 BD Tournament' : src === 'world' ? '🌐 FIDE Tournament' : '🏠 Saved Event';
+    sourceBadge.textContent = srcLabel;
+    sourceBadge.className = 'tip-source ' + (src === 'db' ? 'db' : 'api');
+
+    const eUrl = event.extendedProps.url || event.url || '';
+    const linkBtn = document.getElementById('edLinkBtn');
+    if (eUrl) {
+      linkBtn.href = eUrl;
+      linkBtn.style.display = 'inline-flex';
+    } else {
+      linkBtn.style.display = 'none';
+    }
+
+    modal.classList.add('open');
+  }
+
+  function closeEventDetail() {
+    document.getElementById('eventDetailModal').classList.remove('open');
+  }
+
+  function openDayEventsModal(date, events) {
+    const sorted = events.slice().sort((a, b) => (a.start || 0) - (b.start || 0));
+    const dateLabel = new Date(date).toLocaleDateString([], { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' });
+
+    document.getElementById('deTitle').textContent = dateLabel;
+    document.getElementById('deCountPill').textContent = sorted.length + (sorted.length === 1 ? ' event' : ' events');
+
+    const list = document.getElementById('deList');
+    list.innerHTML = '';
+
+    sorted.forEach(event => {
+      const src = event.extendedProps.source || 'db';
+      const dotColor = src === 'bd' ? '#006747' : src === 'world' ? 'var(--chess-primary)' : '#4a6b2a';
+      const srcLabel = src === 'bd' ? 'BD Tournament' : src === 'world' ? 'FIDE World' : 'Saved Event';
+
+      const item = document.createElement('div');
+      item.className = 'day-event-item';
+
+      const dot = document.createElement('span');
+      dot.className = 'day-event-dot';
+      dot.style.background = dotColor;
+
+      const main = document.createElement('div');
+      main.className = 'day-event-main';
+
+      const title = document.createElement('span');
+      title.className = 'day-event-title';
+      title.textContent = event.title;
+
+      const sub = document.createElement('span');
+      sub.className = 'day-event-sub';
+      sub.textContent = srcLabel;
+
+      main.appendChild(title);
+      main.appendChild(sub);
+
+      const arrow = document.createElement('i');
+      arrow.className = 'bi bi-chevron-right';
+
+      item.appendChild(dot);
+      item.appendChild(main);
+      item.appendChild(arrow);
+
+      item.addEventListener('click', () => {
+        closeDayEventsModal();
+        openEventDetail(event);
+      });
+
+      list.appendChild(item);
+    });
+
+    document.getElementById('dayEventsModal').classList.add('open');
+  }
+
+  function closeDayEventsModal() {
+    document.getElementById('dayEventsModal').classList.remove('open');
+  }
+
   function openModal() {
     document.getElementById('eventModal').classList.add('open');
     document.getElementById('evTitle').focus();
@@ -1022,16 +1397,12 @@
 
   function closeModal() {
     document.getElementById('eventModal').classList.remove('open');
-    // Clear form
     ['evTitle', 'evDesc', 'evUrl', 'evStart', 'evEnd'].forEach(id => {
       document.getElementById(id).value = '';
     });
     document.querySelectorAll('.form-err').forEach(el => el.style.display = 'none');
   }
 
-  /* ─────────────────────────────────────────────────────────────── */
-  /*  SAVE EVENT                                                     */
-  /* ─────────────────────────────────────────────────────────────── */
   function saveEvent() {
     const title = document.getElementById('evTitle').value.trim();
     const desc = document.getElementById('evDesc').value.trim();
@@ -1039,7 +1410,6 @@
     const start = document.getElementById('evStart').value;
     const end = document.getElementById('evEnd').value;
 
-    // Validate
     let valid = true;
     const showErr = (id, show) => {
       document.getElementById(id).style.display = show ? 'block' : 'none';
@@ -1081,7 +1451,6 @@
         btn.innerHTML = '<i class="bi bi-check-circle-fill"></i> Save Event';
       });
   }
-
 </script>
 
 {% endblock %}

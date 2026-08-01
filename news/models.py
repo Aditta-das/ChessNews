@@ -16,6 +16,103 @@ class Category(models.Model):
     def __str__(self):
         return self.name
 
+# ── Bangla → English transliteration ───────────────────────────
+HASANT = '্'
+
+CONSONANTS = {
+    'ক': 'k', 'খ': 'kh', 'গ': 'g', 'ঘ': 'gh', 'ঙ': 'ng',
+    'চ': 'ch', 'ছ': 'chh', 'জ': 'j', 'ঝ': 'jh', 'ঞ': 'n',
+    'ট': 't', 'ঠ': 'th', 'ড': 'd', 'ঢ': 'dh', 'ণ': 'n',
+    'ত': 't', 'থ': 'th', 'দ': 'd', 'ধ': 'dh', 'ন': 'n',
+    'প': 'p', 'ফ': 'ph', 'ব': 'b', 'ভ': 'bh', 'ম': 'm',
+    'য': 'j', 'র': 'r', 'ল': 'l', 'শ': 'sh', 'ষ': 'sh',
+    'স': 's', 'হ': 'h', 'ড়': 'r', 'ঢ়': 'rh', 'য়': 'y',
+    'ৎ': 't',  # khanda-ta: no inherent vowel
+}
+
+VOWEL_SIGNS = {  # dependent vowels (kars) — replace the inherent vowel
+    'া': 'a', 'ি': 'i', 'ী': 'i', 'ু': 'u', 'ূ': 'u',
+    'ৃ': 'ri', 'ে': 'e', 'ৈ': 'oi', 'ো': 'o', 'ৌ': 'ou',
+}
+
+INDEPENDENT_VOWELS = {
+    'অ': 'o', 'আ': 'a', 'ই': 'i', 'ঈ': 'i', 'উ': 'u', 'ঊ': 'u',
+    'ঋ': 'ri', 'এ': 'e', 'ঐ': 'oi', 'ও': 'o', 'ঔ': 'ou',
+}
+
+MISC = {
+    'ং': 'ng', 'ঃ': 'h', 'ঁ': 'n',
+    '০': '0', '১': '1', '২': '2', '৩': '3', '৪': '4',
+    '৫': '5', '৬': '6', '৭': '7', '৮': '8', '৯': '9',
+}
+
+
+def bangla_to_english(text):
+    """
+    Transliterates Bangla text to a phonetic ASCII approximation.
+    Handles conjuncts (যুক্তাক্ষর) correctly by looking ahead:
+    - consonant + hasant + consonant  -> sounds joined directly, no vowel between
+    - consonant + vowel sign          -> inherent vowel replaced by that vowel
+    - consonant alone (word/syllable end) -> inherent 'o' vowel added
+    """
+    result = []
+    n = len(text)
+    i = 0
+    while i < n:
+        ch = text[i]
+        nxt = text[i + 1] if i + 1 < n else ''
+
+        if ch in CONSONANTS:
+            result.append(CONSONANTS[ch])
+            if nxt == HASANT or nxt in VOWEL_SIGNS:
+                pass  # conjunct continues, or vowel sign will override — no inherent vowel
+            elif ch == 'ৎ':
+                pass  # khanda-ta never takes inherent vowel
+            else:
+                result.append('o')  # standalone consonant -> add inherent vowel
+            i += 1
+
+        elif ch == HASANT:
+            i += 1  # already accounted for by lookahead above, just consume it
+
+        elif ch in VOWEL_SIGNS:
+            result.append(VOWEL_SIGNS[ch])
+            i += 1
+
+        elif ch in INDEPENDENT_VOWELS:
+            result.append(INDEPENDENT_VOWELS[ch])
+            i += 1
+
+        elif ch in MISC:
+            result.append(MISC[ch])
+            i += 1
+
+        elif ch.isascii():
+            result.append(ch)
+            i += 1
+
+        elif ch.isspace():
+            result.append(' ')
+            i += 1
+
+        else:
+            i += 1  # drop unsupported character (emoji, punctuation, etc.)
+
+    return ''.join(result)
+
+
+def bangla_slugify(text, max_length=200):
+    """
+    Converts Bangla (or mixed Bangla/English) text into a clean ASCII slug.
+    """
+    transliterated = bangla_to_english(text)
+    slug = transliterated.lower()
+    slug = re.sub(r'[^a-z0-9]+', '-', slug)
+    slug = re.sub(r'-+', '-', slug).strip('-')
+    return slug[:max_length]
+
+
+# ── Article model ───────────────────────────────────────────────
 class Article(models.Model):
     title = models.CharField(max_length=200)
     slug = models.SlugField(unique=True, blank=True, max_length=200)
@@ -25,14 +122,15 @@ class Article(models.Model):
     published_at = models.DateTimeField(auto_now_add=True)
     is_big_news = models.BooleanField(default=False)
     likes = models.ManyToManyField(User, related_name="liked_articles", blank=True)
-    
+
     def save(self, *args, **kwargs):
         if self.is_big_news:
-        # Unmark all other articles
             Article.objects.filter(is_big_news=True).exclude(pk=self.pk).update(is_big_news=False)
 
         if not self.slug:
-            base_slug = slugify(self.title, allow_unicode=True)
+            base_slug = bangla_slugify(self.title)
+            if not base_slug:
+                base_slug = f"article-{Article.objects.count() + 1}"
             slug = base_slug
             counter = 1
             while Article.objects.filter(slug=slug).exists():
@@ -407,3 +505,13 @@ class Ticket(models.Model):
         if not self.ticket_code:
             self.ticket_code = str(uuid.uuid4()).split('-')[0].upper()
         super().save(*args, **kwargs)
+        
+
+class Streak(models.Model):
+    user = models.OneToOneField(User, on_delete=models.CASCADE)
+    streak = models.PositiveIntegerField(default=0)
+    longest_streak = models.PositiveIntegerField(default=0)
+    last_visit = models.DateField(null=True, blank=True)
+
+    def __str__(self):
+        return self.user.username

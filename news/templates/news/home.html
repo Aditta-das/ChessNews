@@ -417,6 +417,132 @@
 		font-size: 0.9rem;
 	}
 
+	.tournament-item {
+		display: flex;
+		align-items: center;
+		gap: 12px;
+		padding: 9px 6px;
+		border-bottom: 1px solid var(--border);
+		border-radius: 8px;
+		transition: background 0.15s;
+	}
+
+	.tournament-item:hover {
+		background: rgba(119, 149, 86, 0.06);
+	}
+
+	.tournament-item:last-child {
+		border-bottom: none;
+	}
+
+	.tournament-date-box {
+		width: 44px;
+		height: 44px;
+		flex-shrink: 0;
+		background: rgba(119, 149, 86, 0.12);
+		border: 1px solid rgba(119, 149, 86, 0.3);
+		border-radius: 9px;
+		display: flex;
+		flex-direction: column;
+		align-items: center;
+		justify-content: center;
+		line-height: 1.1;
+	}
+
+	.tdb-month {
+		font-size: 0.6rem;
+		font-weight: 800;
+		letter-spacing: 0.5px;
+		text-transform: uppercase;
+		color: var(--chess-primary);
+	}
+
+	.tdb-day {
+		font-size: 1rem;
+		font-weight: 800;
+		color: var(--chess-light);
+	}
+
+	.tournament-details {
+		flex: 1;
+		min-width: 0;
+	}
+
+	.tournament-name {
+		font-size: 0.86rem;
+		font-weight: 700;
+		color: var(--chess-light);
+		margin-bottom: 2px;
+		white-space: nowrap;
+		overflow: hidden;
+		text-overflow: ellipsis;
+	}
+
+	.tournament-dates {
+		font-size: 0.72rem;
+		color: var(--color-gray-400);
+		font-weight: 600;
+		display: flex;
+		align-items: center;
+		gap: 5px;
+	}
+
+	.talent-card {
+		display: flex;
+		flex-direction: column;
+	}
+
+	.talent-img-wrap {
+		position: relative;
+		height: 150px;
+		overflow: hidden;
+	}
+
+	.talent-img {
+		width: 100%;
+		height: 100%;
+		object-fit: cover;
+		display: block;
+	}
+
+	.talent-img-overlay {
+		position: absolute;
+		inset: 0;
+		background: linear-gradient(to bottom, transparent 45%, rgba(0, 0, 0, 0.8));
+	}
+
+	.talent-star-badge {
+		position: absolute;
+		top: 10px;
+		left: 10px;
+		display: inline-flex;
+		align-items: center;
+		gap: 4px;
+		background: rgba(245, 158, 11, 0.9);
+		color: #1a1300;
+		font-size: 0.65rem;
+		font-weight: 800;
+		letter-spacing: 0.4px;
+		text-transform: uppercase;
+		padding: 3px 9px;
+		border-radius: 99px;
+	}
+
+	.talent-flag {
+		width: 16px;
+		border-radius: 2px;
+		margin-left: 4px;
+		vertical-align: middle;
+	}
+
+	.talent-info {
+		padding: 12px 14px;
+		display: flex;
+		align-items: center;
+		justify-content: space-between;
+		gap: 10px;
+	}
+
 	/* ── Players section ─────────────────────────────────────────── */
 	.players-section {
 		margin-bottom: 32px;
@@ -669,6 +795,88 @@
 			font-size: 1.2rem;
 		}
 	}
+
+	.streak-card {
+		display: flex;
+		align-items: center;
+		gap: 14px;
+		padding: 16px;
+		background: linear-gradient(135deg, rgba(249, 115, 22, 0.12), rgba(119, 149, 86, 0.08));
+		border: 1px solid rgba(249, 115, 22, 0.3);
+		border-radius: 12px;
+		position: relative;
+		overflow: hidden;
+	}
+
+	.streak-glow {
+		position: absolute;
+		top: -30px;
+		right: -30px;
+		width: 100px;
+		height: 100px;
+		background: radial-gradient(circle, rgba(249, 115, 22, 0.25), transparent 70%);
+		border-radius: 50%;
+	}
+
+	.streak-flame-badge {
+		width: 52px;
+		height: 52px;
+		border-radius: 14px;
+		background: linear-gradient(145deg, #f97316, #ea580c);
+		display: flex;
+		align-items: center;
+		justify-content: center;
+		font-size: 1.5rem;
+		flex-shrink: 0;
+		box-shadow: 0 6px 16px rgba(249, 115, 22, 0.35);
+		animation: flamePulse 2.2s ease-in-out infinite;
+		position: relative;
+		z-index: 1;
+	}
+
+	@keyframes flamePulse {
+
+		0%,
+		100% {
+			transform: scale(1);
+		}
+
+		50% {
+			transform: scale(1.08);
+		}
+	}
+
+	.streak-info {
+		flex: 1;
+		min-width: 0;
+		position: relative;
+		z-index: 1;
+	}
+
+	.streak-number {
+		font-size: 1.7rem;
+		font-weight: 800;
+		color: var(--chess-light);
+		line-height: 1;
+		display: flex;
+		align-items: baseline;
+		gap: 5px;
+	}
+
+	.streak-number span {
+		font-size: 0.78rem;
+		font-weight: 700;
+		color: var(--color-gray-400);
+		text-transform: uppercase;
+		letter-spacing: 0.5px;
+	}
+
+	.streak-label {
+		font-size: 0.72rem;
+		color: var(--color-gray-400);
+		font-weight: 600;
+		margin-top: 3px;
+	}
 </style>
 
 <!-- ── User bar ─────────────────────────────────────────────────── -->
@@ -786,6 +994,16 @@
 		</div> -->
 
 		<!-- Tournaments -->
+		{% if user.is_authenticated %}
+		<div class="streak-card">
+			<div class="streak-glow"></div>
+			<div class="streak-flame-badge">🔥</div>
+			<div class="streak-info">
+				<div class="streak-number">{{ request.user.streak.streak }} <span>days</span></div>
+				<div class="streak-label">Current Streak</div>
+			</div>
+		</div>
+		{% endif %}
 		<div class="info-panel">
 			<div class="panel-header">
 				<span class="panel-header-title"><i class="bi bi-trophy-fill" style="color:#f59e0b;"></i>
@@ -797,10 +1015,16 @@
 			<div class="tournament-scroll">
 				{% for tournament in tournaments %}
 				<div class="tournament-item">
-					<div class="tournament-name">{{ tournament.title }}</div>
-					<div class="tournament-dates">
-						<i class="bi bi-calendar-event"></i>
-						{{ tournament.start|date:"M d" }} – {{ tournament.end|date:"M d, Y" }}
+					<div class="tournament-date-box">
+						<span class="tdb-month">{{ tournament.start|date:"M" }}</span>
+						<span class="tdb-day">{{ tournament.start|date:"d" }}</span>
+					</div>
+					<div class="tournament-details">
+						<div class="tournament-name">{{ tournament.title }}</div>
+						<div class="tournament-dates">
+							<i class="bi bi-calendar-event"></i>
+							{{ tournament.start|date:"M d" }} – {{ tournament.end|date:"M d, Y" }}
+						</div>
 					</div>
 				</div>
 				{% empty %}
@@ -818,12 +1042,15 @@
 				<span class="panel-header-title"><i class="bi bi-stars" style="color:#f59e0b;"></i> Rising Talent</span>
 			</div>
 			<div class="talent-card">
-				<img src="{% static 'rayan_rashid_mugdho.jpg' %}" class="talent-img" alt="Rayhan Rashid Mugdho">
+				<div class="talent-img-wrap">
+					<img src="{% static 'rayan_rashid_mugdho.jpg' %}" class="talent-img" alt="Rayhan Rashid Mugdho">
+					<div class="talent-img-overlay"></div>
+					<span class="talent-star-badge"><i class="bi bi-stars"></i> Rising Star</span>
+				</div>
 				<div class="talent-info">
 					<div class="talent-name">
 						Rayhan Rashid Mugdho
-						<img src="https://flagcdn.com/w20/bd.png" alt="BD"
-							style="width:16px;border-radius:2px;margin-left:4px;vertical-align:middle;">
+						<img src="https://flagcdn.com/w20/bd.png" alt="BD" class="talent-flag">
 					</div>
 					<div class="rating-pill"><i class="bi bi-bar-chart-fill" style="color:var(--chess-primary);"></i>
 						Rating <span>2210</span></div>
