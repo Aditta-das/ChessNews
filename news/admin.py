@@ -3,7 +3,9 @@ from django.utils.html import format_html
 from .models import Article, \
     Category, TopPlayerImg, TournamentBanner, BangladeshiTopPlayer, \
     Book, Puzzle, EmailOTP, Quote, PuzzleSolve, UserProfile, BoardVision, \
-    Ticket, UploadedGame, GameComment, Events, Comment, Message, MemoryPosition, SecurityQuestion, Streak
+    Ticket, UploadedGame, GameComment, Events, Comment, Message, MemoryPosition, \
+        SecurityQuestion, Streak
+        
 
 admin.site.site_header = "♟️ ChessBD Admin Panel"
 admin.site.site_title = "ChessBD"
@@ -222,3 +224,27 @@ class StreakAdmin(admin.ModelAdmin):
     search_fields = ('user__username',)
     ordering = ('-streak',)
     list_per_page = 25
+    
+
+from .models import ChessPuzzle, DailyPuzzle, ChessPuzzleSolve
+
+
+@admin.register(ChessPuzzle)
+class ChessPuzzleAdmin(admin.ModelAdmin):
+    list_display = ("id", "title", "difficulty", "turn", "created_at")
+    list_filter = ("difficulty", "turn")
+    search_fields = ("title", "fen")
+
+
+@admin.register(DailyPuzzle)
+class DailyPuzzleAdmin(admin.ModelAdmin):
+    list_display = ("date", "puzzle", "created_at")
+    list_filter = ("date",)
+    autocomplete_fields = ("puzzle",)
+    ordering = ("-date",)
+
+@admin.register(ChessPuzzleSolve)
+class ChessPuzzleSolveAdmin(admin.ModelAdmin):
+    list_display = ("user", "daily_puzzle", "solved_at", "time_taken", "made_mistake", "wrong_attempts")
+    list_filter = ("made_mistake",)
+    search_fields = ("user__username",)

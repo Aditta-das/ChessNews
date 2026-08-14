@@ -57,8 +57,11 @@
     }
 
     .notation-btn-img {
-      width: 24px;
-      height: 24px;
+      width: 18px;
+      height: 18px;
+      filter: brightness(0) invert(1);
+      opacity: 1;
+      transition: .25s;
     }
 
     #puzzle-turn {
@@ -470,14 +473,57 @@
   }
 
   #next-btn {
-    background: #16a34a;
-    color: white;
-    border-color: #22c55e;
+    background: linear-gradient(135deg, #22c55e, #16a34a);
+    color: #fff;
+    border: 2px solid #4ade80;
+    border-radius: 12px;
+    box-shadow: 0 4px 12px rgba(34, 197, 94, .15);
+    transition: .3s ease;
+  }
+
+  #next-btn.show-next {
+    animation: nextAppear .45s ease,
+      borderGlow 2s ease-in-out infinite;
+  }
+
+  @keyframes borderGlow {
+
+    0%,
+    100% {
+      border-color: #4ade80;
+      box-shadow:
+        0 0 0 0 rgba(74, 222, 128, .0),
+        0 0 8px rgba(74, 222, 128, .20);
+    }
+
+    50% {
+      border-color: #86efac;
+      box-shadow:
+        0 0 0 2px rgba(74, 222, 128, .15),
+        0 0 14px rgba(74, 222, 128, .35);
+    }
   }
 
   #next-btn:hover {
-    background: #15803d;
-    border-color: #4ade80;
+    transform: translateY(-2px) scale(1.03);
+    box-shadow: 0 12px 28px rgba(34, 197, 94, .45);
+  }
+
+  @keyframes nextAppear {
+    0% {
+      opacity: 0;
+      transform: translateY(18px) scale(.7);
+    }
+
+    70% {
+      opacity: 1;
+      transform: translateY(-4px) scale(1.05);
+    }
+
+    100% {
+      opacity: 1;
+      transform: translateY(0) scale(1);
+    }
   }
 
   .notation-btn-img {
@@ -909,7 +955,13 @@
             data: JSON.stringify({ time_taken: timeTaken }),
             success: () => $buttons.eq(currentPuzzleIndex).removeClass('unsolved-puzzle').addClass('solved-puzzle')
           });
-          $nextBtn.show();
+          $nextBtn
+            .removeClass("show-next")
+            .show();
+
+          setTimeout(() => {
+            $nextBtn.addClass("show-next");
+          }, 20);
         } else {
           setTimeout(makeOpponentMove, 500);
         }
@@ -984,7 +1036,9 @@
       $puzzleTurn.text((currentPuzzleTurn === 'w' ? 'White' : 'Black') + ' to play');
       $fenDisplay.text(fen);
       showStatus("", "");
-      $nextBtn.hide();
+      $nextBtn
+        .removeClass("show-next")
+        .hide();
       updateMoveHistory();
 
       initBoard(fen, currentPuzzleTurn === 'w' ? 'white' : 'black');

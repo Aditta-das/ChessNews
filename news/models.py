@@ -8,7 +8,7 @@ from django.dispatch import receiver
 from django.utils import timezone
 from datetime import timedelta
 import uuid, re
-
+from django.urls import reverse
 
 class Category(models.Model):
     name = models.CharField(max_length=100)
@@ -122,6 +122,9 @@ class Article(models.Model):
     published_at = models.DateTimeField(auto_now_add=True)
     is_big_news = models.BooleanField(default=False)
     likes = models.ManyToManyField(User, related_name="liked_articles", blank=True)
+    
+    def get_absolute_url(self):
+        return reverse("article_detail", kwargs={"slug": self.slug})
 
     def save(self, *args, **kwargs):
         if self.is_big_news:
@@ -515,3 +518,90 @@ class Streak(models.Model):
 
     def __str__(self):
         return self.user.username
+    
+    
+# ---------------------------------------------------------------------------
+# Add this to your existing models.py. These are entirely new models — they
+# do NOT touch or depend on your existing Puzzle / PuzzleSolve models.
+# ---------------------------------------------------------------------------
+daily_puzzle_move_validator = RegexValidator(
+    regex=r'^([PNBRQK]?[a-h]?[1-8]?x?[a-h][1-8](=[NBRQ])?[+#]?\.?\s*)+$',
+    message="Solution must be valid SAN moves, like 'Rxh2+ Kxh2 Rh8#'"
+)
+
+class ChessPuzzle(models.Model):
+    TURN_CHOICES = [
+        ('w', 'White to play'),
+        ('b', 'Black to play'),
+    ]
+    DIFFICULTY_CHOICES = [
+        ('easy', 'Easy'),
+        ('medium', 'Medium'),
+        ('hard', 'Hard'),
+    ]
+
+    title = models.CharField(max_length=100)
+    fen = models.CharField(max_length=100)
+    turn = models.CharField(max_length=1, choices=TURN_CHOICES, default='w')
+    solution = models.TextField(
+        help_text="Moves in SAN, space separated, e.g. 'Rxh2+ Kxh2 Rh8#'",
+        validators=[daily_puzzle_move_validator],
+    )
+    hint = models.CharField(
+        max_length=255,
+        blank=True,
+        help_text="Optional custom hint shown to the user. If left blank, "
+                   "the Hint button will just reveal the next correct move.",
+    )
+    difficulty = models.CharField(max_length=10, choices=DIFFICULTY_CHOICES, default='medium')
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        verbose_name = "Daily chess puzzle"
+        verbose_name_plural = "Daily chess puzzles"
+
+    def __str__(self):
+        return f"{self.id} - {self.title}"
+
+    def save(self, *args, **kwargs):
+        parts = self.fen.strip().split()
+        if len(parts) == 6:
+            parts[1] = self.turn
+            self.fen = ' '.join(parts)
+        super().save(*args, **kwargs)
+
+
+class DailyPuzzle(models.Model):
+    date = models.DateField(unique=True, db_index=True)
+    puzzle = models.ForeignKey(
+        ChessPuzzle,
+        on_delete=models.CASCADE,
+        related_name='daily_entries',
+    )
+    created_at = models.DateTimeField(auto_now_add=True, null=True)
+
+    class Meta:
+        ordering = ['-date']
+
+    def __str__(self):
+        return f"{self.date} → {self.puzzle.title}"
+
+class ChessPuzzleSolve(models.Model):
+    user = models.ForeignKey(User, on_delete=models.CASCADE, related_name='chess_puzzle_solves')
+    daily_puzzle = models.ForeignKey(
+        DailyPuzzle,
+        on_delete=models.CASCADE,
+        related_name='solves',
+    )
+    solved_at = models.DateTimeField(auto_now_add=True)
+    time_taken = models.IntegerField(null=True, blank=True, help_text="Seconds")
+    made_mistake = models.BooleanField(default=False)
+    wrong_attempts = models.IntegerField(default=0)
+ 
+    class Meta:
+        unique_together = ('user', 'daily_puzzle')
+        verbose_name = "Daily puzzle solve"
+        verbose_name_plural = "Daily puzzle solves"
+ 
+    def __str__(self):
+        return f"{self.user.username} solved {self.daily_puzzle}"

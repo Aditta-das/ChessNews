@@ -1,0 +1,82 @@
+{% extends 'news/base.html' %}
+{% load static %}
+
+{% block title %}Your Progress — GM Bangladesh{% endblock %}
+
+{% block content %}
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.5/font/bootstrap-icons.css">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/chessboard-js/1.0.0/chessboard-1.0.0.min.css">
+
+<style>
+    .playbot-wrapper {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        padding: 20px 15px;
+        text-align: center;
+    }
+
+    .playbot-wrapper h1 {
+        margin-bottom: 20px;
+    }
+
+    #board {
+        width: 100%;
+        max-width: 500px;
+        border: none !important;
+    }
+
+    @media (max-width: 400px) {
+        #board {
+            max-width: 320px;
+        }
+    }
+</style>
+
+<div class="playbot-wrapper">
+    <div id="board"></div>
+</div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.6.0/jquery.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/chess.js/0.10.3/chess.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/chessboard-js/1.0.0/chessboard-1.0.0.min.js"></script>
+
+<script>
+var game = new Chess();
+
+function onDragStart(source, piece) {
+    if (game.game_over()) return false;
+    if ((game.turn() === 'w' && piece.search(/^b/) !== -1) ||
+        (game.turn() === 'b' && piece.search(/^w/) !== -1)) {
+        return false;
+    }
+}
+
+function onDrop(source, target) {
+    var move = game.move({
+        from: source,
+        to: target,
+        promotion: 'q'
+    });
+    if (move === null) return 'snapback';
+}
+
+function onSnapEnd() {
+    board.position(game.fen());
+}
+
+var board = Chessboard('board', {
+    draggable: true,
+    position: 'start',
+    onDragStart: onDragStart,
+    onDrop: onDrop,
+    onSnapEnd: onSnapEnd,
+    pieceTheme: "{% static 'chessboardjs-1.0.0/img/chesspieces/wikipedia/' %}" + '{piece}' + '.png',
+});
+
+$(window).on('resize', function() {
+    board.resize();
+});
+</script>
+{% endblock %}

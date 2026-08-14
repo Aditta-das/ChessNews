@@ -8,69 +8,113 @@
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 
 <style>
-  /* ── Profile header ───────────────────────────────────────── */
+  .page-wrap { position: relative; }
+
+  .header-row {
+    display: flex;
+    gap: 16px;
+    flex-wrap: wrap;
+    margin-bottom: 22px;
+    align-items: stretch;
+  }
+
   .profile-card {
-    background: var(--card-color);
+    position: relative;
+    flex: 0 1 360px;
+    background: linear-gradient(160deg, oklch(22% 0.02 256), var(--card-color));
     border: 1px solid var(--border);
-    border-radius: 14px;
+    border-radius: 16px;
     overflow: hidden;
-    margin-bottom: 20px;
+    padding: 22px;
   }
 
-  .profile-card::before {
+  .profile-card::after {
     content: '';
-    display: block;
-    height: 3px;
-    background: linear-gradient(90deg, var(--chess-primary), var(--chess-accent));
+    position: absolute;
+    top: -40px;
+    right: -40px;
+    width: 140px;
+    height: 140px;
+    border-radius: 50%;
+    background: radial-gradient(circle, rgba(119,149,86,0.25), transparent 70%);
+    pointer-events: none;
   }
 
-  .profile-inner {
-    padding: 20px 24px;
+  .profile-top {
     display: flex;
     align-items: center;
-    gap: 18px;
-    flex-wrap: wrap;
+    gap: 14px;
+    position: relative;
+    z-index: 1;
   }
+
+  .profile-img-wrap { position: relative; flex-shrink: 0; }
 
   .profile-img {
-    width: 80px; height: 80px;
+    width: 72px; height: 72px;
     object-fit: cover;
-    border-radius: 10px;
+    border-radius: 14px;
     border: 2px solid var(--border);
-    flex-shrink: 0;
+    display: block;
   }
 
-  .profile-details { flex: 1; min-width: 0; }
+  .rank-badge {
+    position: absolute;
+    bottom: -6px;
+    right: -6px;
+    background: var(--chess-primary);
+    color: #fff;
+    font-size: 0.6rem;
+    font-weight: 800;
+    padding: 2px 7px;
+    border-radius: 99px;
+    border: 2px solid var(--card-color);
+    letter-spacing: 0.5px;
+  }
+
+  .profile-details { min-width: 0; }
 
   .profile-name {
-    font-size: 1.25rem;
+    font-size: 1.15rem;
     font-weight: 800;
     color: var(--chess-light);
-    margin-bottom: 3px;
+    margin-bottom: 2px;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
   }
 
   .profile-bio {
-    font-size: 0.85rem;
+    font-size: 0.8rem;
     color: var(--color-gray-400);
-    margin-bottom: 6px;
+    line-height: 1.3;
+    margin-bottom: 0;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;
   }
 
   .profile-meta {
     display: flex;
     flex-wrap: wrap;
-    gap: 10px;
-    font-size: 0.74rem;
+    gap: 8px;
+    margin-top: 14px;
+    position: relative;
+    z-index: 1;
   }
 
   .profile-meta-chip {
     display: inline-flex;
     align-items: center;
     gap: 4px;
-    background: oklch(20% 0.01 256);
+    background: oklch(19% 0.01 256);
     border: 1px solid var(--border);
     border-radius: 99px;
-    padding: 3px 10px;
+    padding: 4px 11px;
     color: var(--color-gray-400);
+    font-size: 0.72rem;
     font-weight: 600;
   }
 
@@ -79,26 +123,78 @@
   .edit-profile-btn {
     display: inline-flex;
     align-items: center;
+    justify-content: center;
     gap: 6px;
-    padding: 8px 18px;
+    margin-top: 16px;
+    padding: 10px 16px;
     border-radius: 99px;
     border: 1px solid var(--border);
-    background: oklch(20% 0.01 256);
+    background: oklch(19% 0.01 256);
     color: var(--chess-secondary);
-    font-size: 0.8rem;
+    font-size: 0.78rem;
     font-weight: 700;
     text-decoration: none;
     transition: all 0.18s;
-    margin-left: auto;
-    align-self: flex-start;
+    position: relative;
+    z-index: 1;
+    width: 100%;
   }
 
   .edit-profile-btn:hover {
     border-color: var(--chess-primary);
     color: var(--chess-primary);
+    background: rgba(119,149,86,0.1);
   }
 
-  /* ── Tab system ───────────────────────────────────────────── */
+  .highlight-strip {
+    flex: 1;
+    min-width: 220px;
+    display: grid;
+    grid-template-rows: 1fr 1fr;
+    gap: 12px;
+  }
+
+  .highlight-tile {
+    background: var(--card-color);
+    border: 1px solid var(--border);
+    border-radius: 14px;
+    padding: 14px 18px;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    transition: border-color 0.2s;
+  }
+
+  .highlight-tile:hover { border-color: rgba(119,149,86,0.4); }
+
+  .highlight-tile .icon-badge {
+    width: 38px; height: 38px;
+    border-radius: 10px;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 1.1rem;
+    flex-shrink: 0;
+    background: rgba(245,158,11,0.14);
+    color: #f59e0b;
+  }
+
+  .highlight-tile.streak .icon-badge { background: rgba(239,68,68,0.14); color: #ef4444; }
+
+  .highlight-tile-text { min-width: 0; }
+
+  .highlight-tile-label {
+    font-size: 0.68rem;
+    text-transform: uppercase;
+    letter-spacing: 1.2px;
+    color: var(--color-gray-400);
+    font-weight: 700;
+  }
+
+  .highlight-tile-value {
+    font-size: 1.05rem;
+    font-weight: 800;
+    color: var(--chess-light);
+  }
+
   .tab-bar {
     display: flex;
     gap: 6px;
@@ -108,13 +204,19 @@
     border-radius: 12px;
     padding: 6px;
     width: fit-content;
+    max-width: 100%;
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+    scrollbar-width: none;
   }
+
+  .tab-bar::-webkit-scrollbar { display: none; }
 
   .tab-btn {
     display: flex;
     align-items: center;
     gap: 6px;
-    padding: 8px 18px;
+    padding: 9px 18px;
     border-radius: 8px;
     font-size: 0.82rem;
     font-weight: 700;
@@ -124,6 +226,7 @@
     border: none;
     background: transparent;
     white-space: nowrap;
+    flex-shrink: 0;
   }
 
   .tab-btn:hover { color: var(--chess-light); background: oklch(22% 0.01 256); }
@@ -137,9 +240,13 @@
   .tab-btn.active-tab i { color: var(--chess-primary); }
 
   .tab-section { display: none; }
-  .tab-section.active { display: block; }
+  .tab-section.active { display: block; animation: fadeIn 0.25s ease; }
 
-  /* ── Stats panel ──────────────────────────────────────────── */
+  @keyframes fadeIn {
+    from { opacity: 0; transform: translateY(4px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+
   .stats-grid {
     display: grid;
     grid-template-columns: 1fr 280px;
@@ -153,6 +260,7 @@
     border: 1px solid var(--border);
     border-radius: 12px;
     padding: 20px;
+    min-width: 0;
   }
 
   .chart-panel-title {
@@ -175,8 +283,11 @@
 
   .chart-wrap { position: relative; height: 300px; }
 
-  /* Stat cards */
-  .stat-cards { display: flex; flex-direction: column; gap: 10px; }
+  .stat-cards {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+  }
 
   .stat-card {
     background: var(--card-color);
@@ -187,6 +298,7 @@
     align-items: center;
     gap: 14px;
     transition: transform 0.2s, border-color 0.2s;
+    min-width: 0;
   }
 
   .stat-card:hover {
@@ -220,22 +332,38 @@
     font-weight: 800;
     color: var(--chess-light);
     line-height: 1.2;
+    overflow-wrap: break-word;
   }
 
-  /* ── Achievements ─────────────────────────────────────────── */
   .achievements-section { margin-top: 20px; }
+
+  .achievements-heading-row {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    flex-wrap: wrap;
+    gap: 6px;
+    margin-bottom: 12px;
+  }
 
   .achievements-heading {
     font-size: 0.88rem;
     font-weight: 700;
     color: var(--chess-light);
-    margin-bottom: 12px;
     display: flex;
     align-items: center;
     gap: 6px;
   }
 
   .achievements-heading i { color: #f59e0b; }
+
+  .achievements-progress {
+    font-size: 0.72rem;
+    color: var(--color-gray-400);
+    font-weight: 600;
+  }
+
+  .achievements-progress strong { color: var(--chess-primary); }
 
   .achievements-grid {
     display: grid;
@@ -244,6 +372,7 @@
   }
 
   .achievement-card {
+    position: relative;
     background: var(--card-color);
     border: 1px solid var(--border);
     border-radius: 12px;
@@ -252,10 +381,18 @@
     align-items: center;
     gap: 14px;
     transition: border-color 0.2s, transform 0.2s;
+    overflow: hidden;
+    min-width: 0;
   }
 
-  .achievement-card.unlocked {
-    border-color: rgba(245,158,11,0.3);
+  .achievement-card.unlocked { border-color: rgba(245,158,11,0.3); }
+
+  .achievement-card.unlocked::before {
+    content: '';
+    position: absolute;
+    top: 0; left: 0;
+    width: 3px; height: 100%;
+    background: linear-gradient(180deg, #f59e0b, var(--chess-primary));
   }
 
   .achievement-card.unlocked:hover {
@@ -287,7 +424,6 @@
     margin: 0;
   }
 
-  /* ── Blogs/Games grid ─────────────────────────────────────── */
   .items-grid {
     display: grid;
     grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
@@ -300,6 +436,7 @@
     border-radius: 12px;
     padding: 16px;
     transition: border-color 0.18s, transform 0.18s;
+    min-width: 0;
   }
 
   .item-card:hover {
@@ -313,6 +450,7 @@
     color: var(--chess-light);
     margin-bottom: 10px;
     line-height: 1.4;
+    overflow-wrap: break-word;
   }
 
   .item-view-btn {
@@ -321,7 +459,7 @@
     gap: 5px;
     font-size: 0.75rem;
     font-weight: 700;
-    padding: 5px 14px;
+    padding: 6px 14px;
     border-radius: 99px;
     border: 1px solid rgba(119,149,86,0.4);
     color: var(--chess-primary);
@@ -341,49 +479,107 @@
     font-size: 0.85rem;
     font-style: italic;
     text-align: center;
-    padding: 32px;
+    padding: 32px 20px;
     background: var(--card-color);
     border: 1px solid var(--border);
     border-radius: 12px;
   }
 
-  /* Responsive */
-  @media (max-width: 768px) {
+  /* ── Tablet ───────────────────────────────────────────────── */
+  @media (max-width: 900px) {
     .stats-grid { grid-template-columns: 1fr; }
-    .tab-bar { width: 100%; overflow-x: auto; }
-    .profile-inner { gap: 12px; }
-    .edit-profile-btn { margin-left: 0; margin-top: 8px; }
+    .chart-wrap { height: 260px; }
+  }
+
+  /* ── Mobile ───────────────────────────────────────────────── */
+  @media (max-width: 640px) {
+    .header-row { flex-direction: column; }
+
+    .profile-card { flex: 1 1 auto; padding: 18px; }
+
+    .profile-img { width: 60px; height: 60px; border-radius: 12px; }
+
+    .profile-name { font-size: 1.05rem; white-space: normal; }
+
+    .profile-meta-chip { font-size: 0.68rem; padding: 4px 9px; }
+
+    .highlight-strip { grid-template-rows: none; grid-template-columns: 1fr 1fr; }
+
+    .highlight-tile { padding: 12px; flex-direction: column; align-items: flex-start; gap: 8px; }
+
+    .highlight-tile-value { font-size: 0.95rem; }
+
+    .tab-bar { width: 100%; }
+
+    .tab-btn { padding: 9px 14px; font-size: 0.78rem; }
+
+    .chart-panel, .stat-card, .achievement-card, .item-card { padding: 14px; }
+
+    .chart-wrap { height: 220px; }
+
+    .achievements-grid, .items-grid { grid-template-columns: 1fr; }
+
+    .achievements-heading-row { flex-direction: column; align-items: flex-start; }
+  }
+
+  /* ── Small phones ─────────────────────────────────────────── */
+  @media (max-width: 400px) {
+    .highlight-strip { grid-template-columns: 1fr; }
+
+    .profile-top { flex-wrap: wrap; }
+
+    .stat-value { font-size: 1.1rem; }
+
+    .chart-wrap { height: 190px; }
   }
 </style>
 
-<div>
+<div class="page-wrap">
 
-  <!-- ── Profile card ───────────────────────────────────────── -->
-  <div class="profile-card">
-    <div class="profile-inner">
-      <img src="{% if request.user.userprofile.image %}{{ request.user.userprofile.image.url }}{% else %}{% static 'profile_images/user.png' %}{% endif %}"
-           class="profile-img" alt="{{ user.username }}">
-
-      <div class="profile-details">
-        <div class="profile-name">{{ user.username|default:"Guest Player" }}</div>
-        <div class="profile-bio">{{ request.user.userprofile.bio|default:"No bio yet. Add one in Edit Profile." }}</div>
-        <div class="profile-meta">
-          <span class="profile-meta-chip">
-            <i class="bi bi-calendar3"></i> Joined {{ user.date_joined|date:"M d, Y" }}
-          </span>
-          <span class="profile-meta-chip">
-            <i class="bi bi-puzzle"></i> {{ puzzles_solved|default:"0" }} Puzzles solved
-          </span>
+  <div class="header-row">
+    <div class="profile-card">
+      <div class="profile-top">
+        <div class="profile-img-wrap">
+          <img src="{% if request.user.userprofile.image %}{{ request.user.userprofile.image.url }}{% else %}{% static 'profile_images/user.png' %}{% endif %}"
+               class="profile-img" alt="{{ user.username }}">
+          <span class="rank-badge">{{ user_rank|default:"NEW" }}</span>
+        </div>
+        <div class="profile-details">
+          <div class="profile-name">{{ user.username|default:"Guest Player" }}</div>
+          <div class="profile-bio">{{ request.user.userprofile.bio|default:"No bio yet. Add one in Edit Profile." }}</div>
         </div>
       </div>
-
+      <div class="profile-meta">
+        <span class="profile-meta-chip">
+          <i class="bi bi-calendar3"></i> Joined {{ user.date_joined|date:"M d, Y" }}
+        </span>
+        <span class="profile-meta-chip">
+          <i class="bi bi-puzzle"></i> {{ puzzles_solved|default:"0" }} solved
+        </span>
+      </div>
       <a href="{% url 'edit_profile' %}" class="edit-profile-btn">
         <i class="bi bi-pencil-fill"></i> Edit Profile
       </a>
     </div>
+
+    <div class="highlight-strip">
+      <div class="highlight-tile">
+        <div class="icon-badge"><i class="bi bi-trophy-fill"></i></div>
+        <div class="highlight-tile-text">
+          <div class="highlight-tile-label">Success Rate</div>
+          <div class="highlight-tile-value">{{ success_rate|default:"—" }}</div>
+        </div>
+      </div>
+      <div class="highlight-tile streak">
+        <div class="icon-badge"><i class="bi bi-fire"></i></div>
+        <div class="highlight-tile-text">
+          <div class="highlight-tile-label">Current Streak</div>
+          <div class="highlight-tile-value">{{ request.user.streak.streak|default:"0" }} days</div>
+        </div>
+      </div>
+    </div>
   </div>
 
-  <!-- ── Tab bar ────────────────────────────────────────────── -->
   <div class="tab-bar">
     <button class="tab-btn active-tab" data-tab="stats">
       <i class="bi bi-bar-chart-line"></i> Stats
@@ -396,12 +592,9 @@
     </button>
   </div>
 
-  <!-- ── STATS TAB ──────────────────────────────────────────── -->
   <div id="stats" class="tab-section active">
 
     <div class="stats-grid">
-
-      <!-- Chart -->
       <div class="chart-panel">
         <div class="chart-panel-title">Puzzle Performance</div>
         <div class="chart-panel-sub">
@@ -412,9 +605,7 @@
         </div>
       </div>
 
-      <!-- Stat cards -->
       <div class="stat-cards">
-
         <div class="stat-card">
           <div class="stat-icon-wrap blue"><i class="bi bi-clock-history"></i></div>
           <div>
@@ -438,14 +629,15 @@
             <div class="stat-value">{{ success_rate|default:"—" }}</div>
           </div>
         </div>
-
       </div>
     </div>
 
-    <!-- Achievements -->
     <div class="achievements-section">
-      <div class="achievements-heading">
-        <i class="bi bi-trophy-fill"></i> Achievements
+      <div class="achievements-heading-row">
+        <div class="achievements-heading">
+          <i class="bi bi-trophy-fill"></i> Achievements
+        </div>
+        <div class="achievements-progress"><strong>{% if puzzles_solved >= 5 %}1{% else %}0{% endif %}</strong> / 1 unlocked</div>
       </div>
       <div class="achievements-grid">
 
@@ -472,7 +664,6 @@
 
   </div>
 
-  <!-- ── BLOGS TAB ──────────────────────────────────────────── -->
   <div id="blogs" class="tab-section">
     {% if user_blogs %}
     <div class="items-grid">
@@ -493,7 +684,6 @@
     {% endif %}
   </div>
 
-  <!-- ── GAMES TAB ──────────────────────────────────────────── -->
   <div id="games" class="tab-section">
     {% if user_games %}
     <div class="items-grid">
@@ -517,7 +707,6 @@
 </div>
 
 <script>
-  /* ── Chart ─────────────────────────────────────────────────── */
   const ctx = document.getElementById('progressChart').getContext('2d');
 
   const gradient = ctx.createLinearGradient(0, 0, 0, 300);
@@ -539,8 +728,8 @@
         pointBackgroundColor: '#779556',
         pointBorderColor: 'var(--chess-dark)',
         pointBorderWidth: 2,
-        pointRadius: 5,
-        pointHoverRadius: 7,
+        pointRadius: 4,
+        pointHoverRadius: 6,
         tension: 0.4,
       }]
     },
@@ -572,7 +761,7 @@
             color: 'rgba(235,236,208,0.6)',
             font: { size: 11, weight: '700' }
           },
-          ticks: { color: 'rgba(235,236,208,0.5)', font: { size: 11 } },
+          ticks: { color: 'rgba(235,236,208,0.5)', font: { size: 10 } },
           grid:  { color: 'rgba(255,255,255,0.06)' }
         },
         x: {
@@ -582,7 +771,7 @@
             color: 'rgba(235,236,208,0.6)',
             font: { size: 11, weight: '700' }
           },
-          ticks: { color: 'rgba(235,236,208,0.5)', font: { size: 11 }, maxRotation: 45, autoSkip: true },
+          ticks: { color: 'rgba(235,236,208,0.5)', font: { size: 10 }, maxRotation: 45, autoSkip: true },
           grid:  { display: false }
         }
       },
@@ -591,7 +780,6 @@
     }
   });
 
-  /* ── Tabs ───────────────────────────────────────────────────── */
   document.querySelectorAll('.tab-btn').forEach(btn => {
     btn.addEventListener('click', () => {
       document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active-tab'));

@@ -1064,6 +1064,299 @@ def memory_api(request):
     return JsonResponse(data, safe=False)
 
 
+import json
+
+from django.contrib.auth.decorators import login_required
+from django.http import JsonResponse
+from django.shortcuts import render
+from django.views.decorators.http import require_POST
+
+from news.services import services
+
+
+@login_required
+def daily_puzzle_view(request):
+
+    daily_puzzle = services.get_todays_daily_puzzle()
+
+    # ---------------------------------------------
+    # No puzzle
+    # ---------------------------------------------
+
+    if daily_puzzle is None:
+
+        return render(
+            request,
+            "news/daily_puzzle.html",
+            {
+                "puzzle": None,
+            }
+        )
+
+    # ---------------------------------------------
+    # Check whether user already solved it
+    # ---------------------------------------------
+
+    already_solved = services.has_already_solved(
+        request.user,
+        daily_puzzle
+    )
+
+    # ---------------------------------------------
+    # Initialize puzzle session
+    # ---------------------------------------------
+
+    if not already_solved:
+
+        services.get_progress(
+            request,
+            daily_puzzle
+        )
+
+    # ---------------------------------------------
+    # Puzzle
+    # ---------------------------------------------
+
+    puzzle = daily_puzzle.puzzle
+
+    context = {
+        "puzzle": puzzle,
+        "already_solved": already_solved,
+        "fen": puzzle.fen,
+        "turn": puzzle.get_turn_display(),
+        "orientation": (
+            "white"
+            if puzzle.turn == "w"
+            else "black"
+        ),
+    }
+
+    return render(
+        request,
+        "news/daily_puzzle.html",
+        context
+    )
+
+
+# =========================================================
+# HELPER
+# =========================================================
+
+def _todays_daily_puzzle_or_404_json():
+
+    daily_puzzle = services.get_todays_daily_puzzle()
+
+    if daily_puzzle is None:
+
+        return (
+            None,
+            JsonResponse(
+                {
+                    "error": "No puzzle available."
+                },
+                status=404
+            )
+        )
+
+    return daily_puzzle, None
+
+
+# =========================================================
+# SUBMIT MOVE
+# =========================================================
+
+@login_required
+@require_POST
+def api_submit_move(request):
+
+    daily_puzzle, error_response = (
+        _todays_daily_puzzle_or_404_json()
+    )
+
+    if error_response:
+        return error_response
+
+    # ---------------------------------------------
+    # Already solved
+    # ---------------------------------------------
+
+    if services.has_already_solved(
+        request.user,
+        daily_puzzle
+    ):
+
+        return JsonResponse(
+            {
+                "error": "Already solved for today.",
+                "solved": True,
+            },
+            status=400
+        )
+
+    # ---------------------------------------------
+    # Parse JSON
+    # ---------------------------------------------
+
+    try:
+
+        payload = json.loads(
+            request.body or "{}"
+        )
+
+    except json.JSONDecodeError:
+
+        return JsonResponse(
+            {
+                "error": "Invalid request body."
+            },
+            status=400
+        )
+
+    # ---------------------------------------------
+    # SAN
+    # ---------------------------------------------
+
+    san = (
+        payload.get("san") or ""
+    ).strip()
+
+    if not san:
+
+        return JsonResponse(
+            {
+                "error": "Missing move."
+            },
+            status=400
+        )
+
+    # ---------------------------------------------
+    # Submit
+    # ---------------------------------------------
+
+    try:
+
+        result = services.submit_move(
+            request,
+            daily_puzzle,
+            san
+        )
+
+    except services.IllegalMoveError as exc:
+
+        return JsonResponse(
+            {
+                "error": str(exc)
+            },
+            status=400
+        )
+
+    # ---------------------------------------------
+    # Make sure response tells frontend
+    # whether puzzle is solved.
+    #
+    # We don't assume your service's exact
+    # response structure. If it already returns
+    # "solved", preserve it.
+    # ---------------------------------------------
+
+    if isinstance(result, dict):
+
+        result.setdefault(
+            "solved",
+            services.has_already_solved(
+                request.user,
+                daily_puzzle
+            )
+        )
+
+    return JsonResponse(result)
+
+
+# =========================================================
+# HINT
+# =========================================================
+
+@login_required
+def api_hint(request):
+
+    daily_puzzle, error_response = (
+        _todays_daily_puzzle_or_404_json()
+    )
+
+    if error_response:
+        return error_response
+
+    if services.has_already_solved(
+        request.user,
+        daily_puzzle
+    ):
+
+        return JsonResponse(
+            {
+                "error": "Already solved for today."
+            },
+            status=400
+        )
+
+    hint = services.get_hint(
+        request,
+        daily_puzzle
+    )
+
+    if hint is None:
+
+        return JsonResponse(
+            {
+                "error": "Nothing left to hint."
+            },
+            status=400
+        )
+
+    return JsonResponse(
+        {
+            "hint": hint
+        }
+    )
+
+
+# =========================================================
+# GIVE UP
+# =========================================================
+
+@login_required
+@require_POST
+def api_give_up(request):
+
+    daily_puzzle, error_response = (
+        _todays_daily_puzzle_or_404_json()
+    )
+
+    if error_response:
+        return error_response
+
+    if services.has_already_solved(
+        request.user,
+        daily_puzzle
+    ):
+
+        return JsonResponse(
+            {
+                "error": "Already solved for today."
+            },
+            status=400
+        )
+
+    solution = services.give_up(
+        request,
+        daily_puzzle
+    )
+
+    return JsonResponse(
+        {
+            "solution": solution
+        }
+    )
+
 ############################## Chat system (will be implemented) ##########################################
 from django.shortcuts import render
 from django.contrib.auth.decorators import login_required
@@ -1120,4 +1413,11 @@ def get_messages(request, username):
         })
 
     return JsonResponse({"messages": data})
+
+
+
+def PlayBot(request):
+    return render(request, "news/playbot.html", {
+        
+    })
 ###########################################################################################

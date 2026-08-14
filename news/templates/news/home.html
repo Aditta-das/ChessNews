@@ -61,26 +61,62 @@
 	.user-bar {
 		display: flex;
 		align-items: center;
-		gap: 12px;
-		background: var(--card-color);
+		gap: 14px;
+		background: linear-gradient(135deg, var(--card-color), oklch(20% 0.015 256));
 		border: 1px solid var(--border);
-		border-radius: 12px;
-		padding: 10px 14px;
+		border-radius: 14px;
+		padding: 12px 16px;
 		margin-bottom: 16px;
+		position: relative;
+		overflow: hidden;
+		transition: border-color 0.2s ease;
+	}
+
+
+	.user-bar:hover {
+		border-color: rgba(119, 149, 86, 0.4);
+	}
+
+	.user-bar-avatar-ring {
+		padding: 2px;
+		border-radius: 12px;
+		background: linear-gradient(135deg, var(--chess-primary), #67804a);
+		flex-shrink: 0;
+		position: relative;
+		z-index: 1;
 	}
 
 	.user-bar img {
 		width: 44px;
 		height: 44px;
-		border-radius: 8px;
+		border-radius: 10px;
 		object-fit: cover;
-		border: 1px solid var(--border);
+		display: block;
+		border: 2px solid var(--card-color);
+	}
+
+	.user-bar-identity {
+		flex: 1;
+		min-width: 0;
+		position: relative;
+		z-index: 1;
 	}
 
 	.user-bar-name {
 		font-weight: 800;
-		font-size: 1rem;
+		font-size: 1.02rem;
 		color: var(--chess-light);
+		letter-spacing: 0.2px;
+	}
+
+	.user-bar-sub {
+		font-size: 0.7rem;
+		color: var(--color-gray-400);
+		font-weight: 600;
+		margin-top: 2px;
+		display: flex;
+		align-items: center;
+		gap: 5px;
 	}
 
 	.is-online {
@@ -800,7 +836,7 @@
 		display: flex;
 		align-items: center;
 		gap: 14px;
-		padding: 16px;
+		padding: 10px;
 		background: linear-gradient(135deg, rgba(249, 115, 22, 0.12), rgba(119, 149, 86, 0.08));
 		border: 1px solid rgba(249, 115, 22, 0.3);
 		border-radius: 12px;
@@ -819,8 +855,8 @@
 	}
 
 	.streak-flame-badge {
-		width: 52px;
-		height: 52px;
+		width: 42px;
+		height: 42px;
 		border-radius: 14px;
 		background: linear-gradient(145deg, #f97316, #ea580c);
 		display: flex;
@@ -854,7 +890,7 @@
 	}
 
 	.streak-number {
-		font-size: 1.7rem;
+		font-size: 1.2rem;
 		font-weight: 800;
 		color: var(--chess-light);
 		line-height: 1;
@@ -882,21 +918,24 @@
 <!-- ── User bar ─────────────────────────────────────────────────── -->
 {% if user.is_authenticated %}
 <div class="user-bar">
-	{% if user.userprofile.image %}
-	<img src="{{ user.userprofile.image.url }}" alt="{{ user.username }}">
-	{% else %}
-	<img src="{% static 'profile_images/user.png' %}" alt="Default Profile">
-	{% endif %}
-
-	<div style="flex:1;min-width:0;">
+	<div class="user-bar-avatar-ring">
+		{% if user.userprofile.image %}
+		<img src="{{ user.userprofile.image.url }}" alt="{{ user.username }}">
+		{% else %}
+		<img src="{% static 'profile_images/user.png' %}" alt="Default Profile">
+		{% endif %}
+	</div>
+	<div class="user-bar-identity">
 		<a href="{% url 'progress' %}">
 			<span class="user-bar-name">{{ user.username }}</span>
 		</a>
-		{% if user|is_online %}
-		<span class="is-online"></span>
-		{% else %}
-		<span class="badge-guest" style="font-size:0.68rem;margin-left:6px;">Offline</span>
-		{% endif %}
+		<div class="user-bar-sub">
+			{% if user|is_online %}
+			<span class="is-online"></span> Online
+			{% else %}
+			Offline
+			{% endif %}
+		</div>
 	</div>
 
 	<!-- Status badge -->
@@ -1004,38 +1043,6 @@
 			</div>
 		</div>
 		{% endif %}
-		<div class="info-panel">
-			<div class="panel-header">
-				<span class="panel-header-title"><i class="bi bi-trophy-fill" style="color:#f59e0b;"></i>
-					Tournaments</span>
-				<a href="{% url 'all_events' %}" style="font-size:0.72rem;color:var(--chess-primary);font-weight:700;">
-					View All <i class="bi bi-chevron-right"></i>
-				</a>
-			</div>
-			<div class="tournament-scroll">
-				{% for tournament in tournaments %}
-				<div class="tournament-item">
-					<div class="tournament-date-box">
-						<span class="tdb-month">{{ tournament.start|date:"M" }}</span>
-						<span class="tdb-day">{{ tournament.start|date:"d" }}</span>
-					</div>
-					<div class="tournament-details">
-						<div class="tournament-name">{{ tournament.title }}</div>
-						<div class="tournament-dates">
-							<i class="bi bi-calendar-event"></i>
-							{{ tournament.start|date:"M d" }} – {{ tournament.end|date:"M d, Y" }}
-						</div>
-					</div>
-				</div>
-				{% empty %}
-				<p
-					style="color:var(--color-gray-400);font-size:0.82rem;text-align:center;padding:8px 0;font-style:italic;">
-					No upcoming tournaments
-				</p>
-				{% endfor %}
-			</div>
-		</div>
-
 		<!-- Rising talent -->
 		<div class="info-panel">
 			<div class="panel-header">
@@ -1141,6 +1148,8 @@
 		<div class="blog-card">
 			{% if article.image %}
 			<img src="{{ article.image.url }}" alt="{{ article.title }}">
+			{% else %}
+			<img src="{% static 'img/default_blog.jpeg' %}" alt="{{ article.title }}">
 			{% endif %}
 			<div class="blog-card-body">
 				<span class="blog-tag">Chess</span>

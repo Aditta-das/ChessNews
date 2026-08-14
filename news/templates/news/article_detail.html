@@ -904,6 +904,21 @@
 
 </div>
 
+{% block schema_json %}
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "Article",
+  "headline": "{{ article.title }}",
+  "datePublished": "{{ article.created_at|date:'c' }}",
+  "author": {
+    "@type": "Person",
+    "name": "{{ article.author.username }}"
+  }
+}
+</script>
+{% endblock %}
+
 <script>
     // ── CSRF ─────────────────────────────────────────────────────
     function getCookie(name) {

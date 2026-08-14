@@ -1,0 +1,961 @@
+{% extends 'news/base.html' %}
+{% block title %}Home - GM Bangladesh{% endblock %}
+{% block content %}
+{% load static %}
+
+  <link rel="stylesheet" href="{% static 'chessboardjs-1.0.0/css/chessboard-1.0.0.min.css' %}">
+
+  <style>
+    body {
+      font-family: system-ui, sans-serif;
+    }
+
+    .puzzle-wrap {
+      max-width: 480px;
+      margin: 1rem auto;
+      text-align: center;
+    }
+
+    #board {
+      width: 400px;
+      margin: 0 auto;
+    }
+
+    .puzzle-meta {
+      margin-bottom: 0.75rem;
+      color: #555;
+    }
+
+    .puzzle-status {
+      min-height: 1.5em;
+      margin-top: 0.75rem;
+      font-weight: 600;
+    }
+
+    .puzzle-status.correct {
+      color: #2e7d32;
+    }
+
+    .puzzle-status.wrong {
+      color: #c62828;
+    }
+
+    .puzzle-status.solved {
+      color: #1565c0;
+    }
+
+    .puzzle-controls {
+      margin-top: 1rem;
+      display: flex;
+      gap: 0.5rem;
+      justify-content: center;
+    }
+
+    .puzzle-controls button {
+      padding: 0.5rem 1.25rem;
+      font-size: 0.95rem;
+      border: 1px solid #ccc;
+      border-radius: 6px;
+      background: #f7f7f7;
+      cursor: pointer;
+    }
+
+    .puzzle-controls button:hover {
+      background: #ececec;
+    }
+
+    .puzzle-controls button:disabled {
+      opacity: 0.5;
+      cursor: not-allowed;
+    }
+
+    .done-banner {
+      margin: 2rem auto;
+      max-width: 400px;
+      padding: 1.25rem;
+      border-radius: 8px;
+      background: #e8f5e9;
+      color: #2e7d32;
+      font-weight: 600;
+    }
+
+    .load-error {
+      margin: 2rem auto;
+      max-width: 400px;
+      padding: 1rem;
+      border-radius: 8px;
+      background: #ffebee;
+      color: #c62828;
+      font-size: 0.9rem;
+      display: none;
+    }
+  </style>
+</head>
+
+<body>
+
+  <div class="puzzle-wrap">
+    <h1>Daily Puzzle</h1>
+
+    <div id="load-error" class="load-error"></div>
+
+    {% if puzzle is None %}
+    <p>No puzzle is available today. Please check back later.</p>
+
+    {% elif already_solved %}
+
+    <div class="done-banner">
+      <div style="font-size: 2rem; margin-bottom: 0.5rem;">
+        🎉
+      </div>
+
+      <div style="font-size: 1.2rem;">
+        Puzzle solved!
+      </div>
+
+      <div style="margin-top: 0.4rem;">
+        Done for today. Come back tomorrow for a new puzzle.
+      </div>
+    </div>
+
+    {% else %}
+    <div class="puzzle-meta">
+      <strong>{{ puzzle.title }}</strong> — {{ puzzle.get_difficulty_display }} — {{ turn }}
+    </div>
+
+    <div id="board"></div>
+
+    <div class="puzzle-status" id="status"></div>
+
+    <div class="puzzle-controls">
+      <button id="hint-btn">Hint</button>
+      <button id="solve-btn">Solve</button>
+    </div>
+    {% endif %}
+  </div>
+
+  {% if puzzle and not already_solved %}
+  <script src="https://code.jquery.com/jquery-3.5.1.min.js"
+    integrity="sha384-ZvpUoO/+PpLXR1lu4jmpXWu80pZlYUAfxl5NsBMWOEPSjUn/6Z/hRTt8+pR6L4N2"
+    crossorigin="anonymous"></script>
+
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/chess.js/0.10.3/chess.min.js" crossorigin="anonymous"></script>
+
+  <script src="https://unpkg.com/@chrisoakman/chessboardjs@1.0.0/dist/chessboard-1.0.0.min.js"
+    integrity="sha384-8Vi8VHwn3vjQ9eUHUxex3JSN/NFqUg3QbPyX8kWyb93+8AC/pPWTzj+nHtbC5bxD"
+    crossorigin="anonymous"></script>
+
+
+  <script>
+    (function () {
+
+      const errEl = document.getElementById("load-error");
+
+      function showLoadError(msg) {
+        errEl.textContent = msg;
+        errEl.style.display = "block";
+      }
+
+      /* ─────────────────────────────────────────────
+         Check required libraries
+      ───────────────────────────────────────────── */
+
+      if (typeof window.jQuery === "undefined") {
+        showLoadError("jQuery failed to load.");
+        return;
+      }
+
+      if (typeof window.Chess === "undefined") {
+        showLoadError("chess.js failed to load.");
+        return;
+      }
+
+      if (typeof window.Chessboard === "undefined") {
+        showLoadError("chessboard.js failed to load.");
+        return;
+      }
+
+
+      /* ─────────────────────────────────────────────
+         Initial data
+      ───────────────────────────────────────────── */
+
+      const FEN = "{{ fen|escapejs }}";
+      const ORIENTATION = "{{ orientation|escapejs }}";
+      const USER_TURN = "{{ puzzle.turn|escapejs }}";
+      const CSRF_TOKEN = "{{ csrf_token }}";
+
+      const SOLUTION =
+        "{{ puzzle.solution|escapejs }}";
+
+      const solutionMoves = SOLUTION
+        .trim()
+        .split(/\s+/)
+        .filter(Boolean);
+
+
+      /* ─────────────────────────────────────────────
+         DOM
+      ───────────────────────────────────────────── */
+
+      const statusEl =
+        document.getElementById("status");
+
+      const hintBtn =
+        document.getElementById("hint-btn");
+
+      const solveBtn =
+        document.getElementById("solve-btn");
+
+
+      /* ─────────────────────────────────────────────
+         Chess state
+      ───────────────────────────────────────────── */
+
+      let game = new Chess(FEN);
+
+      let board = null;
+
+      let currentMoveIndex = 0;
+
+      let locked = false;
+
+      let waitingForOpponent = false;
+
+
+      /* ─────────────────────────────────────────────
+         Status
+      ───────────────────────────────────────────── */
+
+      function setStatus(text, cls) {
+
+        statusEl.textContent = text;
+
+        statusEl.className =
+          "puzzle-status" +
+          (cls ? " " + cls : "");
+      }
+
+
+      /* ─────────────────────────────────────────────
+         SAN normalization
+    
+         Same idea as puzzles.html:
+         ignore +, # and promotion =
+      ───────────────────────────────────────────── */
+
+      function normalizeSAN(san) {
+
+        if (!san) return "";
+
+        return san
+          .replace(/[+#]/g, "")
+          .replace(/=/g, "")
+          .toLowerCase();
+      }
+
+
+      /* ─────────────────────────────────────────────
+         POST JSON
+      ───────────────────────────────────────────── */
+
+      function postJSON(url, body) {
+
+        return fetch(url, {
+
+          method: "POST",
+
+          headers: {
+            "Content-Type": "application/json",
+            "X-CSRFToken": CSRF_TOKEN,
+          },
+
+          body: JSON.stringify(body || {}),
+
+        }).then(async function (resp) {
+
+          let data;
+
+          try {
+            data = await resp.json();
+          } catch (e) {
+            throw new Error("Invalid server response.");
+          }
+
+          if (!resp.ok) {
+            throw new Error(
+              data.error || "Request failed."
+            );
+          }
+
+          return data;
+        });
+      }
+
+
+      /* ─────────────────────────────────────────────
+         GET JSON
+      ───────────────────────────────────────────── */
+
+      function getJSON(url) {
+
+        return fetch(url, {
+          headers: {
+            "X-Requested-With": "XMLHttpRequest"
+          }
+        }).then(async function (resp) {
+
+          let data;
+
+          try {
+            data = await resp.json();
+          } catch (e) {
+            throw new Error("Invalid server response.");
+          }
+
+          if (!resp.ok) {
+            throw new Error(
+              data.error || "Request failed."
+            );
+          }
+
+          return data;
+        });
+      }
+
+
+      /* ─────────────────────────────────────────────
+         Lock board
+      ───────────────────────────────────────────── */
+
+      function lockBoard(message) {
+
+        locked = true;
+
+        waitingForOpponent = false;
+
+        hintBtn.disabled = true;
+
+        solveBtn.disabled = true;
+
+        setStatus(message, "solved");
+      }
+
+
+      /* ─────────────────────────────────────────────
+         Promotion
+      ───────────────────────────────────────────── */
+
+      function getPromotion(source, target, piece) {
+
+        if (!piece) {
+          return "q";
+        }
+
+        if (!piece.toLowerCase().startsWith("p")) {
+          return "q";
+        }
+
+        const rank = target[1];
+
+        if (
+          (piece.startsWith("w") && rank === "8") ||
+          (piece.startsWith("b") && rank === "1")
+        ) {
+
+          const choice = prompt(
+            "Promote to (q, r, b, n):",
+            "q"
+          );
+
+          if (
+            choice &&
+            ["q", "r", "b", "n"].includes(
+              choice.toLowerCase()
+            )
+          ) {
+            return choice.toLowerCase();
+          }
+
+          return "q";
+        }
+
+        return "q";
+      }
+
+
+      /* ─────────────────────────────────────────────
+         Automatically play opponent move
+    
+         THIS IS THE IMPORTANT PART FROM puzzles.html
+      ───────────────────────────────────────────── */
+
+      function makeOpponentMove() {
+
+        if (locked) {
+          return;
+        }
+
+        if (
+          currentMoveIndex >=
+          solutionMoves.length
+        ) {
+
+          lockBoard(
+            "🎉 Puzzle solved! Done for today."
+          );
+
+          return;
+        }
+
+
+        waitingForOpponent = true;
+
+
+        setStatus(
+          "Opponent is thinking…",
+          "info"
+        );
+
+
+        setTimeout(function () {
+
+          if (locked) {
+            return;
+          }
+
+
+          const moveSAN =
+            solutionMoves[currentMoveIndex];
+
+
+          /*
+           * Play the move LOCALLY.
+           *
+           * Do NOT send this move to Django.
+           *
+           * Django only needs the user's moves.
+           */
+
+          const move =
+            game.move(moveSAN);
+
+
+          if (!move) {
+
+            console.error(
+              "Could not play opponent move:",
+              moveSAN,
+              "FEN:",
+              game.fen()
+            );
+
+            waitingForOpponent = false;
+
+            setStatus(
+              "Error playing opponent move.",
+              "wrong"
+            );
+
+            return;
+          }
+
+
+          /*
+           * Update board
+           */
+
+          board.position(
+            game.fen(),
+            true
+          );
+
+
+          /*
+           * Advance solution index
+           */
+
+          currentMoveIndex++;
+
+
+          waitingForOpponent = false;
+
+
+          /*
+           * Check if puzzle finished
+           */
+
+          if (
+            currentMoveIndex >=
+            solutionMoves.length
+          ) {
+
+            lockBoard(
+              "🎉 Puzzle solved! Done for today."
+            );
+
+            return;
+          }
+
+
+          /*
+           * Now it is user's turn
+           */
+
+          setStatus(
+            "Your move",
+            "correct"
+          );
+
+        }, 600);
+      }
+
+
+      /* ─────────────────────────────────────────────
+         User move
+      ───────────────────────────────────────────── */
+
+      function onDrop(source, target, piece) {
+
+        if (locked) {
+          return "snapback";
+        }
+
+        if (waitingForOpponent) {
+          return "snapback";
+        }
+
+        // ---------------------------------------------
+        // Create temporary game
+        // ---------------------------------------------
+
+        const tempGame = new Chess(
+          game.fen()
+        );
+
+        const promotion = getPromotion(
+          source,
+          target,
+          piece
+        );
+
+        const attemptedMove = tempGame.move({
+          from: source,
+          to: target,
+          promotion: promotion
+        });
+
+        // ---------------------------------------------
+        // Illegal move
+        // ---------------------------------------------
+
+        if (!attemptedMove) {
+          return "snapback";
+        }
+
+        const attemptedSAN =
+          attemptedMove.san;
+
+        const expectedSAN =
+          solutionMoves[currentMoveIndex];
+
+        console.log(
+          "User:",
+          attemptedSAN
+        );
+
+        console.log(
+          "Expected:",
+          expectedSAN
+        );
+
+        // ---------------------------------------------
+        // Wrong move
+        // ---------------------------------------------
+
+        if (
+          normalizeSAN(attemptedSAN) !==
+          normalizeSAN(expectedSAN)
+        ) {
+
+          setStatus(
+            "Not quite — try again.",
+            "wrong"
+          );
+
+          return "snapback";
+        }
+
+        // ---------------------------------------------
+        // Correct move
+        // ---------------------------------------------
+
+        const realMove = game.move({
+          from: source,
+          to: target,
+          promotion: promotion
+        });
+
+        if (!realMove) {
+          return "snapback";
+        }
+
+        currentMoveIndex++;
+
+        board.position(
+          game.fen(),
+          false
+        );
+
+        // ---------------------------------------------
+        // FINAL MOVE
+        // ---------------------------------------------
+
+        if (
+          currentMoveIndex >=
+          solutionMoves.length
+        ) {
+
+          waitingForOpponent = true;
+
+          setStatus(
+            "Saving your result...",
+            "correct"
+          );
+
+          postJSON(
+            "{% url 'daily_puzzle_move' %}",
+            {
+              san: attemptedSAN
+            }
+          )
+
+            .then(function (data) {
+
+              console.log(
+                "Final move saved:",
+                data
+              );
+
+              /*
+               * Django has successfully recorded
+               * the final move.
+               *
+               * Now redirect to /daily/.
+               *
+               * The view will detect that the user
+               * has already solved today's puzzle.
+               */
+
+              window.location.href =
+                "{% url 'daily_puzzle' %}";
+
+            })
+
+            .catch(function (err) {
+
+              console.error(
+                "Failed to save final move:",
+                err
+              );
+
+              /*
+               * Server rejected the move.
+               *
+               * Undo local move.
+               */
+
+              game.undo();
+
+              currentMoveIndex--;
+
+              board.position(
+                game.fen(),
+                true
+              );
+
+              waitingForOpponent = false;
+
+              setStatus(
+                err.message,
+                "wrong"
+              );
+
+            });
+
+          return;
+        }
+
+        // ---------------------------------------------
+        // Normal correct move
+        // ---------------------------------------------
+
+        setStatus(
+          "Correct!",
+          "correct"
+        );
+
+        postJSON(
+          "{% url 'daily_puzzle_move' %}",
+          {
+            san: attemptedSAN
+          }
+        )
+
+          .then(function (data) {
+
+            console.log(
+              "Move saved:",
+              data
+            );
+
+            /*
+             * Let opponent play automatically.
+             */
+
+            makeOpponentMove();
+
+          })
+
+          .catch(function (err) {
+
+            console.error(
+              "Move submission error:",
+              err
+            );
+
+            /*
+             * Server rejected the move.
+             * Undo local move.
+             */
+
+            game.undo();
+
+            currentMoveIndex--;
+
+            board.position(
+              game.fen(),
+              true
+            );
+
+            setStatus(
+              err.message,
+              "wrong"
+            );
+
+          });
+
+        return;
+      }
+
+
+      /* ─────────────────────────────────────────────
+         Snap end
+      ───────────────────────────────────────────── */
+
+      function onSnapEnd() {
+
+        board.position(
+          game.fen()
+        );
+      }
+
+
+      /* ─────────────────────────────────────────────
+         Create board
+      ───────────────────────────────────────────── */
+
+      board = Chessboard("board", {
+
+        draggable: true,
+
+        position: FEN,
+
+        orientation: ORIENTATION,
+
+        dropOffBoard: "snapback",
+
+        pieceTheme:
+          "https://chessboardjs.com/img/chesspieces/wikipedia/{piece}.png",
+
+        onDrop: onDrop,
+
+        onSnapEnd: onSnapEnd
+
+      });
+
+
+      /* ─────────────────────────────────────────────
+         Hint
+      ───────────────────────────────────────────── */
+
+      hintBtn.addEventListener(
+        "click",
+        function () {
+
+          if (
+            locked ||
+            waitingForOpponent
+          ) {
+            return;
+          }
+
+
+          getJSON(
+            "{% url 'daily_puzzle_hint' %}"
+          )
+            .then(function (data) {
+
+              setStatus(
+                "💡 " + data.hint,
+                "correct"
+              );
+
+            })
+            .catch(function (err) {
+
+              setStatus(
+                err.message,
+                "wrong"
+              );
+
+            });
+
+        }
+      );
+
+
+      /* ─────────────────────────────────────────────
+         Solve / Give up
+      ───────────────────────────────────────────── */
+
+      solveBtn.addEventListener(
+        "click",
+        function () {
+
+          if (locked) {
+            return;
+          }
+
+
+          if (
+            !confirm(
+              "This will reveal the full solution. Continue?"
+            )
+          ) {
+            return;
+          }
+
+
+          waitingForOpponent = true;
+
+
+          postJSON(
+            "{% url 'daily_puzzle_give_up' %}"
+          )
+            .then(function (data) {
+
+              const moves =
+                data.solution || [];
+
+
+              let i = 0;
+
+
+              const interval =
+                setInterval(function () {
+
+                  if (
+                    i >= moves.length
+                  ) {
+
+                    clearInterval(interval);
+
+                    lockBoard(
+                      "Solution shown. Done for today."
+                    );
+
+                    return;
+                  }
+
+
+                  const move =
+                    game.move(moves[i]);
+
+
+                  if (!move) {
+
+                    clearInterval(interval);
+
+                    waitingForOpponent = false;
+
+                    setStatus(
+                      "Error showing solution.",
+                      "wrong"
+                    );
+
+                    return;
+                  }
+
+
+                  board.position(
+                    game.fen(),
+                    true
+                  );
+
+
+                  i++;
+
+                }, 700);
+
+            })
+            .catch(function (err) {
+
+              waitingForOpponent = false;
+
+              setStatus(
+                err.message,
+                "wrong"
+              );
+
+            });
+
+        }
+      );
+
+
+      /* ─────────────────────────────────────────────
+         INITIAL POSITION
+      ───────────────────────────────────────────── */
+
+      /*
+       * If the FEN's side to move is NOT
+       * the user's side, opponent plays first.
+       */
+
+      if (
+        game.turn() !== USER_TURN
+      ) {
+
+        setStatus(
+          "Opponent moves first…",
+          "info"
+        );
+
+
+        makeOpponentMove();
+
+      } else {
+
+        setStatus(
+          "Your move",
+          "info"
+        );
+      }
+
+    })();
+  </script>
+
+  {% endif %}
+
+{% endblock %}

@@ -1,7 +1,42 @@
 from django.urls import path, re_path
 from . import views
+from django.http import HttpResponse
+from django.contrib.sitemaps.views import sitemap
+from .sitemaps import ArticleSitemap
+
+def robots_txt(request):
+  lines = [
+      "User-agent: *",
+      "Allow: /",
+      "",
+      "# Expressly allow major AI search bots",
+      "User-agent: GPTBot",
+      "Allow: /",
+      "User-agent: PerplexityBot",
+      "Allow: /",
+      "User-agent: ClaudeBot",
+      "Allow: /",
+      "User-agent: Google-Extended",
+      "Allow: /",
+      "",
+      "Sitemap: https://127.0.0.1:8000/sitemap.xml",
+  ]
+  return HttpResponse("\n".join(lines), content_type="text/plain")
+
+
+sitemaps = {
+    "articles": ArticleSitemap,
+}
+
 
 urlpatterns = [
+    path("robots.txt", robots_txt),
+    path(
+            "sitemap.xml",
+            sitemap,
+            {"sitemaps": sitemaps},
+            name="django.contrib.sitemaps.views.sitemap",
+        ),
     path('', views.home, name='home'),
     path('api/world-players/', views.api_world_players, name='api_world_players'),
     path('api/bd-players/', views.api_bd_players, name='api_bd_players'),
@@ -77,10 +112,15 @@ urlpatterns = [
     path("add-event/", views.add_event, name="add_event"),
     path("memory-test/", views.memory_view, name="memory_test"),
     path('api/memory/', views.memory_api, name='memory_api'),
+    path("daily/", views.daily_puzzle_view, name="daily_puzzle"),
+    path("daily/move/", views.api_submit_move, name="daily_puzzle_move"),
+    path("daily/hint/", views.api_hint, name="daily_puzzle_hint"),
+    path("daily/give-up/", views.api_give_up, name="daily_puzzle_give_up"),
     ############################ Chat system ##########################################
     path("chat/", views.chat, name="chat_home"),
     path("chat/<str:username>/", views.chat, name="chat"),
     path("api/messages/<str:username>/", views.get_messages, name="get_messages"),
+    path("bot", views.PlayBot, name="bot"),
     ###################################################################################
 ]
 
