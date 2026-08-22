@@ -524,84 +524,191 @@ class Streak(models.Model):
 # Add this to your existing models.py. These are entirely new models — they
 # do NOT touch or depend on your existing Puzzle / PuzzleSolve models.
 # ---------------------------------------------------------------------------
-daily_puzzle_move_validator = RegexValidator(
-    regex=r'^([PNBRQK]?[a-h]?[1-8]?x?[a-h][1-8](=[NBRQ])?[+#]?\.?\s*)+$',
-    message="Solution must be valid SAN moves, like 'Rxh2+ Kxh2 Rh8#'"
-)
+# news/models.py
+
+from django.contrib.auth.models import User
+from django.core.validators import MinValueValidator
+from django.db import models
+
 
 class ChessPuzzle(models.Model):
+
     TURN_CHOICES = [
-        ('w', 'White to play'),
-        ('b', 'Black to play'),
-    ]
-    DIFFICULTY_CHOICES = [
-        ('easy', 'Easy'),
-        ('medium', 'Medium'),
-        ('hard', 'Hard'),
+        ("w", "White to play"),
+        ("b", "Black to play"),
     ]
 
-    title = models.CharField(max_length=100)
+    DIFFICULTY_CHOICES = [
+        ("easy", "Easy"),
+        ("medium", "Medium"),
+        ("hard", "Hard"),
+    ]
+
+    title = models.CharField(max_length=200)
+
+    # Optional game information from your JSON
+    player1 = models.CharField(max_length=150, blank=True, default='Player 1')
+    player2 = models.CharField(max_length=150, blank=True, default="Player 2")
+
     fen = models.CharField(max_length=100)
-    turn = models.CharField(max_length=1, choices=TURN_CHOICES, default='w')
-    solution = models.TextField(
-        help_text="Moves in SAN, space separated, e.g. 'Rxh2+ Kxh2 Rh8#'",
-        validators=[daily_puzzle_move_validator],
+
+    turn = models.CharField(
+        max_length=1,
+        choices=TURN_CHOICES,
+        default="w",
     )
+
+    solution = models.TextField(
+        help_text="Space separated SAN moves."
+    )
+
+    move_explanations = models.JSONField(
+        default=list,
+        blank=True,
+    )
+
     hint = models.CharField(
         max_length=255,
         blank=True,
-        help_text="Optional custom hint shown to the user. If left blank, "
-                   "the Hint button will just reveal the next correct move.",
+        null=True,
     )
-    difficulty = models.CharField(max_length=10, choices=DIFFICULTY_CHOICES, default='medium')
-    created_at = models.DateTimeField(auto_now_add=True)
+
+    difficulty = models.CharField(
+        max_length=10,
+        choices=DIFFICULTY_CHOICES,
+        default="medium",
+    )
+
+    # Original JSON number, if available
+    source_number = models.PositiveIntegerField(
+        null=True,
+        blank=True,
+    )
+
+    # Optional tags from JSON
+    tags = models.JSONField(
+        default=list,
+        blank=True,
+        null=True,
+    )
+
+    created_at = models.DateTimeField(
+        auto_now_add=True,
+        null=True,
+    )
+
+    updated_at = models.DateTimeField(
+        auto_now=True
+    )
+
+    is_active = models.BooleanField(
+        default=True
+    )
 
     class Meta:
-        verbose_name = "Daily chess puzzle"
-        verbose_name_plural = "Daily chess puzzles"
+        ordering = ["-created_at"]
 
     def __str__(self):
         return f"{self.id} - {self.title}"
 
+    @property
+    def solution_moves(self):
+        """
+        Return solution as a list.
+
+        Example:
+        'Rf5+ Rxf5 Kxf5'
+        ->
+        ['Rf5+', 'Rxf5', 'Kxf5']
+        """
+        return self.solution.split()
+
+    @property
+    def solution_length(self):
+        return len(self.solution_moves)
+
     def save(self, *args, **kwargs):
+
         parts = self.fen.strip().split()
+
         if len(parts) == 6:
             parts[1] = self.turn
-            self.fen = ' '.join(parts)
+            self.fen = " ".join(parts)
+
         super().save(*args, **kwargs)
 
 
 class DailyPuzzle(models.Model):
-    date = models.DateField(unique=True, db_index=True)
+
+    date = models.DateField(
+        unique=True,
+        db_index=True,
+    )
+
     puzzle = models.ForeignKey(
         ChessPuzzle,
         on_delete=models.CASCADE,
-        related_name='daily_entries',
+        related_name="daily_entries",
     )
-    created_at = models.DateTimeField(auto_now_add=True, null=True)
+
+    created_at = models.DateTimeField(
+        auto_now_add=True,
+        null=True,
+    )
 
     class Meta:
-        ordering = ['-date']
+        ordering = ["-date"]
 
     def __str__(self):
         return f"{self.date} → {self.puzzle.title}"
 
+
 class ChessPuzzleSolve(models.Model):
-    user = models.ForeignKey(User, on_delete=models.CASCADE, related_name='chess_puzzle_solves')
+
+    user = models.ForeignKey(
+        User,
+        on_delete=models.CASCADE,
+        related_name="chess_puzzle_solves",
+    )
+
     daily_puzzle = models.ForeignKey(
         DailyPuzzle,
         on_delete=models.CASCADE,
-        related_name='solves',
+        related_name="solves",
     )
-    solved_at = models.DateTimeField(auto_now_add=True)
-    time_taken = models.IntegerField(null=True, blank=True, help_text="Seconds")
-    made_mistake = models.BooleanField(default=False)
-    wrong_attempts = models.IntegerField(default=0)
- 
+
+    solved_at = models.DateTimeField(
+        auto_now_add=True,
+    )
+
+    time_taken = models.PositiveIntegerField(
+        null=True,
+        blank=True,
+        help_text="Seconds",
+    )
+
+    made_mistake = models.BooleanField(
+        default=False,
+    )
+
+    wrong_attempts = models.PositiveIntegerField(
+        default=0,
+    )
+
+    hints_used = models.PositiveIntegerField(
+        default=0,
+    )
+
     class Meta:
-        unique_together = ('user', 'daily_puzzle')
-        verbose_name = "Daily puzzle solve"
-        verbose_name_plural = "Daily puzzle solves"
- 
+        constraints = [
+            models.UniqueConstraint(
+                fields=["user", "daily_puzzle"],
+                name="unique_user_daily_puzzle",
+            )
+        ]
+
     def __str__(self):
-        return f"{self.user.username} solved {self.daily_puzzle}"
+        return (
+            f"{self.user.username} solved "
+            f"{self.daily_puzzle}"
+        )

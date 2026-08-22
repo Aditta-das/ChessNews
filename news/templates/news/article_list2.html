@@ -1,0 +1,426 @@
+{% extends "news/base.html" %}
+{% load nw_filter %}
+{% block content %}
+
+<style>
+  /* ── Layout ───────────────────────────────────────────────── */
+  .blogs-layout {
+    display: grid;
+    grid-template-columns: 220px 1fr;
+    gap: 20px;
+    align-items: start;
+  }
+
+  /* ── Sidebar ──────────────────────────────────────────────── */
+  .sidebar-panel {
+    background: var(--card-color);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    overflow: hidden;
+    position: sticky;
+    top: 16px;
+  }
+
+  .sidebar-header {
+    padding: 12px 16px;
+    border-bottom: 1px solid var(--border);
+    font-size: 0.78rem;
+    font-weight: 700;
+    letter-spacing: 1.5px;
+    text-transform: uppercase;
+    color: var(--chess-light);
+    display: flex;
+    align-items: center;
+    gap: 6px;
+  }
+
+  .sidebar-header i { color: var(--chess-primary); }
+
+  .sidebar-links { padding: 8px; }
+
+  .sidebar-link {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 9px 12px;
+    border-radius: 8px;
+    font-size: 0.85rem;
+    font-weight: 600;
+    color: var(--chess-secondary);
+    text-decoration: none;
+    transition: all 0.15s;
+  }
+
+  .sidebar-link i { color: var(--color-gray-400); font-size: 0.9rem; }
+
+  .sidebar-link:hover {
+    background: oklch(22% 0.015 256);
+    color: var(--chess-light);
+  }
+
+  .sidebar-link:hover i { color: var(--chess-primary); }
+
+  .sidebar-divider { height: 1px; background: var(--border); margin: 6px 8px; }
+
+  .create-post-btn {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 6px;
+    width: calc(100% - 16px);
+    margin: 8px;
+    padding: 9px;
+    border-radius: 8px;
+    border: none;
+    background: var(--chess-primary);
+    color: #fff;
+    font-size: 0.82rem;
+    font-weight: 700;
+    text-decoration: none;
+    transition: all 0.18s;
+    cursor: pointer;
+  }
+
+  .create-post-btn:hover { background: #67804a; color: #fff; transform: translateY(-1px); }
+
+  .auth-btn {
+    display: block;
+    width: calc(100% - 16px);
+    margin: 4px 8px;
+    padding: 8px;
+    border-radius: 8px;
+    font-size: 0.82rem;
+    font-weight: 700;
+    text-align: center;
+    text-decoration: none;
+    transition: all 0.18s;
+  }
+
+  .auth-btn-primary {
+    background: var(--chess-primary);
+    color: #fff;
+    border: none;
+  }
+
+  .auth-btn-primary:hover { background: #67804a; color: #fff; }
+
+  .auth-btn-outline {
+    background: transparent;
+    color: var(--chess-secondary);
+    border: 1px solid var(--border);
+  }
+
+  .auth-btn-outline:hover { border-color: var(--chess-primary); color: var(--chess-primary); }
+
+  /* ── Main content ─────────────────────────────────────────── */
+  .page-heading-row {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 16px;
+  }
+
+  .page-heading {
+    font-size: 1.15rem;
+    font-weight: 800;
+    color: var(--chess-light);
+    margin: 0;
+  }
+
+  /* ── Blog grid ────────────────────────────────────────────── */
+  .blog-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(290px, 1fr));
+    gap: 16px;
+  }
+
+  /* ── Blog card ────────────────────────────────────────────── */
+  .blog-card {
+    background: var(--card-color);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    overflow: hidden;
+    display: flex;
+    flex-direction: column;
+    text-decoration: none;
+    color: var(--chess-light);
+    transition: transform 0.2s ease, border-color 0.2s ease, box-shadow 0.2s ease;
+    animation: fadeInUp 0.45s ease-out both;
+  }
+
+  @keyframes fadeInUp {
+    from { opacity: 0; transform: translateY(16px); }
+    to   { opacity: 1; transform: translateY(0); }
+  }
+
+  .blog-card:nth-child(1) { animation-delay: 0.04s; }
+  .blog-card:nth-child(2) { animation-delay: 0.08s; }
+  .blog-card:nth-child(3) { animation-delay: 0.12s; }
+  .blog-card:nth-child(4) { animation-delay: 0.16s; }
+  .blog-card:nth-child(5) { animation-delay: 0.20s; }
+  .blog-card:nth-child(6) { animation-delay: 0.24s; }
+
+  .blog-card::before {
+    content: '';
+    display: block;
+    height: 2px;
+    background: var(--chess-primary);
+    opacity: 0;
+    transition: opacity 0.2s;
+  }
+
+  .blog-card:hover {
+    transform: translateY(-5px);
+    border-color: var(--chess-primary);
+    box-shadow: 0 10px 28px rgba(119,149,86,0.16);
+    color: var(--chess-light);
+  }
+
+  .blog-card:hover::before { opacity: 1; }
+
+  .blog-card-img {
+    width: 100%;
+    height: 180px;
+    object-fit: cover;
+    display: block;
+    transition: transform 0.3s ease;
+  }
+
+  .blog-card:hover .blog-card-img { transform: scale(1.04); }
+
+  .blog-img-placeholder {
+    height: 180px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: oklch(20% 0.015 256);
+    color: var(--chess-primary);
+    font-size: 2.5rem;
+    opacity: 0.5;
+  }
+
+  .blog-card-body {
+    padding: 14px;
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+  }
+
+  .blog-card-title {
+    font-size: 0.98rem;
+    font-weight: 700;
+    color: var(--chess-light);
+    line-height: 1.4;
+    margin-bottom: 6px;
+  }
+
+  .blog-card-meta {
+    font-size: 0.73rem;
+    color: var(--color-gray-400);
+    font-weight: 600;
+    margin-bottom: 8px;
+    display: flex;
+    align-items: center;
+    gap: 4px;
+  }
+
+  .blog-card-meta i { color: var(--chess-primary); }
+
+  .blog-card-excerpt {
+    font-size: 0.83rem;
+    color: var(--chess-secondary);
+    line-height: 1.55;
+    flex: 1;
+  }
+
+  .blog-card-footer {
+    padding: 10px 14px;
+    border-top: 1px solid var(--border);
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+  }
+
+  .blog-card-stats {
+    display: flex;
+    gap: 14px;
+  }
+
+  .blog-stat {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 1px;
+  }
+
+  .blog-stat-value {
+    font-size: 0.95rem;
+    font-weight: 800;
+    color: var(--chess-primary);
+  }
+
+  .blog-stat-label {
+    font-size: 0.62rem;
+    letter-spacing: 1px;
+    text-transform: uppercase;
+    color: var(--color-gray-400);
+  }
+
+  .blog-card-arrow {
+    color: var(--color-gray-400);
+    font-size: 0.9rem;
+    transition: all 0.15s;
+  }
+
+  .blog-card:hover .blog-card-arrow { color: var(--chess-primary); transform: translateX(3px); }
+
+  /* ── Empty ────────────────────────────────────────────────── */
+  .empty-state {
+    text-align: center;
+    padding: 56px 20px;
+    color: var(--color-gray-400);
+  }
+
+  .empty-state i {
+    font-size: 3rem;
+    margin-bottom: 12px;
+    color: var(--chess-primary);
+    opacity: 0.4;
+  }
+
+  .empty-state h3 {
+    font-size: 1.2rem;
+    font-weight: 700;
+    color: var(--chess-light);
+    margin-bottom: 6px;
+  }
+
+  .empty-create-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    margin-top: 16px;
+    padding: 9px 22px;
+    border-radius: 99px;
+    font-size: 0.85rem;
+    font-weight: 700;
+    background: var(--chess-primary);
+    color: #fff;
+    text-decoration: none;
+    transition: all 0.18s;
+  }
+
+  .empty-create-btn:hover { background: #67804a; color: #fff; transform: translateY(-2px); }
+
+  /* ── Responsive ───────────────────────────────────────────── */
+  @media (max-width: 760px) {
+    .blogs-layout { grid-template-columns: 1fr; }
+    .sidebar-panel { position: static; }
+    .blog-grid { grid-template-columns: 1fr; }
+  }
+</style>
+
+<div class="blogs-layout">
+
+  <!-- ── Sidebar ──────────────────────────────────────────── -->
+  <div class="sidebar-panel">
+
+    {% if request.user.is_authenticated %}
+    <div class="sidebar-header">
+      <i class="bi bi-journal-text"></i> {{ request.user.username }}'s Blog
+    </div>
+    <div class="sidebar-links">
+      <a href="{% url 'user_blogs' request.user.username %}" class="sidebar-link">
+        <i class="bi bi-person-lines-fill"></i> My Blogs
+      </a>
+      <a href="{% url 'all_blogs' %}" class="sidebar-link">
+        <i class="bi bi-collection"></i> All Blogs
+      </a>
+    </div>
+    <div class="sidebar-divider"></div>
+    <a href="{% url 'write_article' %}" class="create-post-btn">
+      <i class="bi bi-plus-circle"></i> Create Post
+    </a>
+
+    {% else %}
+    <div class="sidebar-header">
+      <i class="bi bi-people"></i> Join Community
+    </div>
+    <div style="padding:12px 8px 8px;">
+      <a href="{% url 'register' %}" class="auth-btn auth-btn-primary">Sign Up</a>
+      <a href="{% url 'login' %}"    class="auth-btn auth-btn-outline" style="margin-top:6px;display:block;text-align:center;text-decoration:none;padding:8px;border-radius:8px;border:1px solid var(--border);color:var(--chess-secondary);font-size:0.82rem;font-weight:700;">Login</a>
+    </div>
+    {% endif %}
+
+  </div>
+
+  <!-- ── Blogs ────────────────────────────────────────────── -->
+  <div>
+    <div class="page-heading-row">
+      <h2 class="page-heading">✍️ Blog Community</h2>
+    </div>
+
+    {% if blogs %}
+    <div class="blog-grid">
+      {% for blog in blogs %}
+      <a href="{% url 'article_detail' slug=blog.slug %}" class="blog-card">
+
+        {% if blog.image %}
+        <img src="{{ blog.image.url }}" class="blog-card-img" alt="{{ blog.title }}">
+        {% else %}
+        <div class="blog-img-placeholder">
+          <i class="bi bi-journal-text"></i>
+        </div>
+        {% endif %}
+
+        <div class="blog-card-body">
+          <div class="blog-card-title">{{ blog.title }}</div>
+          <div class="blog-card-meta">
+            <i class="bi bi-person-fill"></i> {{ blog.author.username }}
+          </div>
+          <div class="blog-card-excerpt">
+            {{ blog.content|remove_img_tags|truncatewords:28|safe }}
+          </div>
+        </div>
+
+        <div class="blog-card-footer">
+          <div class="blog-card-stats">
+            <div class="blog-stat">
+              <span class="blog-stat-value">{{ blog.comments.count }}</span>
+              <span class="blog-stat-label">Comments</span>
+            </div>
+            <div class="blog-stat">
+              <span class="blog-stat-value">{{ blog.likes.count }}</span>
+              <span class="blog-stat-label">Likes</span>
+            </div>
+          </div>
+          <i class="bi bi-arrow-right blog-card-arrow"></i>
+        </div>
+
+      </a>
+      {% endfor %}
+    </div>
+
+    {% else %}
+    <div class="empty-state">
+      <i class="bi bi-journal-text"></i>
+      <h3>No Blogs Yet</h3>
+      <p>Start sharing your ideas with the community.</p>
+      {% if user.is_authenticated %}
+      <a href="{% url 'write_article' %}" class="empty-create-btn">
+        <i class="bi bi-plus-circle"></i> Write First Blog
+      </a>
+      {% else %}
+      <a href="{% url 'register' %}" class="empty-create-btn">
+        <i class="bi bi-person-plus"></i> Join to Write
+      </a>
+      {% endif %}
+    </div>
+    {% endif %}
+
+  </div>
+</div>
+
+{% endblock %}
+
+

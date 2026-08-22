@@ -37,7 +37,30 @@
     color: var(--chess-light);
     display: flex;
     align-items: center;
-    gap: 8px;
+    gap: 9px;
+  }
+
+  .player-avatar {
+    width: 30px;
+    height: 30px;
+    border-radius: 6px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+    border: 1px solid var(--border);
+    font-size: 15px;
+    overflow: hidden;
+  }
+
+  .avatar-black {
+    background: linear-gradient(135deg, #2c2c2c, #101010);
+    color: #b8b8b8;
+  }
+
+  .avatar-white {
+    background: linear-gradient(135deg, #f5f5f5, #d6d6d6);
+    color: #2a2a2a;
   }
 
   .player-color-dot {
@@ -50,52 +73,72 @@
   .dot-black { background: #1a1a1a; }
   .dot-white { background: #f0f0f0; }
 
-  /* Eval bar */
-  .eval-track {
+  .board-row {
+    display: flex;
+    align-items: stretch;
+    gap: 8px;
     width: 100%;
-    height: 8px;
+  }
+
+  .eval-track {
+    width: 26px;
+    flex-shrink: 0;
     background: #1a1a1a;
-    border-radius: 99px;
+    border-radius: 4px;
     overflow: hidden;
     border: 1px solid var(--border);
     position: relative;
   }
 
   #white-bar {
-    height: 100%;
+    width: 100%;
     background: #f0f0f0;
-    position: absolute; left: 0; top: 0;
-    width: 50%;
-    transition: width 0.35s ease;
-    display: flex; align-items: center;
+    position: absolute; bottom: 0; left: 0;
+    height: 50%;
+    transition: height 0.35s ease;
+    display: flex; align-items: flex-end; justify-content: center;
     font-size: 10px; font-weight: 800; color: #000;
-    padding-left: 5px; white-space: nowrap;
+    padding-bottom: 5px;
+    box-sizing: border-box;
+    writing-mode: horizontal-tb;
   }
 
   #black-bar {
-    height: 100%;
+    width: 100%;
     background: #1a1a1a;
-    position: absolute; right: 0; top: 0;
-    width: 50%;
-    transition: width 0.35s ease;
-    display: flex; align-items: center; justify-content: flex-end;
+    position: absolute; top: 0; left: 0;
+    height: 50%;
+    transition: height 0.35s ease;
+    display: flex; align-items: flex-start; justify-content: center;
     font-size: 10px; font-weight: 800; color: #fff;
-    padding-right: 5px; white-space: nowrap;
+    padding-top: 5px;
+    box-sizing: border-box;
   }
 
-  /* ── Board wrapper ───────────────────────────────────────── */
+  .eval-track.flipped #white-bar {
+    top: 0; bottom: auto;
+    align-items: flex-start;
+    padding-top: 5px;
+    padding-bottom: 0;
+  }
+
+  .eval-track.flipped #black-bar {
+    bottom: 0; top: auto;
+    align-items: flex-end;
+    padding-bottom: 5px;
+    padding-top: 0;
+  }
+
   .board-wrapper {
     position: relative;
-    /* width is set in JS after measuring the column */
+    flex-shrink: 0;
   }
 
   #game-board { outline: none; }
 
-  /* Board square colors */
   #game-board .white-1e1d7 { background-color: #eeeed2 !important; }
-  #game-board .black-3c85d { background-color: #769656 !important; }
+  #game-board .black-3c85d { background-color: #7A2F22 !important; }
 
-  /* SVG arrow/highlight overlay */
   #board-overlay {
     position: absolute;
     top: 0; left: 0;
@@ -104,7 +147,6 @@
     z-index: 10;
   }
 
-  /* Arrow legend */
   .arrow-hint {
     font-size: 0.63rem;
     font-weight: 600;
@@ -117,12 +159,62 @@
     padding: 2px 0;
   }
 
-  /* Controls */
   .board-controls {
     display: flex;
     gap: 8px;
     justify-content: center;
+    margin-top: 10px;
   }
+
+  .notation-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 8px;
+  }
+
+  .notation-header .section-label { margin-bottom: 0; }
+
+  .flip-icon-btn {
+    display: flex; align-items: center; justify-content: center;
+    width: 30px; height: 30px;
+    border-radius: 8px;
+    border: 1px solid rgba(245,158,11,0.3);
+    background: var(--card-color);
+    color: #f59e0b;
+    cursor: pointer;
+    font-size: 0.92rem;
+    flex-shrink: 0;
+    transition: all 0.15s ease;
+  }
+
+  .flip-icon-btn:hover { background: rgba(245,158,11,0.1); border-color: #f59e0b; }
+  .flip-icon-btn:focus { outline: none; box-shadow: none; }
+
+  .moves-row {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+  }
+
+  .moves-row #moves-list { flex: 1; min-width: 0; }
+
+  .mobile-nav-arrow {
+    display: none;
+    flex-shrink: 0;
+    width: 30px; height: 30px;
+    align-items: center;
+    justify-content: center;
+    border-radius: 8px;
+    border: 1px solid var(--border);
+    background: var(--card-color);
+    color: var(--chess-secondary);
+    cursor: pointer;
+    font-size: 1rem;
+  }
+
+  .mobile-nav-arrow:hover { background: oklch(24% 0.015 256); color: var(--chess-light); }
+  .mobile-nav-arrow:focus { outline: none; box-shadow: none; }
 
   .ctrl-btn {
     display: flex; align-items: center; justify-content: center;
@@ -148,7 +240,6 @@
   .ctrl-btn.c-reset:hover { background: rgba(200,75,75,0.08); }
   .ctrl-btn.c-flip:hover  { background: rgba(245,158,11,0.08); }
 
-  /* ── Info column ─────────────────────────────────────────── */
   .info-col {
     display: flex;
     flex-direction: column;
@@ -185,7 +276,6 @@
     word-break: break-word;
   }
 
-  /* Moves list */
   #moves-list {
     max-height: 260px;
     overflow-y: auto;
@@ -239,7 +329,6 @@
   .initial-pos:hover { background: oklch(24% 0.01 256); color: var(--chess-light); }
   .initial-pos.active-move { color: var(--chess-primary); font-weight: 700; font-style: normal; background: rgba(119,149,86,0.12); }
 
-  /* Comments */
   #comments-list { max-height: 150px; overflow-y: auto; font-size: 0.83rem; }
   #comments-list::-webkit-scrollbar { width: 4px; }
   #comments-list::-webkit-scrollbar-thumb { background: var(--border); border-radius: 99px; }
@@ -251,7 +340,6 @@
   .comment-text { color: var(--chess-secondary); margin: 4px 0 0; line-height: 1.45; }
   .no-comments { color: var(--color-gray-400); font-size: 0.82rem; text-align: center; padding: 12px 0; font-style: italic; }
 
-  /* Comment form */
   .comment-form-label { font-size: 0.68rem; font-weight: 700; color: var(--color-gray-400); margin-bottom: 6px; display: block; letter-spacing: 1px; text-transform: uppercase; }
 
   #id_comment {
@@ -287,7 +375,6 @@
 
   .comment-submit-btn:hover { background: #67804a; transform: translateY(-1px); }
 
-  /* Notifications */
   .notification-container { position: fixed; top: 20px; right: 20px; z-index: 9999; max-width: 320px; }
 
   .notification {
@@ -316,69 +403,104 @@
 
   @keyframes progressShrink { from { width: 100%; } to { width: 0%; } }
 
-  /* Responsive */
   @media (max-width: 780px) {
     .game-layout { grid-template-columns: 1fr; padding: 12px; gap: 14px; }
+
+    #moves-list {
+      display: flex;
+      flex-direction: row;
+      flex-wrap: nowrap;
+      overflow-x: auto;
+      overflow-y: hidden;
+      -webkit-overflow-scrolling: touch;
+      max-height: none;
+      padding-bottom: 8px;
+      gap: 4px;
+      scrollbar-width: thin;
+    }
+
+    #moves-list::-webkit-scrollbar { height: 4px; width: 0; }
+
+    .move-pair-row {
+      flex: 0 0 auto;
+      margin-bottom: 0;
+      white-space: nowrap;
+    }
+
+    .initial-pos {
+      flex: 0 0 auto;
+      margin-bottom: 0;
+      white-space: nowrap;
+    }
+
+    .board-controls { display: none; }
+    .mobile-nav-arrow { display: flex; }
+  }
+
+  @media (max-width: 480px) {
+    .eval-track { width: 18px; }
+    #white-bar, #black-bar { font-size: 8px; }
+    .player-avatar { width: 26px; height: 26px; font-size: 13px; }
   }
 </style>
 
 <!-- ══ HTML ═════════════════════════════════════════════════════ -->
 <div class="game-layout">
 
-  <!-- Board side -->
   <div class="board-col">
-
     <div class="player-label">
-      <span class="player-color-dot dot-black"></span>
+      <div class="player-avatar avatar-black" id="black-avatar">
+        <i class="bi bi-person-fill"></i>
+      </div>
       <span id="black-player-name">{{ game.black_player }}</span>
     </div>
+    <div class="board-row">
+      <div class="eval-track" id="eval-track">
+        <div id="black-bar"></div>
+        <div id="white-bar"></div>
+      </div>
 
-    <div class="eval-track">
-      <div id="white-bar"></div>
-      <div id="black-bar"></div>
+      <div class="board-wrapper" id="board-wrapper">
+        <div id="game-board"></div>
+        <svg id="board-overlay" xmlns="http://www.w3.org/2000/svg">
+          <defs>
+            <marker id="ah-green"  markerWidth="5" markerHeight="5" refX="3" refY="2.5" orient="auto"><path d="M0,0 L0,5 L5,2.5 z" fill="rgba(0,200,80,0.95)"/></marker>
+            <marker id="ah-orange" markerWidth="5" markerHeight="5" refX="3" refY="2.5" orient="auto"><path d="M0,0 L0,5 L5,2.5 z" fill="rgba(255,165,0,0.95)"/></marker>
+            <marker id="ah-red"    markerWidth="5" markerHeight="5" refX="3" refY="2.5" orient="auto"><path d="M0,0 L0,5 L5,2.5 z" fill="rgba(220,50,50,0.95)"/></marker>
+            <marker id="ah-blue"   markerWidth="5" markerHeight="5" refX="3" refY="2.5" orient="auto"><path d="M0,0 L0,5 L5,2.5 z" fill="rgba(60,140,255,0.95)"/></marker>
+          </defs>
+          <g id="highlight-layer"></g>
+          <g id="arrow-layer"></g>
+        </svg>
+      </div>
     </div>
-
-    <!-- board-wrapper: JS sets explicit px width so ChessboardJS renders correctly -->
-    <div class="board-wrapper" id="board-wrapper">
-      <div id="game-board"></div>
-      <svg id="board-overlay" xmlns="http://www.w3.org/2000/svg">
-        <g id="highlight-layer"></g>
-        <g id="arrow-layer"></g>
-      </svg>
-    </div>
-
-    <div class="arrow-hint">
-      <span><b style="color:rgba(0,200,80,0.9)">●</b> Right-drag arrow</span>
-      <span><b style="color:rgba(255,165,0,0.9)">●</b> +Shift</span>
-      <span><b style="color:rgba(220,50,50,0.9)">●</b> +Ctrl</span>
-      <span><b style="color:rgba(60,140,255,0.9)">●</b> +Alt</span>
-      <span>Right-click = highlight &nbsp;·&nbsp; Esc = clear</span>
-    </div>
-
     <div class="player-label">
-      <span class="player-color-dot dot-white"></span>
+      <div class="player-avatar avatar-white" id="white-avatar">
+        <i class="bi bi-person-fill"></i>
+      </div>
       <span id="white-player-name">{{ game.white_player }}</span>
-    </div>
-
-    <div class="board-controls">
-      <button class="ctrl-btn c-prev"  id="prevBtn"  title="Previous (←)"><i class="bi bi-arrow-left"></i></button>
-      <button class="ctrl-btn c-next"  id="nextBtn"  title="Next (→)"><i class="bi bi-arrow-right"></i></button>
-      <button class="ctrl-btn c-reset" id="resetBtn" title="Reset (R)"><i class="bi bi-skip-backward-fill"></i></button>
-      <button class="ctrl-btn c-flip"  id="flipBtn"  title="Flip (F)"><i class="bi bi-shuffle"></i></button>
     </div>
 
   </div>
 
-  <!-- Info side -->
   <div class="info-col">
-
     <div class="info-panel">
-      <p class="game-title-text">{{ game.title }}</p>
-    </div>
+      <div class="notation-header">
+        <p class="section-label"><i class="bi bi-list-ol"></i> Move Notation</p>
+        <button class="flip-icon-btn" id="flipBtn"><i class="bi bi-shuffle"></i></button>
+      </div>
 
-    <div class="info-panel">
-      <p class="section-label"><i class="bi bi-list-ol"></i> Move Notation</p>
-      <div id="moves-list"></div>
+      <div class="moves-row">
+        <button class="mobile-nav-arrow" id="mobilePrevBtn" title="Previous"><i class="bi bi-chevron-left"></i></button>
+        <div id="moves-list"></div>
+        <button class="mobile-nav-arrow" id="mobileNextBtn" title="Next"><i class="bi bi-chevron-right"></i></button>
+      </div>
+
+      <div class="board-controls">
+        <button class="ctrl-btn c-prev"  id="prevBtn"  title="Previous (←)"><i class="bi bi-arrow-left"></i></button>
+        <button class="ctrl-btn c-next"  id="nextBtn"  title="Next (→)"><i class="bi bi-arrow-right"></i></button>
+        <button class="ctrl-btn c-reset" id="resetBtn" title="Reset (R)"><i class="bi bi-skip-backward-fill"></i></button>
+      </div>
     </div>
 
     <div class="info-panel">
@@ -453,6 +575,54 @@
 
   fetch("{% static 'openings/openings.json' %}")
     .then(r => r.json()).then(d => { fenOpenings = d; }).catch(() => {});
+
+  /* ── Player avatars ────────────────────────────────────────── */
+  const FASTAPI_BASE = 'http://127.0.0.1:10000'; // must match where uvicorn is running
+
+  const DEFAULT_AVATAR_ICON = '<i class="bi bi-person-fill"></i>';
+
+  function setDefaultAvatar(avatarEl) {
+    if (!avatarEl) return;
+    avatarEl.innerHTML = DEFAULT_AVATAR_ICON;
+  }
+
+  function setAvatarImage(avatarEl, url) {
+    if (!avatarEl) return;
+    var img = document.createElement('img');
+    img.alt = '';
+    img.style.cssText = 'width:100%;height:100%;object-fit:cover;border-radius:6px;';
+    img.onerror = function () {
+      console.warn('[avatar] image failed to load:', url);
+      setDefaultAvatar(avatarEl);
+    };
+    img.src = url;
+    avatarEl.innerHTML = '';
+    avatarEl.appendChild(img);
+  }
+
+  function applyPlayerThumb(avatarEl, name) {
+    if (!avatarEl) { console.warn('[avatar] avatar element not found in DOM'); return; }
+    if (!name || !name.trim()) { setDefaultAvatar(avatarEl); return; }
+
+    var apiUrl = FASTAPI_BASE + '/players/by-name?name=' + encodeURIComponent(name);
+
+    fetch(apiUrl)
+      .then(function (r) {
+        if (!r.ok) throw new Error('HTTP ' + r.status);
+        return r.json();
+      })
+      .then(function (res) {
+        if (res.ok && res.data && res.data.thumbUrl) {
+          setAvatarImage(avatarEl, res.data.thumbUrl);
+        } else {
+          setDefaultAvatar(avatarEl);
+        }
+      })
+      .catch(function (err) {
+        console.error('[avatar] fetch failed for "' + name + '":', err);
+        setDefaultAvatar(avatarEl);
+      });
+  }
 
   /* ── Notifications ─────────────────────────────────────────── */
   function showNotification(title, message, type, duration) {
@@ -558,7 +728,7 @@
     var cur = document.querySelector('[data-move-index="' + moveIndex + '"]');
     if (cur) {
       cur.classList.add('active-move');
-      cur.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+      cur.scrollIntoView({ behavior: 'smooth', block: 'nearest', inline: 'center' });
     }
   }
 
@@ -653,7 +823,7 @@
       score = (evaluation.value > 0) ? (isWhiteTurn ? MAX : -MAX) : (isWhiteTurn ? -MAX : MAX);
       var mt = 'M' + m;
       var wp2 = 50 + (score / MAX) * 50;
-      whiteBar.style.width = wp2 + '%'; blackBar.style.width = (100 - wp2) + '%';
+      whiteBar.style.height = wp2 + '%'; blackBar.style.height = (100 - wp2) + '%';
       whiteBar.textContent = score > 0 ? mt : '';
       blackBar.textContent = score < 0 ? mt : '';
     } else if (evaluation.type === 'cp') {
@@ -664,13 +834,12 @@
       lastScore = score;
       var txt = Math.abs(score) < 0.05 ? '' : Math.abs(score).toFixed(1);
       var wp3 = 50 + (score / MAX) * 50;
-      whiteBar.style.width = wp3 + '%'; blackBar.style.width = (100 - wp3) + '%';
+      whiteBar.style.height = wp3 + '%'; blackBar.style.height = (100 - wp3) + '%';
       whiteBar.textContent = score >  0.05 ? txt : '';
       blackBar.textContent = score < -0.05 ? txt : '';
     }
   }
 
-  /* ── Best-move hints ───────────────────────────────────────── */
   var revW = {}, revB = {};
   Object.keys(whiteSymbols).forEach(function (k) { var v = whiteSymbols[k]; if (v) revW[v] = k.toUpperCase(); });
   Object.keys(blackSymbols).forEach(function (k) { var v = blackSymbols[k]; if (v) revB[v] = k.toUpperCase(); });
@@ -717,15 +886,17 @@
   }
 
   /* ── Board sizing ──────────────────────────────────────────── */
+  var EVAL_RESERVE = 40;
+
   function getBoardSize() {
     var sw = window.innerWidth;
-    if (sw >= 1920) return 650;
-    if (sw >= 1600) return 600;
-    if (sw >= 1370) return 550;
-    if (sw >= 1200) return 488;
-    if (sw >= 992)  return 430;
-    if (sw >= 768)  return 380;
-    return Math.min(Math.floor(sw * 0.92), 340);
+    if (sw >= 1920) return 650 - EVAL_RESERVE;
+    if (sw >= 1600) return 600 - EVAL_RESERVE;
+    if (sw >= 1370) return 550 - EVAL_RESERVE;
+    if (sw >= 1200) return 488 - EVAL_RESERVE;
+    if (sw >= 992)  return 430 - EVAL_RESERVE;
+    if (sw >= 768)  return 380 - EVAL_RESERVE;
+    return Math.min(Math.floor(sw * 0.90), 320) - 30;
   }
 
   function applyBoardSize(sz) {
@@ -746,24 +917,20 @@
     }, 80);
   });
 
-  /* ── Arrows & highlights ─────────────────────────────────────
-     Right-drag         → green arrow
-     Right-drag +Shift  → orange
-     Right-drag +Ctrl   → red
-     Right-drag +Alt    → blue
-     Right-click (stay) → toggle highlight
-     Left-click / Esc   → clear all
-  ───────────────────────────────────────────────────────────── */
-  var arrows      = {};
-  var highlights  = {};
-  var dragPreview = null;
-  var suppressContextMenu = false;
+  /* ══════════════════════════════════════════════════════════════
+     ARROW & HIGHLIGHT SYSTEM
+  ══════════════════════════════════════════════════════════════ */
+  var arrows     = {};
+  var highlights = {};
+  var dragFrom   = null;
+  var dragStart  = null;
+  var dragMods   = {};
 
   var COLORS = {
-    green:  { key: 'green',  fill: '#00c850' },
-    orange: { key: 'orange', fill: '#ffa500' },
-    red:    { key: 'red',    fill: '#dc3232' },
-    blue:   { key: 'blue',   fill: '#3c8cff' }
+    green:  { stroke: 'rgba(0,200,80,0.92)',   marker: 'url(#ah-green)',  fill: 'rgba(0,200,80,0.22)'  },
+    orange: { stroke: 'rgba(255,165,0,0.92)',  marker: 'url(#ah-orange)', fill: 'rgba(255,165,0,0.22)' },
+    red:    { stroke: 'rgba(220,50,50,0.92)',  marker: 'url(#ah-red)',    fill: 'rgba(220,50,50,0.22)' },
+    blue:   { stroke: 'rgba(60,140,255,0.92)', marker: 'url(#ah-blue)',   fill: 'rgba(60,140,255,0.22)'}
   };
 
   function pickColor(mods) {
@@ -780,19 +947,13 @@
     return bd && bd.offsetWidth > 0 ? bd.offsetWidth / 8 : 0;
   }
 
-  function sqToCol(sq) {
-    var file = sq.charCodeAt(0) - 97;
-    return orientation === 'white' ? file : 7 - file;
-  }
-
-  function sqToRow(sq) {
-    var rank = parseInt(sq[1], 10) - 1;
-    return orientation === 'white' ? 7 - rank : rank;
-  }
-
   function sqCenter(sq) {
-    var sz = getSqSize();
-    return { x: sqToCol(sq) * sz + sz / 2, y: sqToRow(sq) * sz + sz / 2 };
+    var file = sq.charCodeAt(0) - 97;
+    var rank = parseInt(sq[1]) - 1;
+    var sz   = getSqSize();
+    var col  = orientation === 'white' ? file   : 7 - file;
+    var row  = orientation === 'white' ? 7-rank : rank;
+    return { x: col * sz + sz / 2, y: row * sz + sz / 2 };
   }
 
   function pxToSq(px, py) {
@@ -807,41 +968,10 @@
   }
 
   function boardXY(e) {
-    var bd = document.getElementById('game-board');
+    var bd   = document.getElementById('game-board');
     if (!bd) return null;
     var rect = bd.getBoundingClientRect();
-    return { x: e.clientX - rect.left, y: e.clientY - rect.top, w: rect.width, h: rect.height };
-  }
-
-  function buildArrowPoints(fromPt, toPt, sz) {
-    var dx = toPt.x - fromPt.x;
-    var dy = toPt.y - fromPt.y;
-    var len = Math.sqrt(dx * dx + dy * dy);
-    if (len < 2) return null;
-    var ux = dx / len, uy = dy / len;
-    var px = -uy, py = ux;
-
-    var shaftHalf = sz * 0.075;
-    var headLen   = Math.min(sz * 0.34, len * 0.6);
-    var headHalf  = sz * 0.19;
-    var tipInset  = sz * 0.06;
-
-    var tip      = { x: toPt.x - ux * tipInset, y: toPt.y - uy * tipInset };
-    var headBase = { x: tip.x - ux * headLen,   y: tip.y - uy * headLen };
-
-    return [
-      { x: fromPt.x + px * shaftHalf,   y: fromPt.y + py * shaftHalf   },
-      { x: headBase.x + px * shaftHalf, y: headBase.y + py * shaftHalf },
-      { x: headBase.x + px * headHalf,  y: headBase.y + py * headHalf  },
-      { x: tip.x,                       y: tip.y                       },
-      { x: headBase.x - px * headHalf,  y: headBase.y - py * headHalf  },
-      { x: headBase.x - px * shaftHalf, y: headBase.y - py * shaftHalf },
-      { x: fromPt.x - px * shaftHalf,   y: fromPt.y - py * shaftHalf   }
-    ];
-  }
-
-  function pointsToStr(pts) {
-    return pts.map(function (p) { return p.x.toFixed(1) + ',' + p.y.toFixed(1); }).join(' ');
+    return { x: e.clientX - rect.left, y: e.clientY - rect.top };
   }
 
   function drawOverlay() {
@@ -856,39 +986,45 @@
 
     Object.keys(highlights).forEach(function (sq) {
       var color = highlights[sq];
-      var el = document.createElementNS('http://www.w3.org/2000/svg', 'rect');
-      el.setAttribute('x', sqToCol(sq) * sz);
-      el.setAttribute('y', sqToRow(sq) * sz);
+      var file  = sq.charCodeAt(0) - 97;
+      var rank  = parseInt(sq[1]) - 1;
+      var col   = orientation === 'white' ? file   : 7 - file;
+      var row   = orientation === 'white' ? 7-rank : rank;
+      var el    = document.createElementNS('http://www.w3.org/2000/svg', 'rect');
+      el.setAttribute('x', col * sz);
+      el.setAttribute('y', row * sz);
       el.setAttribute('width',  sz);
       el.setAttribute('height', sz);
-      el.setAttribute('fill', color.fill);
-      el.setAttribute('fill-opacity', '0.55');
+      el.setAttribute('fill',         color.fill);
+      el.setAttribute('stroke',       color.stroke);
+      el.setAttribute('stroke-width', 2);
+      el.setAttribute('rx', 3);
       hlg.appendChild(el);
     });
 
     Object.keys(arrows).forEach(function (key) {
-      var a   = arrows[key];
-      var pts = buildArrowPoints(sqCenter(a.from), sqCenter(a.to), sz);
-      if (!pts) return;
-      var poly = document.createElementNS('http://www.w3.org/2000/svg', 'polygon');
-      poly.setAttribute('points', pointsToStr(pts));
-      poly.setAttribute('fill', a.color.fill);
-      poly.setAttribute('fill-opacity', '0.85');
-      poly.setAttribute('stroke', 'rgba(0,0,0,0.25)');
-      poly.setAttribute('stroke-width', '1');
-      arwg.appendChild(poly);
-    });
+      var a     = arrows[key];
+      var from  = sqCenter(a.from);
+      var to    = sqCenter(a.to);
+      var color = a.color;
+      var dx    = to.x - from.x, dy = to.y - from.y;
+      var len   = Math.sqrt(dx*dx + dy*dy) || 1;
+      var shrink = sz * 0.30;
+      var ex    = to.x - (dx / len) * shrink;
+      var ey    = to.y - (dy / len) * shrink;
+      var sw    = sz * 0.14;
 
-    if (dragPreview && dragPreview.toPt) {
-      var pts2 = buildArrowPoints(sqCenter(dragPreview.from), dragPreview.toPt, sz);
-      if (pts2) {
-        var poly2 = document.createElementNS('http://www.w3.org/2000/svg', 'polygon');
-        poly2.setAttribute('points', pointsToStr(pts2));
-        poly2.setAttribute('fill', dragPreview.color.fill);
-        poly2.setAttribute('fill-opacity', '0.5');
-        arwg.appendChild(poly2);
-      }
-    }
+      var line  = document.createElementNS('http://www.w3.org/2000/svg', 'line');
+      line.setAttribute('x1', from.x);
+      line.setAttribute('y1', from.y);
+      line.setAttribute('x2', ex);
+      line.setAttribute('y2', ey);
+      line.setAttribute('stroke',          color.stroke);
+      line.setAttribute('stroke-width',    sw);
+      line.setAttribute('stroke-linecap',  'round');
+      line.setAttribute('marker-end',      color.marker);
+      arwg.appendChild(line);
+    });
   }
 
   function clearOverlay() {
@@ -897,61 +1033,12 @@
     drawOverlay();
   }
 
-  function onDragMove(e) {
-    if (!dragPreview) return;
-    var pos = boardXY(e);
-    if (!pos) return;
-    dragPreview.toPt = {
-      x: Math.max(0, Math.min(pos.w, pos.x)),
-      y: Math.max(0, Math.min(pos.h, pos.y))
-    };
-    dragPreview.toSq = pxToSq(pos.x, pos.y);
-    drawOverlay();
-  }
-
-  function onDragEnd(e) {
-    document.removeEventListener('mousemove', onDragMove);
-    document.removeEventListener('mouseup', onDragEnd);
-    if (!dragPreview) return;
-
-    var fromSq = dragPreview.from;
-    var color  = dragPreview.color;
-    var pos    = boardXY(e);
-    var toSq   = pos ? pxToSq(pos.x, pos.y) : dragPreview.toSq;
-    dragPreview = null;
-
-    if (toSq && toSq === fromSq) {
-      if (highlights[fromSq] && highlights[fromSq].key === color.key) {
-        delete highlights[fromSq];
-      } else {
-        highlights[fromSq] = color;
-      }
-    } else if (toSq) {
-      var akey = fromSq + '-' + toSq;
-      if (arrows[akey] && arrows[akey].color.key === color.key) {
-        delete arrows[akey];
-      } else {
-        arrows[akey] = { from: fromSq, to: toSq, color: color };
-      }
-    }
-    drawOverlay();
-  }
-
-  document.addEventListener('contextmenu', function (e) {
-    if (suppressContextMenu) {
-      e.preventDefault();
-      suppressContextMenu = false;
-    }
-  });
-
   /* ── DOM ready ─────────────────────────────────────────────── */
   document.addEventListener('DOMContentLoaded', function () {
 
-    /* 1. Size the wrapper BEFORE init so ChessboardJS gets a real px width */
     var initSz = getBoardSize();
     applyBoardSize(initSz);
 
-    /* 2. Init ChessboardJS with that explicit pixel size */
     board = Chessboard('game-board', {
       position:     'start',
       draggable:    false,
@@ -961,9 +1048,10 @@
       width:        initSz
     });
 
-    /* 3. Button listeners */
     document.getElementById('nextBtn').addEventListener('click',  handleNextMove);
     document.getElementById('prevBtn').addEventListener('click',  handlePrevMove);
+    document.getElementById('mobileNextBtn').addEventListener('click', handleNextMove);
+    document.getElementById('mobilePrevBtn').addEventListener('click', handlePrevMove);
 
     document.getElementById('resetBtn').addEventListener('click', function (e) {
       e.preventDefault();
@@ -978,14 +1066,26 @@
       e.preventDefault();
       orientation = orientation === 'white' ? 'black' : 'white';
       board.orientation(orientation);
+
       var wn = document.getElementById('white-player-name');
       var bn = document.getElementById('black-player-name');
-      var tmp = wn.textContent; wn.textContent = bn.textContent; bn.textContent = tmp;
+      var tmpName = wn.textContent; wn.textContent = bn.textContent; bn.textContent = tmpName;
+
+      var wa = document.getElementById('white-avatar');
+      var ba = document.getElementById('black-avatar');
+      var tmpHtml = wa.innerHTML; wa.innerHTML = ba.innerHTML; ba.innerHTML = tmpHtml;
+
+      var evalTrack = document.getElementById('eval-track');
+      if (evalTrack) evalTrack.classList.toggle('flipped', orientation === 'black');
+
       showMessage('Flipped to ' + orientation, 'info');
       drawOverlay();
     });
 
-    /* 4. Keyboard */
+    /* 3.5 ── Load player avatar thumbnails (this is what was missing) ── */
+    applyPlayerThumb(document.getElementById('white-avatar'), '{{ game.white_player|escapejs }}');
+    applyPlayerThumb(document.getElementById('black-avatar'), '{{ game.black_player|escapejs }}');
+
     document.addEventListener('keydown', function (e) {
       if (['INPUT','TEXTAREA'].includes(e.target.tagName) || e.target.isContentEditable) return;
       switch (e.key) {
@@ -994,18 +1094,10 @@
         case 'r': case 'R':          e.preventDefault(); document.getElementById('resetBtn').click(); break;
         case 'f': case 'F':          e.preventDefault(); document.getElementById('flipBtn').click(); break;
         case 'Home':                 e.preventDefault(); document.getElementById('resetBtn').click(); break;
-        case 'Escape':
-          if (dragPreview) {
-            document.removeEventListener('mousemove', onDragMove);
-            document.removeEventListener('mouseup', onDragEnd);
-            dragPreview = null;
-          }
-          clearOverlay();
-          break;
+        case 'Escape':               clearOverlay(); break;
       }
     });
 
-    /* 5. Comment form */
     document.getElementById('commentForm').addEventListener('submit', function (e) {
       e.preventDefault();
       var form = e.target;
@@ -1029,39 +1121,55 @@
         .catch(function () { showMessage('Network error', 'error'); });
     });
 
-    /* 6. Arrow / highlight mouse events */
     var boardDiv = document.getElementById('game-board');
+
+    boardDiv.addEventListener('contextmenu', function (e) { e.preventDefault(); }, true);
 
     boardDiv.addEventListener('mousedown', function (e) {
       if (e.button !== 2) return;
       e.preventDefault();
       var pos = boardXY(e);
       if (!pos) return;
-      var fromSq = pxToSq(pos.x, pos.y);
-      if (!fromSq) return;
-      suppressContextMenu = true;
-      dragPreview = {
-        from:  fromSq,
-        toPt:  sqCenter(fromSq),
-        toSq:  fromSq,
-        color: pickColor({ shift: e.shiftKey, ctrl: e.ctrlKey, alt: e.altKey })
-      };
-      document.addEventListener('mousemove', onDragMove);
-      document.addEventListener('mouseup', onDragEnd);
+      dragFrom  = pxToSq(pos.x, pos.y);
+      dragStart = pos;
+      dragMods  = { shift: e.shiftKey, ctrl: e.ctrlKey, alt: e.altKey };
     });
 
-    /* left-click on board clears drawings */
+    boardDiv.addEventListener('mouseup', function (e) {
+      if (e.button !== 2) return;
+      e.preventDefault();
+      if (!dragFrom) return;
+      var pos  = boardXY(e);
+      if (!pos) { dragFrom = null; return; }
+      var toSq = pxToSq(pos.x, pos.y);
+      var dx   = pos.x - dragStart.x;
+      var dy   = pos.y - dragStart.y;
+      var dist = Math.sqrt(dx*dx + dy*dy);
+      var color = pickColor(dragMods);
+
+      if (dist < 8 || toSq === dragFrom) {
+        var hkey = dragFrom;
+        if (highlights[hkey]) { delete highlights[hkey]; }
+        else                  { highlights[hkey] = color; }
+      } else if (toSq) {
+        var akey = dragFrom + '-' + toSq;
+        if (arrows[akey]) { delete arrows[akey]; }
+        else              { arrows[akey] = { from: dragFrom, to: toSq, color: color }; }
+      }
+
+      dragFrom = null;
+      drawOverlay();
+    });
+
     boardDiv.addEventListener('click', function (e) {
       if (e.button === 0) clearOverlay();
     });
 
-    /* 7. Initial render */
     renderMovesList();
     moveIndex = 1; currentMoveNumber = 1;
     updateBoard();
     renderComments();
 
-    /* 8. Draw overlay once board is fully painted */
     setTimeout(drawOverlay, 150);
   });
 

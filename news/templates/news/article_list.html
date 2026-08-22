@@ -3,398 +3,432 @@
 {% block content %}
 
 <style>
-  /* ── Layout ───────────────────────────────────────────────── */
-  .blogs-layout {
+  :root {
+    --gm-paper: #EFE7D6;
+    --gm-ink: #171310;
+    --gm-panel: #211B14;
+    --gm-panel-alt: #2A2219;
+    --gm-line: #3E3423;
+    --gm-oxblood: #9A3E2E;
+    --gm-oxblood-deep: #7A2F22;
+    --gm-brass: #C9A03D;
+    --gm-brass-soft: rgba(201, 160, 61, 0.16);
+    --gm-stone: #A99C82;
+    --gm-cream: #F3ECDA;
+    --gm-emerald: #4E7A52;
+  }
+
+  .gm-blogs-layout {
     display: grid;
     grid-template-columns: 220px 1fr;
-    gap: 20px;
+    gap: 22px;
     align-items: start;
   }
 
-  /* ── Sidebar ──────────────────────────────────────────────── */
-  .sidebar-panel {
-    background: var(--card-color);
-    border: 1px solid var(--border);
-    border-radius: 12px;
+  .gm-side-plate {
+    background: var(--gm-panel);
+    border: 1px solid var(--gm-line);
+    border-radius: 6px;
     overflow: hidden;
     position: sticky;
     top: 16px;
   }
 
-  .sidebar-header {
+  .gm-side-head {
     padding: 12px 16px;
-    border-bottom: 1px solid var(--border);
-    font-size: 0.78rem;
+    border-bottom: 1px solid var(--gm-line);
+    background: var(--gm-panel-alt);
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 0.72rem;
     font-weight: 700;
     letter-spacing: 1.5px;
     text-transform: uppercase;
-    color: var(--chess-light);
-    display: flex;
-    align-items: center;
-    gap: 6px;
-  }
-
-  .sidebar-header i { color: var(--chess-primary); }
-
-  .sidebar-links { padding: 8px; }
-
-  .sidebar-link {
+    color: var(--gm-cream);
     display: flex;
     align-items: center;
     gap: 8px;
+  }
+
+  .gm-side-head .gm-piece-mark { color: var(--gm-brass); font-size: 0.95rem; }
+
+  .gm-side-links { padding: 8px; }
+
+  .gm-side-link {
+    display: flex;
+    align-items: center;
+    gap: 9px;
     padding: 9px 12px;
-    border-radius: 8px;
-    font-size: 0.85rem;
+    border-radius: 4px;
+    font-family: 'Source Serif 4', Georgia, serif;
+    font-size: 0.87rem;
     font-weight: 600;
-    color: var(--chess-secondary);
+    color: var(--gm-stone);
     text-decoration: none;
     transition: all 0.15s;
   }
 
-  .sidebar-link i { color: var(--color-gray-400); font-size: 0.9rem; }
+  .gm-side-link i { color: var(--gm-line); font-size: 0.9rem; }
 
-  .sidebar-link:hover {
-    background: oklch(22% 0.015 256);
-    color: var(--chess-light);
+  .gm-side-link:hover {
+    background: var(--gm-panel-alt);
+    color: var(--gm-cream);
   }
 
-  .sidebar-link:hover i { color: var(--chess-primary); }
+  .gm-side-link:hover i { color: var(--gm-brass); }
 
-  .sidebar-divider { height: 1px; background: var(--border); margin: 6px 8px; }
+  .gm-side-divider { height: 1px; background: var(--gm-line); margin: 6px 8px; }
 
-  .create-post-btn {
+  .gm-post-btn {
     display: flex;
     align-items: center;
     justify-content: center;
-    gap: 6px;
+    gap: 7px;
     width: calc(100% - 16px);
     margin: 8px;
-    padding: 9px;
-    border-radius: 8px;
+    padding: 10px;
+    border-radius: 3px;
     border: none;
-    background: var(--chess-primary);
-    color: #fff;
-    font-size: 0.82rem;
+    background: var(--gm-oxblood);
+    color: var(--gm-cream);
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 0.75rem;
     font-weight: 700;
+    letter-spacing: 0.4px;
+    text-transform: uppercase;
     text-decoration: none;
     transition: all 0.18s;
     cursor: pointer;
   }
 
-  .create-post-btn:hover { background: #67804a; color: #fff; transform: translateY(-1px); }
+  .gm-post-btn:hover { background: var(--gm-oxblood-deep); color: var(--gm-cream); transform: translateY(-1px); }
 
-  .auth-btn {
+  .gm-auth-btn {
     display: block;
     width: calc(100% - 16px);
     margin: 4px 8px;
-    padding: 8px;
-    border-radius: 8px;
-    font-size: 0.82rem;
+    padding: 9px;
+    border-radius: 3px;
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 0.75rem;
     font-weight: 700;
+    letter-spacing: 0.3px;
+    text-transform: uppercase;
     text-align: center;
     text-decoration: none;
     transition: all 0.18s;
   }
 
-  .auth-btn-primary {
-    background: var(--chess-primary);
-    color: #fff;
+  .gm-auth-btn-primary {
+    background: var(--gm-oxblood);
+    color: var(--gm-cream);
     border: none;
   }
 
-  .auth-btn-primary:hover { background: #67804a; color: #fff; }
+  .gm-auth-btn-primary:hover { background: var(--gm-oxblood-deep); color: var(--gm-cream); }
 
-  .auth-btn-outline {
+  .gm-auth-btn-outline {
     background: transparent;
-    color: var(--chess-secondary);
-    border: 1px solid var(--border);
+    color: var(--gm-stone);
+    border: 1px solid var(--gm-line);
   }
 
-  .auth-btn-outline:hover { border-color: var(--chess-primary); color: var(--chess-primary); }
+  .gm-auth-btn-outline:hover { border-color: var(--gm-brass); color: var(--gm-brass); }
 
-  /* ── Main content ─────────────────────────────────────────── */
-  .page-heading-row {
+  .gm-page-row {
     display: flex;
     align-items: center;
     justify-content: space-between;
-    margin-bottom: 16px;
+    margin-bottom: 18px;
   }
 
-  .page-heading {
-    font-size: 1.15rem;
-    font-weight: 800;
-    color: var(--chess-light);
+  .gm-page-heading {
+    font-family: 'Fraunces', Georgia, serif;
+    font-size: 1.3rem;
+    font-weight: 700;
+    color: var(--gm-cream);
     margin: 0;
+    display: flex;
+    align-items: center;
+    gap: 10px;
   }
 
-  /* ── Blog grid ────────────────────────────────────────────── */
-  .blog-grid {
+  .gm-page-heading .gm-piece-mark { color: var(--gm-brass); font-size: 1.1rem; }
+
+  .gm-blog-grid {
     display: grid;
     grid-template-columns: repeat(auto-fill, minmax(290px, 1fr));
-    gap: 16px;
+    gap: 18px;
   }
 
-  /* ── Blog card ────────────────────────────────────────────── */
-  .blog-card {
-    background: var(--card-color);
-    border: 1px solid var(--border);
-    border-radius: 12px;
+  .gm-blog-card {
+    background: var(--gm-panel);
+    border: 1px solid var(--gm-line);
+    border-radius: 5px;
     overflow: hidden;
     display: flex;
     flex-direction: column;
     text-decoration: none;
-    color: var(--chess-light);
-    transition: transform 0.2s ease, border-color 0.2s ease, box-shadow 0.2s ease;
-    animation: fadeInUp 0.45s ease-out both;
+    color: var(--gm-cream);
+    transition: transform 0.2s ease, border-color 0.2s ease;
+    animation: gm-fade-up 0.45s ease-out both;
   }
 
-  @keyframes fadeInUp {
+  @keyframes gm-fade-up {
     from { opacity: 0; transform: translateY(16px); }
     to   { opacity: 1; transform: translateY(0); }
   }
 
-  .blog-card:nth-child(1) { animation-delay: 0.04s; }
-  .blog-card:nth-child(2) { animation-delay: 0.08s; }
-  .blog-card:nth-child(3) { animation-delay: 0.12s; }
-  .blog-card:nth-child(4) { animation-delay: 0.16s; }
-  .blog-card:nth-child(5) { animation-delay: 0.20s; }
-  .blog-card:nth-child(6) { animation-delay: 0.24s; }
+  .gm-blog-card:nth-child(1) { animation-delay: 0.04s; }
+  .gm-blog-card:nth-child(2) { animation-delay: 0.08s; }
+  .gm-blog-card:nth-child(3) { animation-delay: 0.12s; }
+  .gm-blog-card:nth-child(4) { animation-delay: 0.16s; }
+  .gm-blog-card:nth-child(5) { animation-delay: 0.20s; }
+  .gm-blog-card:nth-child(6) { animation-delay: 0.24s; }
 
-  .blog-card::before {
+  .gm-blog-card::before {
     content: '';
     display: block;
     height: 2px;
-    background: var(--chess-primary);
+    background: var(--gm-brass);
     opacity: 0;
     transition: opacity 0.2s;
   }
 
-  .blog-card:hover {
+  .gm-blog-card:hover {
     transform: translateY(-5px);
-    border-color: var(--chess-primary);
-    box-shadow: 0 10px 28px rgba(119,149,86,0.16);
-    color: var(--chess-light);
+    border-color: var(--gm-brass);
+    color: var(--gm-cream);
   }
 
-  .blog-card:hover::before { opacity: 1; }
+  .gm-blog-card:hover::before { opacity: 1; }
 
-  .blog-card-img {
+  .gm-blog-img {
     width: 100%;
     height: 180px;
     object-fit: cover;
     display: block;
+    filter: saturate(0.9);
     transition: transform 0.3s ease;
   }
 
-  .blog-card:hover .blog-card-img { transform: scale(1.04); }
+  .gm-blog-card:hover .gm-blog-img { transform: scale(1.04); }
 
-  .blog-img-placeholder {
+  .gm-blog-placeholder {
     height: 180px;
     display: flex;
     align-items: center;
     justify-content: center;
-    background: oklch(20% 0.015 256);
-    color: var(--chess-primary);
-    font-size: 2.5rem;
-    opacity: 0.5;
+    background: repeating-conic-gradient(var(--gm-panel-alt) 0% 25%, var(--gm-ink) 0% 50%) 0 0/28px 28px;
+    color: var(--gm-brass);
+    font-size: 2.3rem;
+    opacity: 0.55;
   }
 
-  .blog-card-body {
-    padding: 14px;
+  .gm-blog-body {
+    padding: 15px;
     flex: 1;
     display: flex;
     flex-direction: column;
   }
 
-  .blog-card-title {
-    font-size: 0.98rem;
+  .gm-blog-title {
+    font-family: 'Fraunces', Georgia, serif;
+    font-size: 1rem;
     font-weight: 700;
-    color: var(--chess-light);
+    color: var(--gm-cream);
     line-height: 1.4;
-    margin-bottom: 6px;
+    margin-bottom: 7px;
   }
 
-  .blog-card-meta {
-    font-size: 0.73rem;
-    color: var(--color-gray-400);
+  .gm-blog-meta {
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 0.68rem;
+    color: var(--gm-stone);
     font-weight: 600;
-    margin-bottom: 8px;
+    margin-bottom: 9px;
     display: flex;
     align-items: center;
-    gap: 4px;
+    gap: 5px;
   }
 
-  .blog-card-meta i { color: var(--chess-primary); }
+  .gm-blog-meta i { color: var(--gm-brass); }
 
-  .blog-card-excerpt {
-    font-size: 0.83rem;
-    color: var(--chess-secondary);
-    line-height: 1.55;
+  .gm-blog-excerpt {
+    font-family: 'Source Serif 4', Georgia, serif;
+    font-size: 0.85rem;
+    color: var(--gm-stone);
+    line-height: 1.6;
     flex: 1;
   }
 
-  .blog-card-footer {
-    padding: 10px 14px;
-    border-top: 1px solid var(--border);
+  .gm-blog-footer {
+    padding: 11px 15px;
+    border-top: 1px dashed var(--gm-line);
     display: flex;
     align-items: center;
     justify-content: space-between;
   }
 
-  .blog-card-stats {
+  .gm-blog-stats {
     display: flex;
-    gap: 14px;
+    gap: 16px;
   }
 
-  .blog-stat {
+  .gm-blog-stat {
     display: flex;
     flex-direction: column;
     align-items: center;
     gap: 1px;
   }
 
-  .blog-stat-value {
-    font-size: 0.95rem;
-    font-weight: 800;
-    color: var(--chess-primary);
+  .gm-blog-stat-value {
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 0.9rem;
+    font-weight: 700;
+    color: var(--gm-brass);
   }
 
-  .blog-stat-label {
-    font-size: 0.62rem;
+  .gm-blog-stat-label {
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 0.6rem;
     letter-spacing: 1px;
     text-transform: uppercase;
-    color: var(--color-gray-400);
+    color: var(--gm-stone);
   }
 
-  .blog-card-arrow {
-    color: var(--color-gray-400);
+  .gm-blog-arrow {
+    color: var(--gm-stone);
     font-size: 0.9rem;
     transition: all 0.15s;
   }
 
-  .blog-card:hover .blog-card-arrow { color: var(--chess-primary); transform: translateX(3px); }
+  .gm-blog-card:hover .gm-blog-arrow { color: var(--gm-brass); transform: translateX(3px); }
 
-  /* ── Empty ────────────────────────────────────────────────── */
-  .empty-state {
+  .gm-empty-state {
     text-align: center;
-    padding: 56px 20px;
-    color: var(--color-gray-400);
+    padding: 58px 20px;
+    color: var(--gm-stone);
   }
 
-  .empty-state i {
-    font-size: 3rem;
-    margin-bottom: 12px;
-    color: var(--chess-primary);
-    opacity: 0.4;
+  .gm-empty-state i {
+    font-size: 2.8rem;
+    margin-bottom: 14px;
+    color: var(--gm-brass);
+    opacity: 0.5;
   }
 
-  .empty-state h3 {
+  .gm-empty-state h3 {
+    font-family: 'Fraunces', Georgia, serif;
     font-size: 1.2rem;
     font-weight: 700;
-    color: var(--chess-light);
+    color: var(--gm-cream);
     margin-bottom: 6px;
   }
 
-  .empty-create-btn {
+  .gm-empty-state p {
+    font-family: 'Source Serif 4', Georgia, serif;
+  }
+
+  .gm-empty-btn {
     display: inline-flex;
     align-items: center;
-    gap: 6px;
-    margin-top: 16px;
-    padding: 9px 22px;
-    border-radius: 99px;
-    font-size: 0.85rem;
+    gap: 7px;
+    margin-top: 18px;
+    padding: 10px 24px;
+    border-radius: 3px;
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 0.78rem;
     font-weight: 700;
-    background: var(--chess-primary);
-    color: #fff;
+    letter-spacing: 0.3px;
+    text-transform: uppercase;
+    background: var(--gm-oxblood);
+    color: var(--gm-cream);
     text-decoration: none;
     transition: all 0.18s;
   }
 
-  .empty-create-btn:hover { background: #67804a; color: #fff; transform: translateY(-2px); }
+  .gm-empty-btn:hover { background: var(--gm-oxblood-deep); color: var(--gm-cream); transform: translateY(-2px); }
 
-  /* ── Responsive ───────────────────────────────────────────── */
   @media (max-width: 760px) {
-    .blogs-layout { grid-template-columns: 1fr; }
-    .sidebar-panel { position: static; }
-    .blog-grid { grid-template-columns: 1fr; }
+    .gm-blogs-layout { grid-template-columns: 1fr; }
+    .gm-side-plate { position: static; }
+    .gm-blog-grid { grid-template-columns: 1fr; }
   }
 </style>
 
-<div class="blogs-layout">
+<div class="gm-blogs-layout">
 
-  <!-- ── Sidebar ──────────────────────────────────────────── -->
-  <div class="sidebar-panel">
+  <div class="gm-side-plate">
 
     {% if request.user.is_authenticated %}
-    <div class="sidebar-header">
-      <i class="bi bi-journal-text"></i> {{ request.user.username }}'s Blog
+    <div class="gm-side-head">
+      <span class="gm-piece-mark">&#9821;</span> {{ request.user.username }}'s Blog
     </div>
-    <div class="sidebar-links">
-      <a href="{% url 'user_blogs' request.user.username %}" class="sidebar-link">
+    <div class="gm-side-links">
+      <a href="{% url 'user_blogs' request.user.username %}" class="gm-side-link">
         <i class="bi bi-person-lines-fill"></i> My Blogs
       </a>
-      <a href="{% url 'all_blogs' %}" class="sidebar-link">
+      <a href="{% url 'all_blogs' %}" class="gm-side-link">
         <i class="bi bi-collection"></i> All Blogs
       </a>
     </div>
-    <div class="sidebar-divider"></div>
-    <a href="{% url 'write_article' %}" class="create-post-btn">
+    <div class="gm-side-divider"></div>
+    <a href="{% url 'write_article' %}" class="gm-post-btn">
       <i class="bi bi-plus-circle"></i> Create Post
     </a>
 
     {% else %}
-    <div class="sidebar-header">
-      <i class="bi bi-people"></i> Join Community
+    <div class="gm-side-head">
+      <span class="gm-piece-mark">&#9814;</span> Join Community
     </div>
     <div style="padding:12px 8px 8px;">
-      <a href="{% url 'register' %}" class="auth-btn auth-btn-primary">Sign Up</a>
-      <a href="{% url 'login' %}"    class="auth-btn auth-btn-outline" style="margin-top:6px;display:block;text-align:center;text-decoration:none;padding:8px;border-radius:8px;border:1px solid var(--border);color:var(--chess-secondary);font-size:0.82rem;font-weight:700;">Login</a>
+      <a href="{% url 'register' %}" class="gm-auth-btn gm-auth-btn-primary">Sign Up</a>
+      <a href="{% url 'login' %}" class="gm-auth-btn gm-auth-btn-outline" style="margin-top:6px;">Login</a>
     </div>
     {% endif %}
 
   </div>
 
-  <!-- ── Blogs ────────────────────────────────────────────── -->
   <div>
-    <div class="page-heading-row">
-      <h2 class="page-heading">✍️ Blog Community</h2>
+    <div class="gm-page-row">
+      <h2 class="gm-page-heading"><span class="gm-piece-mark">&#9814;</span> Blog Community</h2>
     </div>
 
     {% if blogs %}
-    <div class="blog-grid">
+    <div class="gm-blog-grid">
       {% for blog in blogs %}
-      <a href="{% url 'article_detail' slug=blog.slug %}" class="blog-card">
+      <a href="{% url 'article_detail' slug=blog.slug %}" class="gm-blog-card">
 
         {% if blog.image %}
-        <img src="{{ blog.image.url }}" class="blog-card-img" alt="{{ blog.title }}">
+        <img src="{{ blog.image.url }}" class="gm-blog-img" alt="{{ blog.title }}">
         {% else %}
-        <div class="blog-img-placeholder">
+        <div class="gm-blog-placeholder">
           <i class="bi bi-journal-text"></i>
         </div>
         {% endif %}
 
-        <div class="blog-card-body">
-          <div class="blog-card-title">{{ blog.title }}</div>
-          <div class="blog-card-meta">
+        <div class="gm-blog-body">
+          <div class="gm-blog-title">{{ blog.title }}</div>
+          <div class="gm-blog-meta">
             <i class="bi bi-person-fill"></i> {{ blog.author.username }}
           </div>
-          <div class="blog-card-excerpt">
+          <div class="gm-blog-excerpt">
             {{ blog.content|remove_img_tags|truncatewords:28|safe }}
           </div>
         </div>
 
-        <div class="blog-card-footer">
-          <div class="blog-card-stats">
-            <div class="blog-stat">
-              <span class="blog-stat-value">{{ blog.comments.count }}</span>
-              <span class="blog-stat-label">Comments</span>
+        <div class="gm-blog-footer">
+          <div class="gm-blog-stats">
+            <div class="gm-blog-stat">
+              <span class="gm-blog-stat-value">{{ blog.comments.count }}</span>
+              <span class="gm-blog-stat-label">Comments</span>
             </div>
-            <div class="blog-stat">
-              <span class="blog-stat-value">{{ blog.likes.count }}</span>
-              <span class="blog-stat-label">Likes</span>
+            <div class="gm-blog-stat">
+              <span class="gm-blog-stat-value">{{ blog.likes.count }}</span>
+              <span class="gm-blog-stat-label">Likes</span>
             </div>
           </div>
-          <i class="bi bi-arrow-right blog-card-arrow"></i>
+          <i class="bi bi-arrow-right gm-blog-arrow"></i>
         </div>
 
       </a>
@@ -402,16 +436,16 @@
     </div>
 
     {% else %}
-    <div class="empty-state">
+    <div class="gm-empty-state">
       <i class="bi bi-journal-text"></i>
       <h3>No Blogs Yet</h3>
       <p>Start sharing your ideas with the community.</p>
       {% if user.is_authenticated %}
-      <a href="{% url 'write_article' %}" class="empty-create-btn">
+      <a href="{% url 'write_article' %}" class="gm-empty-btn">
         <i class="bi bi-plus-circle"></i> Write First Blog
       </a>
       {% else %}
-      <a href="{% url 'register' %}" class="empty-create-btn">
+      <a href="{% url 'register' %}" class="gm-empty-btn">
         <i class="bi bi-person-plus"></i> Join to Write
       </a>
       {% endif %}

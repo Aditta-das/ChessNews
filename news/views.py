@@ -1,9 +1,11 @@
 from django.shortcuts import render, get_object_or_404, redirect
 from django.urls import reverse
+import chess.pgn
+from io import StringIO
 from .models import Article, TopPlayerImg, \
     TournamentBanner, BangladeshiTopPlayer, Book, \
         Puzzle, EmailOTP, PuzzleSolve, UserProfile, \
-            BoardVision, UploadedGame, GameComment, Events, Message, MemoryPosition
+            BoardVision, UploadedGame, GameComment, Events, Message, MemoryPosition, ChessPuzzleSolve, DailyPuzzle
 from django.contrib.auth.models import User
 from django.contrib.auth import logout
 import requests, random, json
@@ -187,7 +189,12 @@ def home(request):
         start__lt=next_month,
         end__date__gte=first_day
     ).order_by("start")
+    
+    daily_entry = DailyPuzzle.objects.select_related('puzzle').filter(
+        date=today
+    ).first()
 
+    daily_puzzle = daily_entry.puzzle if daily_entry else None
     profile = None
     if request.user.is_authenticated:
         try:
@@ -198,7 +205,7 @@ def home(request):
     # ─────────────────────────────────────────
     # Render
     # ─────────────────────────────────────────
-    return render(request, 'news/home.html', {
+    return render(request, 'news/home1.html', {
         'big_news': big_news,
         'small_news': small_news,
         'best_reporter': best_reporter,
@@ -206,6 +213,7 @@ def home(request):
         'home_banner': home_banner,
         'tournaments': tournaments,
         'profile': profile,
+        'daily_puzzle': daily_puzzle,
     })
 
 @login_required
@@ -711,96 +719,259 @@ def custom_404(request, exception):
 from .forms import *
 from .models import UploadedGame, GameComment
 
+from django.contrib.auth.decorators import login_required
+from django.http import JsonResponse
+from django.shortcuts import render, redirect
+from django.urls import reverse
+
+from .forms import UploadedGameForm
+from .models import UploadedGame
+
+
 @login_required
 def game_page(request):
     if request.method == 'POST':
         form = UploadedGameForm(request.POST, request.FILES)
+
         if form.is_valid():
             game = form.save(commit=False)
+
+            # Attach current user
             game.uploaded_by = request.user
+
+            # Save game
             game.save()
-            # Return saved PGN so JS can render moves
-            return JsonResponse({
-                'success': True,
-                'title': game.title,
-                'pgn': game.pgn,
-                'white_player': game.white_player,
-                'black_player': game.black_player,
-            })
-        else:
-            return JsonResponse({'success': False, 'errors': form.errors}, status=400)
 
-    else:
-        form = UploadedGameForm()
+            # IMPORTANT:
+            # Normal PGN upload should redirect directly
+            # to the game detail page.
+            return redirect(
+                'game_detail',
+                slug=game.slug_link
+            )
 
-    return render(request, 'news/game_page.html', {'game_form': form})
+        # If form is invalid, show the page again
+        return render(
+            request,
+            'news/game_page.html',
+            {
+                'game_form': form
+            }
+        )
+
+    # GET request
+    form = UploadedGameForm()
+
+    return render(
+        request,
+        'news/game_page.html',
+        {
+            'game_form': form
+        }
+    )
+
 
 @login_required
-def fetch_chesscom_games(request):
-    if request.method == "POST":
-        username = request.POST.get("username")
-        year = request.POST.get("year")
-        month = request.POST.get("month")
-        if not (username and year and month):
-            return JsonResponse({'success': False, 'error': 'Missing parameters'}, status=400)
+def upload_pgn_file(request):
 
-        # Convert month/year to int
-        try:
-            year = int(year)
-            month = int(month)
-        except:
-            return JsonResponse({'success': False, 'error': 'Invalid month/year'}, status=400)
+    if request.method != "POST":
 
-        import requests
-        url = f"https://api.chess.com/pub/player/{username}/games/{year}/{month:02d}"
-        r = requests.get(url)
-
-        if r.status_code != 200:
-            return JsonResponse({'success': False, 'error': f'Failed to fetch: {r.status_code}'}, status=r.status_code)
-
-        data = r.json()
-        games_list = []
-        for g in data.get("games", []):
-            games_list.append({
-                "white": g["white"]["username"],
-                "black": g["black"]["username"],
-                "url": g.get("url", "#"),
-                "pgn": g.get("pgn", ""),   # ← ADD THIS
-                "end_time": g.get("end_time")
+        return JsonResponse({
+            "success":False,
+            "error":"Invalid request"
+        })
+    file = request.FILES.get(
+        "file"
+    )
+    if not file:
+        return JsonResponse({
+            "success":False,
+            "error":"No PGN file selected"
+        })
+    try:
+        pgn_text = file.read().decode(
+            "utf-8"
+        )
+        pgn_io = StringIO(
+            pgn_text
+        )
+        game = chess.pgn.read_game(
+            pgn_io
+        )
+        # no game
+        if game is None:
+            return JsonResponse({
+                "success":False,
+                "error":"Invalid PGN file"
             })
+        # Check second game
+        second_game = chess.pgn.read_game(
+            pgn_io
+        )
+        if second_game:
+            return JsonResponse({
+                "success":False,
+                "error":
+                "This file contains multiple games. Upload one game only."
 
-        return JsonResponse({'success': True, 'games': games_list})
-    return JsonResponse({'success': False, 'error': 'Invalid method'}, status=405)
+            })
+        white = game.headers.get(
+            "White",
+            ""
+        )
+        black = game.headers.get(
+            "Black",
+            ""
+        )
+
+        title = f"{white} vs {black}"
+        uploaded_game = UploadedGame.objects.create(
+            uploaded_by=request.user,
+            title=title,
+            pgn=pgn_text,
+            white_player=white,
+            black_player=black
+        )
+        return JsonResponse({
+            "success":True,
+            "redirect_url":
+            reverse(
+                "game_detail",
+                args=[
+                    uploaded_game.slug_link
+                ]
+            )
+        })
+
+    except Exception as e:
+        return JsonResponse({
+            "success":False,
+            "error":str(e)
+        })
+        
+        
+@login_required
+def fetch_chesscom_games(request):
+    if request.method != "POST":
+        return JsonResponse({
+            'success': False,
+            'error': 'Invalid method'
+        }, status=405)
+
+    username = request.POST.get("username")
+    year = request.POST.get("year")
+    month = request.POST.get("month")
+
+    if not username or not year or not month:
+        return JsonResponse({
+            'success': False,
+            'error': 'Missing parameters'
+        }, status=400)
+
+    try:
+        year = int(year)
+        month = int(month)
+    except (ValueError, TypeError):
+        return JsonResponse({
+            'success': False,
+            'error': 'Invalid month/year'
+        }, status=400)
+
+    import requests
+
+    url = (
+        f"https://api.chess.com/pub/player/"
+        f"{username}/games/{year}/{month:02d}"
+    )
+
+    try:
+        response = requests.get(
+            url,
+            timeout=15,
+            headers={
+                "User-Agent": "ChessNewsBD/1.0"
+            }
+        )
+    except requests.RequestException as e:
+        return JsonResponse({
+            'success': False,
+            'error': f'Connection failed: {str(e)}'
+        }, status=502)
+
+    if response.status_code != 200:
+        return JsonResponse({
+            'success': False,
+            'error': f'Failed to fetch: {response.status_code}'
+        }, status=response.status_code)
+
+    data = response.json()
+
+    games_list = []
+
+    for game in data.get("games", []):
+        games_list.append({
+            "white": game.get("white", {}).get("username", ""),
+            "black": game.get("black", {}).get("username", ""),
+            "url": game.get("url", "#"),
+            "pgn": game.get("pgn", ""),
+            "end_time": game.get("end_time"),
+        })
+
+    return JsonResponse({
+        'success': True,
+        'games': games_list
+    })
 
 @login_required
 def save_chesscom_game(request):
-    if request.method == 'POST':
-        username = request.POST.get('username')
-        white = request.POST.get('white')
-        black = request.POST.get('black')
-        url = request.POST.get('url')
-        end_time = request.POST.get('end_time')  # timestamp
-        title = request.POST.get('title', f"{white} vs {black}")
-
-        if not all([username, white, black, url, end_time]):
-            return JsonResponse({'success': False, 'error': 'Missing data'}, status=400)
-
-        # Save the game
-        game = UploadedGame.objects.create(
-            uploaded_by=request.user,
-            title=title,
-            pgn=request.POST.get('pgn', ''),
-            white_player=white,
-            black_player=black,
-        )
-
-        # Return redirect URL to game details
+    if request.method != 'POST':
         return JsonResponse({
-            'success': True,
-            'redirect_url': reverse('game_detail', args=[game.slug_link])
-        })
+            'success': False,
+            'error': 'Invalid request'
+        }, status=405)
 
-    return JsonResponse({'success': False, 'error': 'Invalid request'}, status=400)
+    username = request.POST.get('username')
+    white = request.POST.get('white')
+    black = request.POST.get('black')
+    url = request.POST.get('url')
+    end_time = request.POST.get('end_time')
+    pgn = request.POST.get('pgn', '')
+
+    title = request.POST.get('title')
+
+    if not title:
+        title = f"{white} vs {black}"
+
+    # Validate required data
+    if not all([
+        username,
+        white,
+        black,
+        url,
+        end_time
+    ]):
+        return JsonResponse({
+            'success': False,
+            'error': 'Missing data'
+        }, status=400)
+
+    # Create game
+    game = UploadedGame.objects.create(
+        uploaded_by=request.user,
+        title=title,
+        pgn=pgn,
+        white_player=white,
+        black_player=black,
+    )
+
+    # Send detail URL back to JavaScript
+    return JsonResponse({
+        'success': True,
+        'redirect_url': reverse(
+            'game_detail',
+            args=[game.slug_link]
+        )
+    })
 
 def all_games(request):
     games = UploadedGame.objects.all().order_by("-created_at")
@@ -823,7 +994,7 @@ def game_detail(request, slug):
     # Initialize empty form for adding comments
     form = GameCommentForm()
     
-    return render(request, 'news/game_detail.html', {
+    return render(request, 'news/game_detail4.html', {
         'game': game,
         'comments_json': list(comments),
         'form': form
@@ -1064,298 +1235,85 @@ def memory_api(request):
     return JsonResponse(data, safe=False)
 
 
-import json
-
+# news/views.py
+from django.contrib import messages
 from django.contrib.auth.decorators import login_required
-from django.http import JsonResponse
-from django.shortcuts import render
-from django.views.decorators.http import require_POST
+from django.shortcuts import render, redirect, get_object_or_404
+from django.utils import timezone
 
-from news.services import services
+from .models import DailyPuzzle, ChessPuzzleSolve
 
 
-@login_required
 def daily_puzzle_view(request):
-
-    daily_puzzle = services.get_todays_daily_puzzle()
-
-    # ---------------------------------------------
-    # No puzzle
-    # ---------------------------------------------
-
-    if daily_puzzle is None:
-
-        return render(
-            request,
-            "news/daily_puzzle.html",
-            {
-                "puzzle": None,
-            }
-        )
-
-    # ---------------------------------------------
-    # Check whether user already solved it
-    # ---------------------------------------------
-
-    already_solved = services.has_already_solved(
-        request.user,
-        daily_puzzle
+    today = timezone.localdate()
+    daily = (
+        DailyPuzzle.objects
+        .select_related("puzzle")
+        .filter(date=today)
+        .first()
     )
 
-    # ---------------------------------------------
-    # Initialize puzzle session
-    # ---------------------------------------------
+    if daily is None:
+        return render(request, "news/no_puzzle.html", {"today": today})
 
-    if not already_solved:
+    solve = None
+    if request.user.is_authenticated:
+        solve = daily.solves.filter(user=request.user).first()
 
-        services.get_progress(
-            request,
-            daily_puzzle
-        )
-
-    # ---------------------------------------------
-    # Puzzle
-    # ---------------------------------------------
-
-    puzzle = daily_puzzle.puzzle
-
-    context = {
-        "puzzle": puzzle,
-        "already_solved": already_solved,
-        "fen": puzzle.fen,
-        "turn": puzzle.get_turn_display(),
-        "orientation": (
-            "white"
-            if puzzle.turn == "w"
-            else "black"
-        ),
+    puzzle = daily.puzzle
+    explanations = {
+        item["san"]: item.get("explanation", "")
+        for item in (puzzle.move_explanations or [])
     }
 
-    return render(
-        request,
-        "news/daily_puzzle.html",
-        context
-    )
+    context = {
+        "daily": daily,
+        "puzzle": puzzle,
+        "solve": solve,
+        "puzzle_json": {
+            "title": puzzle.title,
+            "player1": puzzle.player1,
+            "player2": puzzle.player2,
+            "fen": puzzle.fen,
+            "turn": puzzle.turn,
+            "difficulty": puzzle.get_difficulty_display(),
+            "hint": puzzle.hint or "",
+            "solution_moves": puzzle.solution_moves,
+            "move_explanations": explanations,
+        },
+    }
+    return render(request, "news/daily_puzzle.html", context)
 
-
-# =========================================================
-# HELPER
-# =========================================================
-
-def _todays_daily_puzzle_or_404_json():
-
-    daily_puzzle = services.get_todays_daily_puzzle()
-
-    if daily_puzzle is None:
-
-        return (
-            None,
-            JsonResponse(
-                {
-                    "error": "No puzzle available."
-                },
-                status=404
-            )
-        )
-
-    return daily_puzzle, None
-
-
-# =========================================================
-# SUBMIT MOVE
-# =========================================================
 
 @login_required
-@require_POST
-def api_submit_move(request):
+def submit_solve_view(request, daily_id):
+    if request.method != "POST":
+        return redirect("daily-puzzle")
 
-    daily_puzzle, error_response = (
-        _todays_daily_puzzle_or_404_json()
+    daily = get_object_or_404(DailyPuzzle, pk=daily_id)
+
+    def to_int(value, default=0):
+        try:
+            return int(value)
+        except (TypeError, ValueError):
+            return default
+
+    wrong_attempts = to_int(request.POST.get("wrong_attempts"), 0)
+
+    ChessPuzzleSolve.objects.get_or_create(
+        user=request.user,
+        daily_puzzle=daily,
+        defaults={
+            "time_taken": to_int(request.POST.get("time_taken"), None),
+            "wrong_attempts": wrong_attempts,
+            "hints_used": to_int(request.POST.get("hints_used"), 0),
+            "made_mistake": wrong_attempts > 0,
+        },
     )
 
-    if error_response:
-        return error_response
+    messages.success(request, "Result saved.")
+    return redirect("daily-puzzle")
 
-    # ---------------------------------------------
-    # Already solved
-    # ---------------------------------------------
-
-    if services.has_already_solved(
-        request.user,
-        daily_puzzle
-    ):
-
-        return JsonResponse(
-            {
-                "error": "Already solved for today.",
-                "solved": True,
-            },
-            status=400
-        )
-
-    # ---------------------------------------------
-    # Parse JSON
-    # ---------------------------------------------
-
-    try:
-
-        payload = json.loads(
-            request.body or "{}"
-        )
-
-    except json.JSONDecodeError:
-
-        return JsonResponse(
-            {
-                "error": "Invalid request body."
-            },
-            status=400
-        )
-
-    # ---------------------------------------------
-    # SAN
-    # ---------------------------------------------
-
-    san = (
-        payload.get("san") or ""
-    ).strip()
-
-    if not san:
-
-        return JsonResponse(
-            {
-                "error": "Missing move."
-            },
-            status=400
-        )
-
-    # ---------------------------------------------
-    # Submit
-    # ---------------------------------------------
-
-    try:
-
-        result = services.submit_move(
-            request,
-            daily_puzzle,
-            san
-        )
-
-    except services.IllegalMoveError as exc:
-
-        return JsonResponse(
-            {
-                "error": str(exc)
-            },
-            status=400
-        )
-
-    # ---------------------------------------------
-    # Make sure response tells frontend
-    # whether puzzle is solved.
-    #
-    # We don't assume your service's exact
-    # response structure. If it already returns
-    # "solved", preserve it.
-    # ---------------------------------------------
-
-    if isinstance(result, dict):
-
-        result.setdefault(
-            "solved",
-            services.has_already_solved(
-                request.user,
-                daily_puzzle
-            )
-        )
-
-    return JsonResponse(result)
-
-
-# =========================================================
-# HINT
-# =========================================================
-
-@login_required
-def api_hint(request):
-
-    daily_puzzle, error_response = (
-        _todays_daily_puzzle_or_404_json()
-    )
-
-    if error_response:
-        return error_response
-
-    if services.has_already_solved(
-        request.user,
-        daily_puzzle
-    ):
-
-        return JsonResponse(
-            {
-                "error": "Already solved for today."
-            },
-            status=400
-        )
-
-    hint = services.get_hint(
-        request,
-        daily_puzzle
-    )
-
-    if hint is None:
-
-        return JsonResponse(
-            {
-                "error": "Nothing left to hint."
-            },
-            status=400
-        )
-
-    return JsonResponse(
-        {
-            "hint": hint
-        }
-    )
-
-
-# =========================================================
-# GIVE UP
-# =========================================================
-
-@login_required
-@require_POST
-def api_give_up(request):
-
-    daily_puzzle, error_response = (
-        _todays_daily_puzzle_or_404_json()
-    )
-
-    if error_response:
-        return error_response
-
-    if services.has_already_solved(
-        request.user,
-        daily_puzzle
-    ):
-
-        return JsonResponse(
-            {
-                "error": "Already solved for today."
-            },
-            status=400
-        )
-
-    solution = services.give_up(
-        request,
-        daily_puzzle
-    )
-
-    return JsonResponse(
-        {
-            "solution": solution
-        }
-    )
 
 ############################## Chat system (will be implemented) ##########################################
 from django.shortcuts import render

@@ -7,8 +7,7 @@
 <link rel="stylesheet" href="{% static 'chessboardjs-1.0.0/css/chessboard-1.0.0.min.css' %}">
 
 <style>
-  /* ── Mobile ───────────────────────────────────────────────── */
-  @media (max-width: 767px) {
+  @media (max-width: 991.98px) {
     #main-layout {
       display: flex;
       flex-direction: column;
@@ -44,7 +43,7 @@
 
     #puzzle-title-small {
       display: block;
-      font-size: 1rem;
+      font-size: 0.95rem;
     }
 
     #controls-container {
@@ -76,10 +75,10 @@
       align-items: center;
       justify-content: center;
       gap: 6px;
-      padding: 9px 10px;
-      font-size: 0.8rem;
+      padding: 10px 8px;
+      font-size: 0.76rem;
       font-weight: 700;
-      border-radius: 8px;
+      border-radius: 4px;
       border: 1px solid transparent;
       cursor: pointer;
       transition: all .2s ease;
@@ -91,7 +90,6 @@
     }
   }
 
-  /* ── LEFT: Puzzle list ────────────────────────────────────── */
   #puzzle-list {
     width: 100%;
     max-height: 90vh;
@@ -99,7 +97,6 @@
     overflow-x: hidden;
   }
 
-  /* Scrollbar */
   #puzzle-list::-webkit-scrollbar {
     width: 4px;
   }
@@ -113,20 +110,37 @@
     border-radius: 99px;
   }
 
-  /* Difficulty tabs */
+  .gm-list-eyebrow {
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 0.62rem;
+    font-weight: 700;
+    letter-spacing: 2.5px;
+    text-transform: uppercase;
+    color: var(--chess-accent);
+    padding: 10px 12px 8px;
+    border: 1px solid var(--border);
+    border-bottom: none;
+    border-radius: 6px 6px 0 0;
+    background: var(--gm-panel-alt);
+    display: flex;
+    align-items: center;
+    gap: 7px;
+  }
+
   .diff-tabs {
     display: grid;
     grid-template-columns: 1fr 1fr 1fr;
     gap: 0;
-    border-radius: 10px 10px 0 0;
     overflow: hidden;
     border: 1px solid var(--border);
+    border-top: none;
     border-bottom: none;
   }
 
   .diff-tab {
     padding: 9px 6px;
-    font-size: 0.75rem;
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 0.72rem;
     font-weight: 700;
     letter-spacing: 1px;
     text-transform: uppercase;
@@ -134,7 +148,7 @@
     cursor: pointer;
     border: none;
     background: var(--card-color);
-    color: var(--color-gray-400);
+    color: var(--chess-secondary);
     transition: all 0.15s ease;
     border-right: 1px solid var(--border);
   }
@@ -148,13 +162,13 @@
   }
 
   .diff-tab.active-easy {
-    background: var(--chess-primary);
+    background: var(--status);
     color: #fff;
   }
 
   .diff-tab.active-medium {
-    background: #d97706;
-    color: #fff;
+    background: var(--chess-accent);
+    color: var(--chess-dark);
   }
 
   .diff-tab.active-hard {
@@ -162,13 +176,12 @@
     color: #fff;
   }
 
-  /* Puzzle list panel */
   .puzzle-list-panel {
-    background: oklch(16% 0.008 256);
+    background: var(--gm-panel-alt);
     border: 1px solid var(--border);
-    border-radius: 0 0 10px 10px;
+    border-radius: 0 0 6px 6px;
     padding: 8px;
-    max-height: calc(90vh - 44px);
+    max-height: calc(90vh - 78px);
     overflow-y: auto;
   }
 
@@ -181,9 +194,8 @@
     border-radius: 99px;
   }
 
-  /* Individual puzzle buttons */
   .puzzle-btn {
-    border-radius: 8px;
+    border-radius: 4px;
     padding: 10px 12px;
     text-align: left;
     margin-bottom: 6px;
@@ -191,18 +203,23 @@
     border: 1px solid var(--border) !important;
     transition: all 0.15s ease;
     display: block;
+    font-family: 'Source Serif 4', Georgia, serif;
   }
 
   .puzzle-btn strong {
     font-size: 0.88rem;
     display: block;
-    margin-bottom: 3px;
+    margin-bottom: 5px;
+    color: var(--chess-light);
+    font-family: 'Fraunces', Georgia, serif;
+    font-weight: 700;
   }
 
   .solved-puzzle {
-    background: oklch(22% 0.01 256) !important;
-    color: var(--color-gray-400) !important;
+    background: var(--card-color) !important;
+    color: var(--chess-secondary) !important;
     border-color: var(--border) !important;
+    opacity: 0.65;
   }
 
   .unsolved-puzzle {
@@ -211,48 +228,58 @@
   }
 
   .unsolved-puzzle:hover {
-    border-color: var(--chess-primary) !important;
+    border-color: var(--chess-accent) !important;
     color: var(--chess-light) !important;
-    background: oklch(24% 0.015 256) !important;
+    background: var(--card-color) !important;
+    transform: translateX(2px);
   }
 
   .diff-badge {
     display: inline-block;
-    padding: 2px 8px;
-    border-radius: 99px;
-    font-size: 0.65rem;
+    padding: 2px 9px;
+    border-radius: 3px;
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 0.62rem;
     font-weight: 700;
     letter-spacing: 1px;
     text-transform: uppercase;
   }
 
   .diff-badge.easy {
-    background: rgba(119, 149, 86, 0.2);
-    color: var(--chess-primary);
+    background: rgba(78, 122, 82, 0.18);
+    color: var(--status);
   }
 
   .diff-badge.medium {
-    background: rgba(217, 119, 6, 0.2);
-    color: #d97706;
+    background: rgba(201, 160, 61, 0.18);
+    color: var(--chess-accent);
   }
 
   .diff-badge.hard {
-    background: rgba(200, 75, 75, 0.2);
+    background: rgba(184, 73, 58, 0.18);
     color: var(--chess-red);
   }
 
-  /* ── CENTER: Board ────────────────────────────────────────── */
   #board-container {
     width: 100%;
-    max-width: 600px;
+    max-width: clamp(260px, 88vw, 520px);
     margin: 0 auto;
+  }
+
+  .gm-board-frame {
+    background: var(--gm-panel-alt);
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    padding: 12px;
   }
 
   #board {
     width: 100%;
     height: auto;
     aspect-ratio: 1/1;
-    border: 2px solid #ddd;
+    border: 2px solid var(--border);
+    border-radius: 3px;
+    overflow: hidden;
   }
 
   .puzzle-info {
@@ -260,48 +287,59 @@
     margin-bottom: 10px;
   }
 
-  /* ── RIGHT: Controls ──────────────────────────────────────── */
   #controls-container {
     width: 100%;
   }
 
-  /* Timer */
   .puzzle-timer {
-    font-size: 0.75rem;
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 0.7rem;
     font-weight: 700;
     letter-spacing: 2px;
     text-transform: uppercase;
-    color: var(--color-gray-400);
+    color: var(--chess-secondary);
     text-align: center;
-    margin-bottom: 6px;
+    margin-bottom: 8px;
+    background: var(--card-color);
+    border: 1px solid var(--border);
+    border-radius: 99px;
+    padding: 6px 12px;
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    width: 100%;
+    justify-content: center;
   }
 
   .puzzle-timer span {
-    color: var(--chess-light);
-    font-size: 0.9rem;
+    color: var(--chess-accent);
+    font-size: 0.95rem;
+    font-weight: 800;
   }
 
-  /* Title & turn */
   #puzzle-title-large {
+    font-family: 'Fraunces', Georgia, serif;
     font-weight: 700;
     color: var(--chess-light);
-    font-size: 1.05rem;
+    font-size: 1.08rem;
     text-align: center;
-    margin-bottom: 2px;
+    margin-bottom: 3px;
   }
 
   #puzzle-turn {
-    font-size: 0.82rem;
-    color: var(--color-gray-400);
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 0.72rem;
+    letter-spacing: 0.5px;
+    text-transform: uppercase;
+    color: var(--chess-accent);
     text-align: center;
     margin-bottom: 0;
   }
 
-  /* Notation box */
   #notation-box {
-    background: oklch(16% 0.008 256);
+    background: var(--gm-panel-alt);
     border: 1px solid var(--border);
-    border-radius: 10px;
+    border-radius: 6px;
     padding: 12px;
     max-height: 38vh;
     overflow-y: auto;
@@ -318,16 +356,16 @@
   }
 
   .notation-heading {
-    font-size: 0.62rem;
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 0.6rem;
     font-weight: 700;
     letter-spacing: 2px;
     text-transform: uppercase;
-    color: var(--color-gray-400);
+    color: var(--chess-secondary);
     text-align: center;
     margin-bottom: 8px;
   }
 
-  /* Move pairs */
   .move-pair {
     padding: 3px 2px;
     display: flex;
@@ -336,148 +374,158 @@
   }
 
   .move-number {
+    font-family: 'IBM Plex Mono', monospace;
     font-weight: 700;
-    color: var(--color-gray-400);
+    color: var(--chess-secondary);
     width: 22px;
-    font-size: 0.8rem;
-    opacity: .7;
+    font-size: 0.78rem;
+    opacity: .75;
   }
 
   .move-white,
   .move-black {
     color: var(--move);
     padding: 3px 8px;
-    border-radius: 4px;
+    border-radius: 3px;
     width: 50%;
     cursor: pointer;
-    font-size: 0.88rem;
+    font-size: 0.86rem;
+    font-family: 'Source Serif 4', Georgia, serif;
   }
 
   .move-white:not(.active):hover,
   .move-black:not(.active):hover {
-    background: #3d3d3db0;
-    color: var(--cool-accent);
+    background: var(--gm-panel-alt);
+    color: var(--chess-accent);
   }
 
   .move-white.active,
   .move-black.active {
-    background: var(--move-active);
-    color: var(--move);
+    background: var(--chess-primary);
+    color: var(--chess-light);
   }
 
-  /* Status */
   #puzzle-status {
+    font-family: 'IBM Plex Mono', monospace;
     font-weight: 700;
     margin: 8px 0;
     min-height: 24px;
-    padding: 6px 10px;
-    border-radius: 8px;
+    padding: 7px 10px;
+    border-radius: 4px;
     text-align: center;
-    font-size: 0.88rem;
+    font-size: 0.84rem;
   }
 
   #puzzle-status.correct {
-    color: var(--chess-primary);
-    background: rgba(119, 149, 86, 0.12);
+    color: var(--status);
+    background: rgba(78, 122, 82, 0.12);
   }
 
   #puzzle-status.wrong {
     color: var(--chess-red);
-    background: rgba(200, 75, 75, 0.1);
+    background: rgba(184, 73, 58, 0.1);
   }
 
   #puzzle-status.info {
-    color: #60a5fa;
-    background: rgba(96, 165, 250, 0.1);
+    color: var(--chess-accent);
+    background: rgba(201, 160, 61, 0.1);
   }
 
   #puzzle-status.solved {
-    color: #a855f7;
-    background: rgba(168, 85, 247, 0.1);
+    color: var(--gm-plum);
+    background: rgba(108, 79, 140, 0.14);
   }
 
-  /* Quote box */
   .quote-none {
     display: none !important;
   }
 
   #quote-box {
-    background: oklch(20% 0.01 256);
+    background: var(--gm-panel-alt);
     border: 1px solid var(--border);
-    border-radius: 10px;
+    border-left: 3px solid var(--chess-accent);
+    border-radius: 6px;
     padding: 12px 16px;
     margin-bottom: 10px;
     text-align: center;
+    position: relative;
   }
 
   #quote-author {
-    font-size: 0.8rem;
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 0.68rem;
     font-weight: 700;
+    letter-spacing: 1px;
+    text-transform: uppercase;
     color: var(--chess-accent);
-    margin-bottom: 4px;
+    margin-bottom: 5px;
   }
 
   #quote-text {
+    font-family: 'Source Serif 4', Georgia, serif;
     font-size: 0.85rem;
     color: var(--chess-secondary);
     font-style: italic;
     margin: 0;
+    line-height: 1.5;
   }
 
-  /* Action buttons */
   .action-btn-row {
     display: flex;
     gap: 8px;
+    flex-wrap: wrap;
   }
 
   #reset-btn,
   #hint-btn,
   #next-btn {
     flex: 1;
+    min-width: 90px;
     display: flex;
     align-items: center;
     justify-content: center;
     gap: 6px;
-    padding: 9px 10px;
-    font-size: 0.8rem;
+    padding: 10px 10px;
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 0.76rem;
     font-weight: 700;
-    border-radius: 8px;
+    border-radius: 4px;
     border: 1px solid var(--border);
     background: var(--card-color);
     color: var(--chess-secondary);
     cursor: pointer;
     transition: all 0.18s ease;
-    letter-spacing: 0.3px;
+    letter-spacing: 0.4px;
+    text-transform: uppercase;
   }
 
   #reset-btn {
-    background: #374151;
-    color: #f9fafb;
-    border-color: #4b5563;
+    background: var(--card-color);
+    color: var(--chess-secondary);
+    border-color: var(--border);
   }
 
   #reset-btn:hover {
-    background: #4b5563;
-    border-color: #6b7280;
+    border-color: var(--chess-secondary);
+    color: var(--chess-light);
   }
 
   #hint-btn {
-    background: #2563eb;
-    color: white;
-    border-color: #3b82f6;
+    background: transparent;
+    color: var(--chess-accent);
+    border-color: rgba(201, 160, 61, 0.4);
   }
 
   #hint-btn:hover {
-    background: #1d4ed8;
-    border-color: #60a5fa;
+    background: rgba(201, 160, 61, 0.1);
+    border-color: var(--chess-accent);
   }
 
   #next-btn {
-    background: linear-gradient(135deg, #22c55e, #16a34a);
+    background: linear-gradient(135deg, var(--chess-primary), var(--gm-oxblood-deep));
     color: #fff;
-    border: 2px solid #4ade80;
-    border-radius: 12px;
-    box-shadow: 0 4px 12px rgba(34, 197, 94, .15);
+    border: 1px solid var(--chess-primary);
+    box-shadow: 0 4px 12px rgba(154, 62, 46, .2);
     transition: .3s ease;
   }
 
@@ -490,23 +538,21 @@
 
     0%,
     100% {
-      border-color: #4ade80;
       box-shadow:
-        0 0 0 0 rgba(74, 222, 128, .0),
-        0 0 8px rgba(74, 222, 128, .20);
+        0 0 0 0 rgba(201, 160, 61, .0),
+        0 0 8px rgba(201, 160, 61, .25);
     }
 
     50% {
-      border-color: #86efac;
       box-shadow:
-        0 0 0 2px rgba(74, 222, 128, .15),
-        0 0 14px rgba(74, 222, 128, .35);
+        0 0 0 2px rgba(201, 160, 61, .18),
+        0 0 16px rgba(201, 160, 61, .4);
     }
   }
 
   #next-btn:hover {
     transform: translateY(-2px) scale(1.03);
-    box-shadow: 0 12px 28px rgba(34, 197, 94, .45);
+    box-shadow: 0 12px 28px rgba(154, 62, 46, .4);
   }
 
   @keyframes nextAppear {
@@ -529,7 +575,7 @@
   .notation-btn-img {
     width: 18px;
     height: 18px;
-    opacity: 0.8;
+    opacity: 0.85;
   }
 
   .btn-icon {
@@ -537,12 +583,12 @@
     align-items: center;
   }
 
-  /* Mobile select puzzle button */
   #puzzle-title-small {
     background: var(--card-color);
     border: 1px solid var(--border);
     color: var(--chess-light);
-    border-radius: 8px;
+    border-radius: 4px;
+    font-family: 'Fraunces', Georgia, serif;
     font-weight: 700;
     font-size: 0.9rem;
     padding: 10px;
@@ -551,14 +597,15 @@
   }
 
   #puzzle-title-small:hover {
-    border-color: var(--chess-primary);
+    border-color: var(--chess-accent);
   }
 
-  /* Modal */
   .modal-content {
-    background: oklch(18% 0.01 256);
+    background: var(--gm-panel-alt);
     border: 1px solid var(--border);
+    border-top: 3px solid var(--chess-accent);
     color: var(--chess-light);
+    border-radius: 8px;
   }
 
   .modal-header {
@@ -567,16 +614,29 @@
 
   .modal-title {
     color: var(--chess-light);
+    font-family: 'Fraunces', Georgia, serif;
     font-weight: 700;
   }
 
-  /* Toast */
   .toast {
-    border-radius: 12px !important;
+    border-radius: 8px !important;
+  }
+
+  .toast.bg-success {
+    background: var(--chess-primary) !important;
+  }
+
+  .toast.bg-danger {
+    background: var(--chess-red) !important;
+  }
+
+  .toast.bg-dark {
+    background: var(--gm-panel-alt) !important;
+    border: 1px solid var(--border);
   }
 
   .selected-square {
-    box-shadow: inset 0 0 0 3px #2563eb;
+    box-shadow: inset 0 0 0 3px var(--chess-accent);
   }
 
   .move-marker {
@@ -587,7 +647,7 @@
     height: 26%;
     transform: translate(-50%, -50%);
     border-radius: 50%;
-    background: rgba(0, 0, 0, 0.28);
+    background: rgba(0, 0, 0, 0.3);
     pointer-events: none;
     z-index: 5;
   }
@@ -600,12 +660,11 @@
     width: 82%;
     height: 82%;
     background: transparent;
-    border: 4px solid rgba(0, 0, 0, 0.28);
+    border: 4px solid rgba(154, 62, 46, 0.45);
     box-sizing: border-box;
   }
 </style>
 
-<!-- Audio -->
 <audio id="correctSound" src="{% static 'sound/puzzle-correct.mp3' %}"></audio>
 <audio id="wrongSound" src="{% static 'sound/puzzle-wrong.mp3' %}"></audio>
 <audio id="moveSound">
@@ -620,8 +679,9 @@
 
 <div id="main-layout">
 
-  <!-- ── LEFT: Puzzle list (desktop) ─────────────────────── -->
   <div id="puzzle-list" class="d-none d-lg-block">
+
+    <div class="gm-list-eyebrow"><i class="bi bi-grid-3x3"></i> Tactics Library</div>
 
     <div class="diff-tabs">
       <button class="diff-tab active-easy" id="easy-tab" data-category="easy">Easy</button>
@@ -642,17 +702,15 @@
         <span class="diff-badge {{ puzzle.difficulty }}">{{ puzzle.difficulty|title }}</span>
       </button>
       {% empty %}
-      <p style="color:var(--color-gray-400);text-align:center;font-size:0.85rem;padding:16px 0;">No puzzles available.
+      <p style="color:var(--chess-secondary);text-align:center;font-size:0.85rem;padding:16px 0;">No puzzles available.
       </p>
       {% endfor %}
     </div>
 
   </div>
 
-  <!-- ── CENTER: Board ────────────────────────────────────── -->
   <div id="board-container">
     <div class="puzzle-info">
-      <!-- Mobile: select puzzle button -->
       <div class="d-flex justify-content-center mb-2 d-lg-none">
         <button id="puzzle-title-small" data-bs-toggle="modal" data-bs-target="#mobile-puzzle-modal">
           Select a puzzle
@@ -660,31 +718,30 @@
       </div>
       <code id="fen-display" class="d-none"></code>
     </div>
-    <div id="board" class="mx-auto"></div>
+    <div class="gm-board-frame">
+      <div id="board" class="mx-auto"></div>
+    </div>
   </div>
 
-  <!-- ── RIGHT: Controls ──────────────────────────────────── -->
   <div id="controls-container">
 
-    <p class="puzzle-timer">⏱ Time: <span id="timer">0</span>s</p>
+    <p class="puzzle-timer"><i class="bi bi-clock-history"></i> Time <span id="timer">0</span>s</p>
 
     <div id="notation-box" class="mb-2">
       <h4 id="puzzle-title-large" class="d-none d-lg-block">Select a puzzle</h4>
       <p id="puzzle-turn"></p>
-      <hr style="border-color:var(--border);margin:6px 0;">
+      <hr style="border-color:var(--border);margin:8px 0;">
       <p class="notation-heading">Move Notation</p>
       <div id="move-history"></div>
     </div>
 
     <div id="puzzle-status" class="d-none"></div>
 
-    <!-- Quote -->
     <div id="quote-box" class="quote-none">
       <div id="quote-author"></div>
       <p id="quote-text"></p>
     </div>
 
-    <!-- Buttons -->
     <div class="action-btn-row mt-2">
       <button id="reset-btn">
         <span class="btn-icon"><img src="{% static 'buttons/reset.png' %}" class="notation-btn-img" alt="Reset"></span>
@@ -700,14 +757,13 @@
       </button>
     </div>
 
-    <!-- Toasts -->
     {% if messages %}
     <div class="position-fixed bottom-0 end-0 p-3" style="z-index:2000;">
       {% for message in messages %}
       <div
         class="toast fade show border-0 shadow-lg mb-2
           {% if message.tags == 'info' %}bg-success text-white{% elif message.tags == 'warning' %}bg-danger text-white{% else %}bg-dark text-white{% endif %}"
-        role="alert" aria-live="assertive" aria-atomic="true" style="min-width:320px;border-radius:12px;">
+        role="alert" aria-live="assertive" aria-atomic="true" style="min-width:320px;border-radius:8px;">
         <div class="d-flex align-items-center">
           <div class="toast-body fs-6">
             {% if "days left" in message.message %}
@@ -734,7 +790,6 @@
   </div>
 </div>
 
-<!-- Mobile Puzzle Modal -->
 <div class="modal fade" id="mobile-puzzle-modal" tabindex="-1">
   <div class="modal-dialog modal-dialog-centered modal-dialog-scrollable">
     <div class="modal-content">
@@ -742,7 +797,7 @@
         <h5 class="modal-title">Select a Puzzle</h5>
         <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
       </div>
-      <div class="modal-body" style="background:oklch(16% 0.008 256);">
+      <div class="modal-body" style="background:var(--gm-panel-alt);">
         {% for puzzle in puzzles %}
         <button class="puzzle-btn {% if puzzle.id in solved_ids %}solved-puzzle{% else %}unsolved-puzzle{% endif %}"
           data-fen="{{ puzzle.fen }}" data-solution="{{ puzzle.solution }}" data-title="{{ puzzle.title }}"
@@ -753,7 +808,7 @@
           <span class="diff-badge {{ puzzle.difficulty }}">{{ puzzle.difficulty|title }}</span>
         </button>
         {% empty %}
-        <p style="color:var(--color-gray-400);text-align:center;padding:16px 0;">No puzzles available yet.</p>
+        <p style="color:var(--chess-secondary);text-align:center;padding:16px 0;">No puzzles available yet.</p>
         {% endfor %}
       </div>
     </div>
@@ -766,7 +821,6 @@
 <script src="{% static 'bootstrap.bundle.min.js' %}"></script>
 
 <script>
-  /* ── Difficulty tabs ──────────────────────────────────────── */
   document.addEventListener("DOMContentLoaded", function () {
     const tabs = document.querySelectorAll(".diff-tab");
     const items = document.querySelectorAll(".puzzle-item");
@@ -775,7 +829,6 @@
       tab.addEventListener("click", function () {
         const cat = this.dataset.category;
 
-        // Reset all tab styles
         tabs.forEach(t => t.className = 'diff-tab');
         this.classList.add('active-' + cat);
 
@@ -943,7 +996,7 @@
         showStatus("Correct!", "correct");
 
         if (currentMoveIndex >= currentSolutionMoves.length) {
-          showStatus("🎉 Puzzle solved!", "solved");
+          showStatus("Puzzle solved!", "solved");
           safePlay(correctSound);
           stopTimerDisplay();
           const puzzleId = $buttons.eq(currentPuzzleIndex).data('puzzle-id');
@@ -992,7 +1045,7 @@
       currentMoveIndex++;
       showStatus(`Opponent played ${moveSAN}`, "info");
       if (currentMoveIndex >= currentSolutionMoves.length) {
-        showStatus("🎉 Puzzle solved!", "solved");
+        showStatus("Puzzle solved!", "solved");
         $nextBtn.show();
       }
     }
@@ -1135,7 +1188,6 @@
         showStatus(`Hint: ${currentSolutionMoves[currentMoveIndex]}`, "info");
     });
 
-    // Restore last puzzle
     const lastId = localStorage.getItem('lastPuzzleId');
     if (lastId) {
       const lastBtn = $(`.puzzle-btn[data-puzzle-id="${lastId}"]`);

@@ -19,7 +19,7 @@ def robots_txt(request):
       "User-agent: Google-Extended",
       "Allow: /",
       "",
-      "Sitemap: https://127.0.0.1:8000/sitemap.xml",
+      "Sitemap: https://gmbangladesh.com/sitemap.xml",
   ]
   return HttpResponse("\n".join(lines), content_type="text/plain")
 
@@ -98,6 +98,7 @@ urlpatterns = [
     path('logout/', views.logout_view, name='logout'),
     #Trial game page
     path('games/', views.game_page, name='game_page'),
+    path("upload-pgn-file/", views.upload_pgn_file, name="upload_pgn_file"),
     path('fetch-chesscom-games/', views.fetch_chesscom_games, name='fetch_chesscom_games'),
     path('save-chesscom-game/', views.save_chesscom_game, name='save_chesscom_game'),
     path('all-games/', views.all_games, name='all_games'),
@@ -112,10 +113,8 @@ urlpatterns = [
     path("add-event/", views.add_event, name="add_event"),
     path("memory-test/", views.memory_view, name="memory_test"),
     path('api/memory/', views.memory_api, name='memory_api'),
-    path("daily/", views.daily_puzzle_view, name="daily_puzzle"),
-    path("daily/move/", views.api_submit_move, name="daily_puzzle_move"),
-    path("daily/hint/", views.api_hint, name="daily_puzzle_hint"),
-    path("daily/give-up/", views.api_give_up, name="daily_puzzle_give_up"),
+    path("daily/", views.daily_puzzle_view, name="daily-puzzle"),
+    path("daily/<int:daily_id>/solve/", views.submit_solve_view, name="daily-puzzle-solve"),
     ############################ Chat system ##########################################
     path("chat/", views.chat, name="chat_home"),
     path("chat/<str:username>/", views.chat, name="chat"),

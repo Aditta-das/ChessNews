@@ -414,12 +414,23 @@
 
         <!-- Source tabs -->
         <div class="source-tabs">
+
+
             <button class="source-tab active" data-tab="pgn-tab">
                 <i class="bi bi-file-text"></i> PGN
             </button>
+
+
+            <button class="source-tab" data-tab="file-tab">
+                <i class="bi bi-upload"></i> Upload PGN
+            </button>
+
+
             <button class="source-tab" data-tab="chesscom-tab">
                 <i class="bi bi-controller"></i> Chess.com
             </button>
+
+
             <button class="source-tab" data-tab="lichess-tab">
                 <i class="bi bi-lightning-charge"></i> Lichess
             </button>
@@ -444,7 +455,44 @@
                         <i class="bi bi-cloud-upload-fill"></i> Upload Game
                     </button>
                 </div>
+                <!-- Upload PGN File Tab -->
 
+                <div id="file-tab" class="tab-panel">
+
+
+                    <div class="field-wrap">
+
+                        <div class="field-label">
+                            <i class="bi bi-file-earmark-arrow-up"></i>
+                            Select PGN File
+                        </div>
+
+
+                        <input 
+                            type="file"
+                            id="pgn_file"
+                            accept=".pgn"
+                            class="form-field"
+                        >
+
+
+                    </div>
+
+
+
+                    <button 
+                        type="button"
+                        id="upload_pgn_file"
+                        class="upload-btn"
+                    >
+
+                        <i class="bi bi-cloud-upload"></i>
+                        Load PGN
+
+                    </button>
+
+
+                </div>
                 <!-- Chess.com tab -->
                 <div id="chesscom-tab" class="tab-panel">
                     <div class="field-wrap">
@@ -515,6 +563,63 @@
                 if (uploadBtn) uploadBtn.style.display = tab.dataset.tab === 'pgn-tab' ? 'flex' : 'none';
             });
         });
+
+        document
+            .getElementById("upload_pgn_file")
+            .addEventListener(
+            "click",
+            function(){
+                let file =
+                document
+                .getElementById("pgn_file")
+                .files[0];
+
+                if(!file){
+                    alert(
+                        "Please select PGN file"
+                    );
+                    return;
+                }
+
+                let formData =
+                new FormData();
+                formData.append(
+                    "file",
+                    file
+                );
+
+                fetch(
+                    "{% url 'upload_pgn_file' %}",
+                    {
+
+                    method:"POST",
+
+                    headers:{
+                        "X-CSRFToken":
+                        "{{ csrf_token }}"
+                    },
+                    body:formData
+                    }
+                )
+                .then(
+                    response =>
+                    response.json()
+                )
+                .then(
+                    data=>{
+                        if(data.success){
+                            window.location.href =
+                            data.redirect_url;
+
+                        }
+                        else{
+                            alert(
+                                data.error
+                            );
+                        }
+                    }
+                );
+            });
 
         /* ── Chess.com fetch ──────────────────────────────────────── */
         const modal = new bootstrap.Modal(document.getElementById('chesscomModal'));

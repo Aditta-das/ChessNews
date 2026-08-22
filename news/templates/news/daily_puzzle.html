@@ -1,961 +1,849 @@
-{% extends 'news/base.html' %}
-{% block title %}Home - GM Bangladesh{% endblock %}
-{% block content %}
+{% extends "news/base.html" %}
 {% load static %}
 
-  <link rel="stylesheet" href="{% static 'chessboardjs-1.0.0/css/chessboard-1.0.0.min.css' %}">
+{% block title %}Daily Puzzle — GM Bangladesh{% endblock %}
 
-  <style>
-    body {
-      font-family: system-ui, sans-serif;
+{% block content %}
+<link rel="stylesheet" href="{% static 'chessboardjs-1.0.0/css/chessboard-1.0.0.min.css' %}">
+<style>
+    .puzzle-page {
+        max-width: 1040px;
+        margin: 0 auto;
+        display: grid;
+        grid-template-columns: minmax(0, 560px) 1fr;
+        gap: 24px;
+        align-items: start;
     }
 
-    .puzzle-wrap {
-      max-width: 480px;
-      margin: 1rem auto;
-      text-align: center;
+    @media (max-width: 860px) {
+        .puzzle-page {
+            grid-template-columns: 1fr;
+        }
     }
 
-    #board {
-      width: 400px;
-      margin: 0 auto;
+    .board-card {
+        padding: 16px;
     }
 
-    .puzzle-meta {
-      margin-bottom: 0.75rem;
-      color: #555;
+    .panel-card {
+        padding: 18px 20px;
     }
 
-    .puzzle-status {
-      min-height: 1.5em;
-      margin-top: 0.75rem;
-      font-weight: 600;
+    #puzzle-title-large {
+        font-family: 'Fraunces', Georgia, serif;
+        text-align: left;
     }
 
-    .puzzle-status.correct {
-      color: #2e7d32;
+    #puzzle-turn {
+        text-align: left;
     }
 
-    .puzzle-status.wrong {
-      color: #c62828;
+    .panel-divider {
+        border-top: 1px solid var(--border);
+        margin: 16px 0;
     }
 
-    .puzzle-status.solved {
-      color: #1565c0;
+    .section-heading {
+        font-family: 'IBM Plex Mono', monospace;
+        font-size: 0.72rem;
+        letter-spacing: 0.08em;
+        text-transform: uppercase;
+        color: var(--chess-secondary);
+        margin: 0 0 10px;
+        display: flex;
+        align-items: center;
+        gap: 6px;
     }
 
-    .puzzle-controls {
-      margin-top: 1rem;
-      display: flex;
-      gap: 0.5rem;
-      justify-content: center;
+    .move-white,
+    .move-black {
+        transition: color 0.15s ease;
     }
 
-    .puzzle-controls button {
-      padding: 0.5rem 1.25rem;
-      font-size: 0.95rem;
-      border: 1px solid #ccc;
-      border-radius: 6px;
-      background: #f7f7f7;
-      cursor: pointer;
+    .move-white.pending,
+    .move-black.pending {
+        color: var(--chess-secondary);
+        opacity: 0.45;
     }
 
-    .puzzle-controls button:hover {
-      background: #ececec;
+    .move-explain {
+        font-family: 'Source Serif 4', Georgia, serif;
+        font-size: 0.85rem;
+        color: var(--chess-accent);
+        padding: 0 4px 10px 30px;
+        line-height: 1.4;
     }
 
-    .puzzle-controls button:disabled {
-      opacity: 0.5;
-      cursor: not-allowed;
+    .hint-panel {
+        display: none;
+        margin-top: 10px;
+        font-size: 0.85rem;
+        line-height: 1.55;
+        color: var(--chess-secondary);
+        border-top: 1px dashed var(--border);
+        padding-top: 10px;
     }
 
-    .done-banner {
-      margin: 2rem auto;
-      max-width: 400px;
-      padding: 1.25rem;
-      border-radius: 8px;
-      background: #e8f5e9;
-      color: #2e7d32;
-      font-weight: 600;
+    .hint-panel.shown {
+        display: block;
     }
 
-    .load-error {
-      margin: 2rem auto;
-      max-width: 400px;
-      padding: 1rem;
-      border-radius: 8px;
-      background: #ffebee;
-      color: #c62828;
-      font-size: 0.9rem;
-      display: none;
+    #hint-btn,
+    #reset-btn {
+        padding: 8px 16px;
+        background: transparent;
     }
-  </style>
-</head>
 
-<body>
+    /* No hover styling: keep buttons visually identical when pointed at. */
+    #hint-btn:hover,
+    #reset-btn:hover {
+        background: transparent !important;
+        border-color: var(--border) !important;
+        color: var(--chess-light) !important;
+        transform: none !important;
+        box-shadow: none !important;
+        filter: none !important;
+    }
 
-  <div class="puzzle-wrap">
-    <h1>Daily Puzzle</h1>
+    /* No hover styling for links inside the puzzle panel. */
+    .puzzle-page a:hover {
+        color: var(--chess-accent) !important;
+        text-decoration: none !important;
+        transform: none !important;
+        box-shadow: none !important;
+        filter: none !important;
+    }
 
-    <div id="load-error" class="load-error"></div>
+    .stat-grid {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 10px;
+        margin-bottom: 4px;
+    }
 
-    {% if puzzle is None %}
-    <p>No puzzle is available today. Please check back later.</p>
+    .stat-item {
+        flex-direction: column;
+        gap: 2px;
+        padding: 10px 6px;
+        background: var(--box);
+    }
 
-    {% elif already_solved %}
+    .stat-item .stat-label {
+        font-size: 0.68rem;
+        text-transform: uppercase;
+        letter-spacing: 0.05em;
+        opacity: 0.75;
+    }
 
-    <div class="done-banner">
-      <div style="font-size: 2rem; margin-bottom: 0.5rem;">
-        🎉
-      </div>
+    .timer-box {
+        background: var(--box);
+        color: var(--chess-light);
+        margin-bottom: 10px;
+    }
 
-      <div style="font-size: 1.2rem;">
-        Puzzle solved!
-      </div>
+    #notation-box {
+        max-height: 280px;
+    }
 
-      <div style="margin-top: 0.4rem;">
-        Done for today. Come back tomorrow for a new puzzle.
-      </div>
+    .solved-summary {
+        text-align: center;
+        font-size: 0.85rem;
+        color: var(--chess-secondary);
+        padding: 8px 0;
+    }
+
+    .login-note {
+        text-align: center;
+        font-size: 0.85rem;
+        color: var(--chess-secondary);
+    }
+
+
+    /* Disable hover motion/filter effects on the remaining puzzle UI. */
+    .puzzle-page .card:hover,
+    .puzzle-page .stat-item:hover,
+    .puzzle-page .move-pair:hover,
+    .puzzle-page .timer-box:hover,
+    .puzzle-page .hint-panel:hover,
+    .puzzle-page #notation-box:hover {
+        transform: none !important;
+        filter: none !important;
+    }
+
+    /* Disable chessboard hover visuals. */
+    #board .square-55d63:hover,
+    #board [class*="square-"]:hover,
+    #board .piece-417db:hover,
+    #board img:hover {
+        transform: none !important;
+        scale: 1 !important;
+        filter: none !important;
+        box-shadow: none !important;
+        outline: none !important;
+        opacity: 1 !important;
+        transition: none !important;
+    }
+
+    /* Preserve chessboard.js' normal square colours while hovering. */
+    #board .white-1e1d7:hover {
+        background-color: #f0d9b5 !important;
+    }
+
+    #board .black-3c85d:hover {
+        background-color: #b58863 !important;
+    }
+
+
+    /* --- Polished move section (no hover effects) --- */
+    #notation-box {
+        max-height: 280px;
+        overflow-y: auto;
+        overflow-x: hidden;
+        padding: 8px;
+        border: 1px solid var(--border);
+        border-radius: 12px;
+        background: var(--box);
+        scrollbar-width: thin;
+    }
+
+    #notation-box .move-pair {
+        display: grid;
+        grid-template-columns: 38px minmax(0, 1fr) minmax(0, 1fr);
+        align-items: center;
+        gap: 6px;
+        min-height: 42px;
+        padding: 5px 6px;
+        border-bottom: 1px solid var(--border);
+        border-radius: 8px;
+    }
+
+    #notation-box .move-pair:last-child {
+        border-bottom: 0;
+    }
+
+    #notation-box .move-number {
+        font-family: 'IBM Plex Mono', monospace;
+        font-size: 0.72rem;
+        color: var(--chess-secondary);
+        opacity: 0.8;
+        text-align: center;
+    }
+
+    #notation-box .move-white,
+    #notation-box .move-black {
+        min-width: 0;
+        min-height: 30px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        padding: 5px 8px;
+        border-radius: 7px;
+        font-family: 'IBM Plex Mono', monospace;
+        font-size: 0.82rem;
+        font-weight: 600;
+        line-height: 1.2;
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+    }
+
+    #notation-box .move-white.pending,
+    #notation-box .move-black.pending {
+        border: 1px dashed var(--border);
+        background: transparent;
+        color: var(--chess-secondary);
+        opacity: 0.55;
+    }
+
+    #notation-box .move-white.active,
+    #notation-box .move-black.active {
+        border: 1px solid var(--border);
+        background: rgba(127, 127, 127, 0.08);
+        color: var(--chess-light);
+        opacity: 1;
+    }
+
+    .move-explain {
+        margin: 4px 8px 8px 46px;
+        padding: 7px 10px;
+        border-left: 2px solid var(--chess-accent);
+        border-radius: 0 7px 7px 0;
+        background: rgba(127, 127, 127, 0.06);
+    }
+
+    #puzzle-status {
+        margin-top: 10px;
+        padding: 9px 11px;
+        border: 1px solid var(--border);
+        border-radius: 9px;
+        font-size: 0.84rem;
+        line-height: 1.35;
+    }
+
+    .controls-container {
+        display: flex;
+        gap: 8px;
+        flex-wrap: wrap;
+        margin-top: 10px;
+    }
+
+    /* --- Click a piece to show legal moves --- */
+    #board .square-55d63 {
+        position: relative;
+    }
+
+    #board .legal-move-dot,
+    #board .legal-capture-ring {
+        position: absolute;
+        left: 50%;
+        top: 50%;
+        pointer-events: none;
+        z-index: 7;
+    }
+
+    #board .legal-move-dot {
+        width: 24%;
+        height: 24%;
+        border-radius: 50%;
+        background: rgba(20, 20, 20, 0.34);
+        transform: translate(-50%, -50%);
+    }
+
+    #board .legal-capture-ring {
+        width: 82%;
+        height: 82%;
+        border-radius: 50%;
+        border: clamp(3px, 0.45vw, 6px) solid rgba(20, 20, 20, 0.28);
+        box-sizing: border-box;
+        transform: translate(-50%, -50%);
+    }
+
+    #board .selected-piece-square::after {
+        content: '';
+        position: absolute;
+        inset: 0;
+        background: rgba(255, 215, 0, 0.28);
+        pointer-events: none;
+        z-index: 6;
+    }
+
+    /* Keep pieces above the selected-square tint and move dots. */
+    #board .piece-417db {
+        position: relative;
+        z-index: 8;
+    }
+
+</style>
+
+{{ puzzle_json|json_script:"puzzle-data" }}
+
+<div class="puzzle-page">
+
+    <div class="card board-card">
+        <div id="board-container" style="max-width:none;">
+            <div id="board"></div>
+        </div>
     </div>
 
-    {% else %}
-    <div class="puzzle-meta">
-      <strong>{{ puzzle.title }}</strong> — {{ puzzle.get_difficulty_display }} — {{ turn }}
+    <div class="card panel-card">
+
+        <div id="puzzle-title-large">{{ puzzle.title }}</div>
+        <div id="puzzle-turn">{{ puzzle.get_turn_display }} &middot; {{ puzzle.get_difficulty_display }}</div>
+
+        <div class="panel-divider"></div>
+        <p class="section-heading"><i class="bi bi-list-ol"></i> Moves <span id="move-progress" style="margin-left:auto; font-size:0.68rem; opacity:.75;">0 / 0</span></p>
+        <div id="notation-box"></div>
+        <div id="puzzle-status" class="info">Make your move.</div>
+        <div class="controls-container">
+            <button id="hint-btn" class="btn"><i class="bi bi-lightbulb"></i>&nbsp;Hint</button>
+            <button id="reset-btn" class="btn"><i class="bi bi-arrow-counterclockwise"></i>&nbsp;Reset</button>
+        </div>
+        <div class="hint-panel" id="hint-panel"></div>
+
+        <div class="panel-divider"></div>
+
+        <p class="section-heading"><i class="bi bi-stopwatch"></i> Progress</p>
+        <div class="timer-box stat-item">
+            <span class="stat-label">Time</span>
+            <span id="timer">00:00</span>
+        </div>
+        <!-- <div class="stat-grid">
+            <div class="stat-item text-danger">
+                <span class="stat-label">Mistakes</span>
+                <span id="wrong-count">0</span>
+            </div>
+            <div class="stat-item text-success">
+                <span class="stat-label">Hints used</span>
+                <span id="hint-count">0</span>
+            </div>
+        </div> -->
+
+        <div class="panel-divider"></div>
+        {% if solve %}
+        <div class="panel-divider"></div>
+        <p class="solved-summary">
+            Solved in {{ solve.time_taken }}s &middot;
+            {{ solve.wrong_attempts }} mistake{{ solve.wrong_attempts|pluralize }} &middot;
+            {{ solve.hints_used }} hint{{ solve.hints_used|pluralize }}
+        </p>
+        {% elif user.is_authenticated %}
+        <div class="panel-divider"></div>
+        <form method="post" action="{% url 'daily-puzzle-solve' daily.id %}" id="solve-form" style="display:none;">
+            {% csrf_token %}
+            <input type="hidden" name="time_taken" id="field-time">
+            <input type="hidden" name="wrong_attempts" id="field-wrong">
+            <input type="hidden" name="hints_used" id="field-hints">
+            <button type="submit" class="btn btn-success w-100">Submit result</button>
+        </form>
+        <p class="login-note" id="pre-solve-note">Finish the puzzle to submit your result.</p>
+        {% else %}
+        <div class="panel-divider"></div>
+        <p class="login-note">
+            <a href="{% url 'login' %}?next={{ request.path }}" style="color:var(--chess-accent);">Log in</a>
+            to save your result.
+        </p>
+        {% endif %}
+
     </div>
 
-    <div id="board"></div>
+</div>
 
-    <div class="puzzle-status" id="status"></div>
+<!-- Puzzle sounds. Put these files in your static/sounds/ folder. -->
+<audio id="correctSound" src="{% static 'sound/puzzle-correct.mp3' %}"></audio>
+<audio id="wrongSound" src="{% static 'sound/puzzle-wrong.mp3' %}"></audio>
+<audio id="moveSound">
+  <source src="{% static 'sound/move-self.mp3' %}" type="audio/mpeg">
+</audio>
+<audio id="captureSound">
+  <source src="{% static 'sound/capture.mp3' %}" type="audio/mpeg">
+</audio>
+<audio id="checkSound">
+  <source src="{% static 'sound/move-check.mp3' %}" type="audio/mpeg">
+</audio>
 
-    <div class="puzzle-controls">
-      <button id="hint-btn">Hint</button>
-      <button id="solve-btn">Solve</button>
-    </div>
-    {% endif %}
-  </div>
+<script src="{% static 'jquery.min.js' %}"></script>
+<script src="{% static 'chessboardjs-1.0.0/js/chessboard-1.0.0.min.js' %}"></script>
+<script src="{% static 'chess.min.js' %}"></script>
+<script src="{% static 'bootstrap.bundle.min.js' %}"></script>
 
-  {% if puzzle and not already_solved %}
-  <script src="https://code.jquery.com/jquery-3.5.1.min.js"
-    integrity="sha384-ZvpUoO/+PpLXR1lu4jmpXWu80pZlYUAfxl5NsBMWOEPSjUn/6Z/hRTt8+pR6L4N2"
-    crossorigin="anonymous"></script>
+<script>
+const puzzleData = JSON.parse(document.getElementById("puzzle-data").textContent);
+const alreadySolved = {{ solve|yesno:"true,false" }};
+const savedSolveTime = {{ solve.time_taken|default:0 }};
 
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/chess.js/0.10.3/chess.min.js" crossorigin="anonymous"></script>
+const correctSound = document.getElementById('correctSound');
+const wrongSound = document.getElementById('wrongSound');
+const moveSound = document.getElementById('moveSound');
+const captureSound = document.getElementById('captureSound');
+const checkSound = document.getElementById('checkSound');
 
-  <script src="https://unpkg.com/@chrisoakman/chessboardjs@1.0.0/dist/chessboard-1.0.0.min.js"
-    integrity="sha384-8Vi8VHwn3vjQ9eUHUxex3JSN/NFqUg3QbPyX8kWyb93+8AC/pPWTzj+nHtbC5bxD"
-    crossorigin="anonymous"></script>
+function playSound(sound) {
+    if (!sound) return;
+    try {
+        sound.pause();
+        sound.currentTime = 0;
+        const promise = sound.play();
+        if (promise && typeof promise.catch === 'function') {
+            promise.catch(() => {});
+        }
+    } catch (error) {
+        // Sound must never interrupt puzzle play.
+    }
+}
+
+function playBoardMoveSound(move) {
+    if (!move) return;
+
+    const san = move.san || '';
+
+    // One board sound per successful move.
+    // Priority: check/checkmate -> capture -> normal move.
+    if (/[+#]$/.test(san)) {
+        playSound(checkSound);
+    } else if (move.captured) {
+        playSound(captureSound);
+    } else {
+        playSound(moveSound);
+    }
+}
+
+const game = new Chess(puzzleData.fen);
+let board = null;
+let moveIndex = 0;
+let wrongAttempts = 0;
+let hintsUsed = 0;
+let solved = alreadySolved;
+let locked = alreadySolved;
+let startTime = Date.now();
+let timerHandle = null;
+let replyTimeout = null;
+let selectedSquare = null;
 
 
-  <script>
-    (function () {
+function getBoardSquareElement(square) {
+    return document.querySelector(`#board .square-${square}`);
+}
 
-      const errEl = document.getElementById("load-error");
+function getSquareFromElement(element) {
+    const squareEl = element && element.closest ? element.closest('#board .square-55d63') : null;
+    if (!squareEl) return null;
+    const match = Array.from(squareEl.classList)
+        .map(cls => cls.match(/^square-([a-h][1-8])$/))
+        .find(Boolean);
+    return match ? match[1] : null;
+}
 
-      function showLoadError(msg) {
-        errEl.textContent = msg;
-        errEl.style.display = "block";
-      }
+function clearMoveDots() {
+    document.querySelectorAll('#board .legal-move-dot, #board .legal-capture-ring')
+        .forEach(el => el.remove());
+    document.querySelectorAll('#board .selected-piece-square')
+        .forEach(el => el.classList.remove('selected-piece-square'));
+    selectedSquare = null;
+}
 
-      /* ─────────────────────────────────────────────
-         Check required libraries
-      ───────────────────────────────────────────── */
+function showLegalMoves(square) {
+    clearMoveDots();
+    if (solved || locked) return;
 
-      if (typeof window.jQuery === "undefined") {
-        showLoadError("jQuery failed to load.");
+    const piece = game.get(square);
+    if (!piece || piece.color !== game.turn()) return;
+
+    const moves = game.moves({ square: square, verbose: true });
+    if (!moves.length) return;
+
+    selectedSquare = square;
+    const sourceEl = getBoardSquareElement(square);
+    if (sourceEl) sourceEl.classList.add('selected-piece-square');
+
+    moves.forEach(move => {
+        const targetEl = getBoardSquareElement(move.to);
+        if (!targetEl) return;
+
+        const marker = document.createElement('span');
+        const isCapture = !!game.get(move.to) || !!move.captured;
+        marker.className = isCapture ? 'legal-capture-ring' : 'legal-move-dot';
+        marker.setAttribute('aria-hidden', 'true');
+        targetEl.appendChild(marker);
+    });
+}
+
+function updateMoveProgress() {
+    const progress = document.getElementById('move-progress');
+    if (!progress) return;
+    const total = Array.isArray(puzzleData.solution_moves) ? puzzleData.solution_moves.length : 0;
+    progress.textContent = `${Math.min(moveIndex, total)} / ${total}`;
+}
+
+function handleBoardClick(event) {
+    if (solved || locked) return;
+
+    const square = getSquareFromElement(event.target);
+    if (!square) return;
+
+    const piece = game.get(square);
+
+    // Clicking one of your own pieces selects it and shows its legal moves.
+    // Clicking a different friendly piece simply changes the selection.
+    if (piece && piece.color === game.turn()) {
+        if (selectedSquare !== square) {
+            showLegalMoves(square);
+        }
         return;
-      }
-
-      if (typeof window.Chess === "undefined") {
-        showLoadError("chess.js failed to load.");
-        return;
-      }
-
-      if (typeof window.Chessboard === "undefined") {
-        showLoadError("chessboard.js failed to load.");
-        return;
-      }
-
-
-      /* ─────────────────────────────────────────────
-         Initial data
-      ───────────────────────────────────────────── */
-
-      const FEN = "{{ fen|escapejs }}";
-      const ORIENTATION = "{{ orientation|escapejs }}";
-      const USER_TURN = "{{ puzzle.turn|escapejs }}";
-      const CSRF_TOKEN = "{{ csrf_token }}";
-
-      const SOLUTION =
-        "{{ puzzle.solution|escapejs }}";
-
-      const solutionMoves = SOLUTION
-        .trim()
-        .split(/\s+/)
-        .filter(Boolean);
-
-
-      /* ─────────────────────────────────────────────
-         DOM
-      ───────────────────────────────────────────── */
-
-      const statusEl =
-        document.getElementById("status");
-
-      const hintBtn =
-        document.getElementById("hint-btn");
-
-      const solveBtn =
-        document.getElementById("solve-btn");
-
-
-      /* ─────────────────────────────────────────────
-         Chess state
-      ───────────────────────────────────────────── */
-
-      let game = new Chess(FEN);
-
-      let board = null;
-
-      let currentMoveIndex = 0;
-
-      let locked = false;
-
-      let waitingForOpponent = false;
-
-
-      /* ─────────────────────────────────────────────
-         Status
-      ───────────────────────────────────────────── */
-
-      function setStatus(text, cls) {
-
-        statusEl.textContent = text;
-
-        statusEl.className =
-          "puzzle-status" +
-          (cls ? " " + cls : "");
-      }
-
-
-      /* ─────────────────────────────────────────────
-         SAN normalization
-    
-         Same idea as puzzles.html:
-         ignore +, # and promotion =
-      ───────────────────────────────────────────── */
-
-      function normalizeSAN(san) {
-
-        if (!san) return "";
-
-        return san
-          .replace(/[+#]/g, "")
-          .replace(/=/g, "")
-          .toLowerCase();
-      }
-
-
-      /* ─────────────────────────────────────────────
-         POST JSON
-      ───────────────────────────────────────────── */
-
-      function postJSON(url, body) {
-
-        return fetch(url, {
-
-          method: "POST",
-
-          headers: {
-            "Content-Type": "application/json",
-            "X-CSRFToken": CSRF_TOKEN,
-          },
-
-          body: JSON.stringify(body || {}),
-
-        }).then(async function (resp) {
-
-          let data;
-
-          try {
-            data = await resp.json();
-          } catch (e) {
-            throw new Error("Invalid server response.");
-          }
-
-          if (!resp.ok) {
-            throw new Error(
-              data.error || "Request failed."
-            );
-          }
-
-          return data;
-        });
-      }
-
-
-      /* ─────────────────────────────────────────────
-         GET JSON
-      ───────────────────────────────────────────── */
-
-      function getJSON(url) {
-
-        return fetch(url, {
-          headers: {
-            "X-Requested-With": "XMLHttpRequest"
-          }
-        }).then(async function (resp) {
-
-          let data;
-
-          try {
-            data = await resp.json();
-          } catch (e) {
-            throw new Error("Invalid server response.");
-          }
-
-          if (!resp.ok) {
-            throw new Error(
-              data.error || "Request failed."
-            );
-          }
-
-          return data;
-        });
-      }
-
-
-      /* ─────────────────────────────────────────────
-         Lock board
-      ───────────────────────────────────────────── */
-
-      function lockBoard(message) {
-
-        locked = true;
-
-        waitingForOpponent = false;
-
-        hintBtn.disabled = true;
-
-        solveBtn.disabled = true;
-
-        setStatus(message, "solved");
-      }
-
-
-      /* ─────────────────────────────────────────────
-         Promotion
-      ───────────────────────────────────────────── */
-
-      function getPromotion(source, target, piece) {
-
-        if (!piece) {
-          return "q";
-        }
-
-        if (!piece.toLowerCase().startsWith("p")) {
-          return "q";
-        }
-
-        const rank = target[1];
-
-        if (
-          (piece.startsWith("w") && rank === "8") ||
-          (piece.startsWith("b") && rank === "1")
-        ) {
-
-          const choice = prompt(
-            "Promote to (q, r, b, n):",
-            "q"
-          );
-
-          if (
-            choice &&
-            ["q", "r", "b", "n"].includes(
-              choice.toLowerCase()
-            )
-          ) {
-            return choice.toLowerCase();
-          }
-
-          return "q";
-        }
-
-        return "q";
-      }
-
-
-      /* ─────────────────────────────────────────────
-         Automatically play opponent move
-    
-         THIS IS THE IMPORTANT PART FROM puzzles.html
-      ───────────────────────────────────────────── */
-
-      function makeOpponentMove() {
-
-        if (locked) {
-          return;
-        }
-
-        if (
-          currentMoveIndex >=
-          solutionMoves.length
-        ) {
-
-          lockBoard(
-            "🎉 Puzzle solved! Done for today."
-          );
-
-          return;
-        }
-
-
-        waitingForOpponent = true;
-
-
-        setStatus(
-          "Opponent is thinking…",
-          "info"
-        );
-
-
-        setTimeout(function () {
-
-          if (locked) {
-            return;
-          }
-
-
-          const moveSAN =
-            solutionMoves[currentMoveIndex];
-
-
-          /*
-           * Play the move LOCALLY.
-           *
-           * Do NOT send this move to Django.
-           *
-           * Django only needs the user's moves.
-           */
-
-          const move =
-            game.move(moveSAN);
-
-
-          if (!move) {
-
-            console.error(
-              "Could not play opponent move:",
-              moveSAN,
-              "FEN:",
-              game.fen()
-            );
-
-            waitingForOpponent = false;
-
-            setStatus(
-              "Error playing opponent move.",
-              "wrong"
-            );
-
-            return;
-          }
-
-
-          /*
-           * Update board
-           */
-
-          board.position(
-            game.fen(),
-            true
-          );
-
-
-          /*
-           * Advance solution index
-           */
-
-          currentMoveIndex++;
-
-
-          waitingForOpponent = false;
-
-
-          /*
-           * Check if puzzle finished
-           */
-
-          if (
-            currentMoveIndex >=
-            solutionMoves.length
-          ) {
-
-            lockBoard(
-              "🎉 Puzzle solved! Done for today."
-            );
-
-            return;
-          }
-
-
-          /*
-           * Now it is user's turn
-           */
-
-          setStatus(
-            "Your move",
-            "correct"
-          );
-
-        }, 600);
-      }
-
-
-      /* ─────────────────────────────────────────────
-         User move
-      ───────────────────────────────────────────── */
-
-      function onDrop(source, target, piece) {
-
-        if (locked) {
-          return "snapback";
-        }
-
-        if (waitingForOpponent) {
-          return "snapback";
-        }
-
-        // ---------------------------------------------
-        // Create temporary game
-        // ---------------------------------------------
-
-        const tempGame = new Chess(
-          game.fen()
-        );
-
-        const promotion = getPromotion(
-          source,
-          target,
-          piece
-        );
-
-        const attemptedMove = tempGame.move({
-          from: source,
-          to: target,
-          promotion: promotion
-        });
-
-        // ---------------------------------------------
-        // Illegal move
-        // ---------------------------------------------
-
-        if (!attemptedMove) {
-          return "snapback";
-        }
-
-        const attemptedSAN =
-          attemptedMove.san;
-
-        const expectedSAN =
-          solutionMoves[currentMoveIndex];
-
-        console.log(
-          "User:",
-          attemptedSAN
-        );
-
-        console.log(
-          "Expected:",
-          expectedSAN
-        );
-
-        // ---------------------------------------------
-        // Wrong move
-        // ---------------------------------------------
-
-        if (
-          normalizeSAN(attemptedSAN) !==
-          normalizeSAN(expectedSAN)
-        ) {
-
-          setStatus(
-            "Not quite — try again.",
-            "wrong"
-          );
-
-          return "snapback";
-        }
-
-        // ---------------------------------------------
-        // Correct move
-        // ---------------------------------------------
-
-        const realMove = game.move({
-          from: source,
-          to: target,
-          promotion: promotion
-        });
-
-        if (!realMove) {
-          return "snapback";
-        }
-
-        currentMoveIndex++;
-
-        board.position(
-          game.fen(),
-          false
-        );
-
-        // ---------------------------------------------
-        // FINAL MOVE
-        // ---------------------------------------------
-
-        if (
-          currentMoveIndex >=
-          solutionMoves.length
-        ) {
-
-          waitingForOpponent = true;
-
-          setStatus(
-            "Saving your result...",
-            "correct"
-          );
-
-          postJSON(
-            "{% url 'daily_puzzle_move' %}",
-            {
-              san: attemptedSAN
+    }
+
+    // If a piece is already selected, clicking one of its legal destination
+    // squares makes the move. Drag-and-drop continues to use onDrop() too,
+    // so both control styles share exactly the same puzzle validation logic.
+    if (selectedSquare) {
+        const legalTargets = game.moves({ square: selectedSquare, verbose: true })
+            .map(move => move.to);
+
+        if (legalTargets.includes(square)) {
+            const source = selectedSquare;
+            const dropResult = onDrop(source, square);
+
+            // With click-to-move chessboard.js does not move the piece visually
+            // for us, so sync the board after an accepted move.
+            if (dropResult !== 'snapback') {
+                board.position(game.fen());
             }
-          )
+        }
+    }
 
-            .then(function (data) {
+    // Clicking elsewhere does not remove the current legal-move dots.
+}
 
-              console.log(
-                "Final move saved:",
-                data
-              );
+function buildNotation() {
+    const box = document.getElementById('notation-box');
+    box.innerHTML = '';
 
-              /*
-               * Django has successfully recorded
-               * the final move.
-               *
-               * Now redirect to /daily/.
-               *
-               * The view will detect that the user
-               * has already solved today's puzzle.
-               */
+    const fenParts = puzzleData.fen.split(/\s+/);
+    const startsWithBlack = fenParts[1] === 'b';
+    const startingMoveNumber = parseInt(fenParts[5], 10) || 1;
+    const totalMoves = puzzleData.solution_moves.length;
 
-              window.location.href =
-                "{% url 'daily_puzzle' %}";
+    let solutionIndex = 0;
+    let moveNumber = startingMoveNumber;
 
-            })
+    while (solutionIndex < totalMoves) {
+        const row = document.createElement('div');
+        row.className = 'move-pair';
 
-            .catch(function (err) {
+        const num = document.createElement('span');
+        num.className = 'move-number';
+        num.textContent = moveNumber + '.';
 
-              console.error(
-                "Failed to save final move:",
-                err
-              );
+        const white = document.createElement('span');
+        white.className = 'move-white';
 
-              /*
-               * Server rejected the move.
-               *
-               * Undo local move.
-               */
+        const black = document.createElement('span');
+        black.className = 'move-black';
 
-              game.undo();
+        if (startsWithBlack && solutionIndex === 0) {
+            white.textContent = '';
+            black.classList.add('pending');
+            black.textContent = '?';
+            black.dataset.moveIndex = String(solutionIndex++);
+        } else {
+            if (solutionIndex < totalMoves) {
+                white.classList.add('pending');
+                white.textContent = '?';
+                white.dataset.moveIndex = String(solutionIndex++);
+            } else {
+                white.textContent = '';
+            }
 
-              currentMoveIndex--;
-
-              board.position(
-                game.fen(),
-                true
-              );
-
-              waitingForOpponent = false;
-
-              setStatus(
-                err.message,
-                "wrong"
-              );
-
-            });
-
-          return;
+            if (solutionIndex < totalMoves) {
+                black.classList.add('pending');
+                black.textContent = '?';
+                black.dataset.moveIndex = String(solutionIndex++);
+            } else {
+                black.textContent = '';
+            }
         }
 
-        // ---------------------------------------------
-        // Normal correct move
-        // ---------------------------------------------
-
-        setStatus(
-          "Correct!",
-          "correct"
-        );
-
-        postJSON(
-          "{% url 'daily_puzzle_move' %}",
-          {
-            san: attemptedSAN
-          }
-        )
-
-          .then(function (data) {
-
-            console.log(
-              "Move saved:",
-              data
-            );
-
-            /*
-             * Let opponent play automatically.
-             */
-
-            makeOpponentMove();
-
-          })
-
-          .catch(function (err) {
-
-            console.error(
-              "Move submission error:",
-              err
-            );
-
-            /*
-             * Server rejected the move.
-             * Undo local move.
-             */
-
-            game.undo();
-
-            currentMoveIndex--;
-
-            board.position(
-              game.fen(),
-              true
-            );
-
-            setStatus(
-              err.message,
-              "wrong"
-            );
-
-          });
-
-        return;
-      }
-
-
-      /* ─────────────────────────────────────────────
-         Snap end
-      ───────────────────────────────────────────── */
-
-      function onSnapEnd() {
-
-        board.position(
-          game.fen()
-        );
-      }
-
-
-      /* ─────────────────────────────────────────────
-         Create board
-      ───────────────────────────────────────────── */
-
-      board = Chessboard("board", {
-
-        draggable: true,
-
-        position: FEN,
-
-        orientation: ORIENTATION,
-
-        dropOffBoard: "snapback",
-
-        pieceTheme:
-          "https://chessboardjs.com/img/chesspieces/wikipedia/{piece}.png",
-
-        onDrop: onDrop,
-
-        onSnapEnd: onSnapEnd
-
-      });
-
-
-      /* ─────────────────────────────────────────────
-         Hint
-      ───────────────────────────────────────────── */
-
-      hintBtn.addEventListener(
-        "click",
-        function () {
-
-          if (
-            locked ||
-            waitingForOpponent
-          ) {
-            return;
-          }
-
-
-          getJSON(
-            "{% url 'daily_puzzle_hint' %}"
-          )
-            .then(function (data) {
-
-              setStatus(
-                "💡 " + data.hint,
-                "correct"
-              );
-
-            })
-            .catch(function (err) {
-
-              setStatus(
-                err.message,
-                "wrong"
-              );
-
-            });
-
-        }
-      );
-
-
-      /* ─────────────────────────────────────────────
-         Solve / Give up
-      ───────────────────────────────────────────── */
-
-      solveBtn.addEventListener(
-        "click",
-        function () {
-
-          if (locked) {
-            return;
-          }
-
-
-          if (
-            !confirm(
-              "This will reveal the full solution. Continue?"
-            )
-          ) {
-            return;
-          }
-
-
-          waitingForOpponent = true;
-
-
-          postJSON(
-            "{% url 'daily_puzzle_give_up' %}"
-          )
-            .then(function (data) {
-
-              const moves =
-                data.solution || [];
-
-
-              let i = 0;
-
-
-              const interval =
-                setInterval(function () {
-
-                  if (
-                    i >= moves.length
-                  ) {
-
-                    clearInterval(interval);
-
-                    lockBoard(
-                      "Solution shown. Done for today."
-                    );
-
-                    return;
-                  }
-
-
-                  const move =
-                    game.move(moves[i]);
-
-
-                  if (!move) {
-
-                    clearInterval(interval);
-
-                    waitingForOpponent = false;
-
-                    setStatus(
-                      "Error showing solution.",
-                      "wrong"
-                    );
-
-                    return;
-                  }
-
-
-                  board.position(
-                    game.fen(),
-                    true
-                  );
-
-
-                  i++;
-
-                }, 700);
-
-            })
-            .catch(function (err) {
-
-              waitingForOpponent = false;
-
-              setStatus(
-                err.message,
-                "wrong"
-              );
-
-            });
-
-        }
-      );
-
-
-      /* ─────────────────────────────────────────────
-         INITIAL POSITION
-      ───────────────────────────────────────────── */
-
-      /*
-       * If the FEN's side to move is NOT
-       * the user's side, opponent plays first.
-       */
-
-      if (
-        game.turn() !== USER_TURN
-      ) {
-
-        setStatus(
-          "Opponent moves first…",
-          "info"
-        );
-
-
-        makeOpponentMove();
-
-      } else {
-
-        setStatus(
-          "Your move",
-          "info"
-        );
-      }
-
-    })();
-  </script>
-
-  {% endif %}
-
+        row.append(num, white, black);
+        box.appendChild(row);
+        moveNumber++;
+    }
+    updateMoveProgress();
+}
+
+function revealMove(i) {
+    const span = document.querySelector(`#notation-box [data-move-index="${i}"]`);
+    if (!span) return;
+
+    const row = span.closest('.move-pair');
+    span.textContent = puzzleData.solution_moves[i];
+    span.classList.remove('pending');
+    span.classList.add('active');
+
+    const explanations = puzzleData.move_explanations || {};
+    const explanation = explanations[puzzleData.solution_moves[i]];
+    if (explanation && row) {
+        const line = document.createElement('div');
+        line.className = 'move-explain';
+        line.textContent = explanation;
+        row.after(line);
+    }
+
+    if (row) row.scrollIntoView({ block: 'nearest' });
+}
+
+function showStatus(message, cls) {
+    const el = document.getElementById('puzzle-status');
+    el.textContent = message;
+    el.className = cls;
+}
+
+function updateStats() {
+    const wrongEl = document.getElementById('wrong-count');
+    const hintEl = document.getElementById('hint-count');
+    if (wrongEl) wrongEl.textContent = wrongAttempts;
+    if (hintEl) hintEl.textContent = hintsUsed;
+}
+
+function formatTime(totalSeconds) {
+    const m = String(Math.floor(totalSeconds / 60)).padStart(2, '0');
+    const s = String(totalSeconds % 60).padStart(2, '0');
+    return `${m}:${s}`;
+}
+
+function tickTimer() {
+    document.getElementById('timer').textContent =
+        formatTime(Math.round((Date.now() - startTime) / 1000));
+}
+
+function onDragStart(source, piece) {
+    if (solved || locked) return false;
+    if ((game.turn() === 'w' && piece.search(/^b/) !== -1) ||
+        (game.turn() === 'b' && piece.search(/^w/) !== -1)) return false;
+    showLegalMoves(source);
+}
+
+function onDrop(source, target) {
+    if (solved || locked) return 'snapback';
+
+    // A normal click on a draggable chessboard can fire onDrop with source === target.
+    // Keep the legal-move indicators visible instead of clearing them.
+    if (source === target) {
+        if (selectedSquare !== source) showLegalMoves(source);
+        return 'snapback';
+    }
+
+    const result = game.move({ from: source, to: target, promotion: 'q' });
+    if (result === null) {
+        // Illegal drop: restore the selected piece's legal moves.
+        showLegalMoves(source);
+        return 'snapback';
+    }
+
+    const expected = puzzleData.solution_moves[moveIndex];
+    if (result.san !== expected) {
+        game.undo();
+        wrongAttempts++;
+        updateStats();
+        showStatus('Not the puzzle move — try again.', 'wrong');
+        playSound(wrongSound);
+        // Wrong puzzle move: keep the legal-move dots available for another try.
+        showLegalMoves(source);
+        return 'snapback';
+    }
+
+    // Clear indicators only after a real, correct move is accepted.
+    clearMoveDots();
+    playBoardMoveSound(result);
+    showStatus('Correct!', 'correct');
+    revealMove(moveIndex);
+    moveIndex++;
+    updateStats();
+    updateMoveProgress();
+
+    const nextExpected = puzzleData.solution_moves[moveIndex];
+    if (nextExpected) {
+        locked = true;
+        replyTimeout = setTimeout(() => {
+            replyTimeout = null;
+            const reply = game.move(nextExpected);
+            if (reply === null) {
+                locked = false;
+                showStatus('Puzzle data error — could not play the reply move.', 'wrong');
+                return;
+            }
+            board.position(game.fen());
+            playBoardMoveSound(reply);
+            revealMove(moveIndex);
+            moveIndex++;
+            updateMoveProgress();
+            locked = false;
+            if (moveIndex >= puzzleData.solution_moves.length) finishPuzzle();
+        }, 500);
+    } else {
+        finishPuzzle();
+    }
+}
+
+function onSnapEnd() {
+    board.position(game.fen());
+}
+
+function finishPuzzle() {
+    clearMoveDots();
+    solved = true;
+    locked = true;
+    clearInterval(timerHandle);
+    timerHandle = null;
+    const elapsed = Math.round((Date.now() - startTime) / 1000);
+    showStatus('Puzzle solved!', 'solved');
+    window.setTimeout(() => playSound(correctSound), 180);
+
+    const timeField = document.getElementById('field-time');
+    if (timeField) {
+        timeField.value = elapsed;
+        document.getElementById('field-wrong').value = wrongAttempts;
+        document.getElementById('field-hints').value = hintsUsed;
+        document.getElementById('solve-form').style.display = 'block';
+        const note = document.getElementById('pre-solve-note');
+        if (note) note.style.display = 'none';
+    }
+}
+
+document.getElementById('hint-btn').addEventListener('click', () => {
+    if (solved || locked) return;
+    const panel = document.getElementById('hint-panel');
+    const wasShown = panel.classList.contains('shown');
+    panel.textContent = puzzleData.hint || 'No hint available.';
+    panel.classList.toggle('shown');
+    if (!wasShown && hintsUsed === 0) {
+        hintsUsed = 1;
+        updateStats();
+    }
+});
+
+document.getElementById('reset-btn').addEventListener('click', () => {
+    if (alreadySolved) return;
+
+    if (replyTimeout) {
+        clearTimeout(replyTimeout);
+        replyTimeout = null;
+    }
+    if (timerHandle) {
+        clearInterval(timerHandle);
+        timerHandle = null;
+    }
+
+    clearMoveDots();
+    game.load(puzzleData.fen);
+    board.position(puzzleData.fen, false);
+    moveIndex = 0;
+    wrongAttempts = 0;
+    hintsUsed = 0;
+    locked = false;
+    solved = false;
+    startTime = Date.now();
+
+    const hintPanel = document.getElementById('hint-panel');
+    hintPanel.classList.remove('shown');
+    hintPanel.textContent = '';
+
+    const solveForm = document.getElementById('solve-form');
+    if (solveForm) solveForm.style.display = 'none';
+    const note = document.getElementById('pre-solve-note');
+    if (note) note.style.display = '';
+
+    document.getElementById('timer').textContent = '00:00';
+    buildNotation();
+    updateStats();
+    showStatus('Make your move.', 'info');
+    timerHandle = setInterval(tickTimer, 1000);
+});
+
+board = Chessboard('board', {
+    position: puzzleData.fen,
+    draggable: !alreadySolved,
+    pieceTheme: "{% static 'chessboardjs-1.0.0/img/chesspieces/wikipedia/' %}" + '{piece}' + '.png',
+    orientation: puzzleData.turn === 'w' ? 'white' : 'black',
+    onDragStart: onDragStart,
+    onDrop: onDrop,
+    onSnapEnd: onSnapEnd
+});
+
+document.getElementById('board').addEventListener('click', handleBoardClick);
+
+buildNotation();
+updateStats();
+
+if (alreadySolved) {
+    locked = true;
+    document.getElementById('timer').textContent = formatTime(Number(savedSolveTime) || 0);
+    showStatus('Already solved today.', 'solved');
+} else {
+    tickTimer();
+    timerHandle = setInterval(tickTimer, 1000);
+}
+
+window.addEventListener('resize', () => {
+    if (board) board.resize();
+});
+</script>
 {% endblock %}

@@ -1,0 +1,1632 @@
+{% extends 'news/base.html' %}
+
+{% block title %}Home - GM Bangladesh{% endblock %}
+
+{% block content %}
+
+{% load nw_filter %}
+{% load static %}
+{% load online_status %}
+<link
+    rel="stylesheet"
+    href="https://cdnjs.cloudflare.com/ajax/libs/chessboard-js/1.0.0/chessboard-1.0.0.min.css"
+>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.7.1/jquery.min.js"></script>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/chessboard-js/1.0.0/chessboard-1.0.0.min.js"></script>
+<style>
+	:root {
+		--gm-paper: #EFE7D6;
+		--gm-ink: #171310;
+		--gm-panel: #211B14;
+		--gm-panel-alt: #2A2219;
+		--gm-line: #3E3423;
+		--gm-oxblood: #9A3E2E;
+		--gm-oxblood-deep: #7A2F22;
+		--gm-brass: #C9A03D;
+		--gm-brass-soft: rgba(201, 160, 61, 0.16);
+		--gm-stone: #A99C82;
+		--gm-cream: #F3ECDA;
+		--gm-emerald: #4E7A52;
+	}
+
+	a {
+		text-decoration: none;
+		color: var(--gm-cream);
+	}
+
+	.gm-eyebrow {
+		font-family: 'IBM Plex Mono', 'Courier New', monospace;
+		font-size: 0.68rem;
+		font-weight: 600;
+		letter-spacing: 3px;
+		text-transform: uppercase;
+		color: var(--gm-brass);
+		display: flex;
+		align-items: center;
+		gap: 10px;
+		margin-bottom: 14px;
+	}
+
+	.gm-eyebrow::after {
+		content: "";
+		flex: 1;
+		height: 1px;
+		background: linear-gradient(to right, var(--gm-line), transparent);
+	}
+
+	.gm-plate {
+		background: var(--gm-panel);
+		border: 1px solid var(--gm-line);
+		border-radius: 6px;
+		overflow: hidden;
+	}
+
+	.gm-plate-head {
+		padding: 12px 16px;
+		border-bottom: 1px solid var(--gm-line);
+		display: flex;
+		align-items: center;
+		justify-content: space-between;
+		background: var(--gm-panel-alt);
+	}
+
+	.gm-plate-title {
+		font-family: 'Fraunces', Georgia, serif;
+		font-size: 0.92rem;
+		font-weight: 600;
+		letter-spacing: 0.2px;
+		color: var(--gm-cream);
+		display: flex;
+		align-items: center;
+		gap: 8px;
+	}
+
+	.gm-plate-body {
+		padding: 14px 16px;
+	}
+
+	.gm-userbar {
+		display: flex;
+		align-items: center;
+		gap: 16px;
+		background: var(--gm-panel);
+		border: 1px solid var(--gm-line);
+		border-left: 3px solid var(--gm-brass);
+		border-radius: 4px;
+		padding: 13px 18px;
+		margin-bottom: 18px;
+	}
+
+	.gm-userbar-frame {
+		padding: 2px;
+		border-radius: 3px;
+		background: repeating-conic-gradient(var(--gm-cream) 0% 25%, var(--gm-ink) 0% 50%) 0 0/16px 16px;
+		flex-shrink: 0;
+	}
+
+	.gm-userbar img {
+		width: 46px;
+		height: 46px;
+		border-radius: 2px;
+		object-fit: cover;
+		display: block;
+		border: 2px solid var(--gm-panel);
+	}
+
+	.gm-userbar-id {
+		flex: 1;
+		min-width: 0;
+	}
+
+	.gm-userbar-name {
+		font-family: 'Fraunces', Georgia, serif;
+		font-weight: 700;
+		font-size: 1.05rem;
+		color: var(--gm-cream);
+	}
+
+	.gm-userbar-sub {
+		font-family: 'IBM Plex Mono', monospace;
+		font-size: 0.68rem;
+		letter-spacing: 0.5px;
+		color: var(--gm-stone);
+		margin-top: 3px;
+		display: flex;
+		align-items: center;
+		gap: 6px;
+		text-transform: uppercase;
+	}
+
+	.gm-dot-live {
+		width: 7px;
+		height: 7px;
+		background: var(--gm-emerald);
+		border-radius: 50%;
+		box-shadow: 0 0 0 3px rgba(78, 122, 82, 0.22);
+	}
+
+	.gm-tag {
+		font-family: 'IBM Plex Mono', monospace;
+		font-size: 0.66rem;
+		font-weight: 600;
+		letter-spacing: 1px;
+		text-transform: uppercase;
+		padding: 4px 11px;
+		border-radius: 3px;
+		border: 1px solid;
+	}
+
+	.gm-tag-premium {
+		background: var(--gm-brass-soft);
+		color: var(--gm-brass);
+		border-color: rgba(201, 160, 61, 0.45);
+	}
+
+	.gm-tag-trial {
+		background: rgba(78, 122, 82, 0.14);
+		color: #7fae82;
+		border-color: rgba(78, 122, 82, 0.4);
+	}
+
+	.gm-tag-guest {
+		background: transparent;
+		color: var(--gm-stone);
+		border-color: var(--gm-line);
+	}
+
+	.gm-wire {
+		background: var(--gm-panel);
+		border: 1px solid var(--gm-line);
+		border-radius: 4px;
+		overflow: hidden;
+		margin-bottom: 18px;
+		display: flex;
+		align-items: center;
+	}
+
+	.gm-wire-label {
+		background: var(--gm-oxblood);
+		color: var(--gm-cream);
+		font-family: 'IBM Plex Mono', monospace;
+		font-size: 0.64rem;
+		font-weight: 700;
+		letter-spacing: 2px;
+		text-transform: uppercase;
+		padding: 0 14px;
+		height: 38px;
+		display: flex;
+		align-items: center;
+		white-space: nowrap;
+		flex-shrink: 0;
+	}
+
+	.gm-wire-track {
+		overflow: hidden;
+		flex: 1;
+		height: 38px;
+		display: flex;
+		align-items: center;
+	}
+
+	.gm-wire-text {
+		display: inline-block;
+		white-space: nowrap;
+		animation: gm-scroll 42s linear infinite;
+		font-family: 'IBM Plex Mono', monospace;
+		font-size: 0.78rem;
+		color: var(--gm-stone);
+		padding-left: 20px;
+	}
+
+	@keyframes gm-scroll {
+		0% {
+			transform: translateX(100vw);
+		}
+
+		100% {
+			transform: translateX(-100%);
+		}
+	}
+
+	.gm-wire-rank {
+		color: var(--gm-brass);
+		font-weight: 700;
+	}
+
+	.gm-wire-rating {
+		color: var(--gm-oxblood);
+		font-weight: 700;
+	}
+
+	.gm-banner {
+		margin-bottom: 22px;
+		border-radius: 4px;
+		overflow: hidden;
+		border: 1px solid var(--gm-line);
+	}
+
+	.gm-banner img {
+		width: 100%;
+		display: block;
+		max-height: 220px;
+		object-fit: cover;
+	}
+
+	.gm-grid {
+		display: grid;
+		grid-template-columns: 1fr 320px;
+		gap: 22px;
+		margin-bottom: 36px;
+	}
+
+	.gm-hero {
+		background: var(--gm-panel);
+		border: 1px solid var(--gm-line);
+		border-radius: 6px;
+		overflow: hidden;
+		display: flex;
+		flex-direction: column;
+		height: 100%;
+		position: relative;
+	}
+
+	.gm-hero::before {
+		content: "";
+		position: absolute;
+		top: 0;
+		left: 0;
+		width: 64px;
+		height: 64px;
+		background: repeating-conic-gradient(var(--gm-brass) 0% 25%, transparent 0% 50%) 0 0/16px 16px;
+		opacity: 0.5;
+		z-index: 2;
+		clip-path: polygon(0 0, 100% 0, 0 100%);
+	}
+
+	.gm-hero img {
+		width: 100%;
+		height: 320px;
+		object-fit: cover;
+		display: block;
+		filter: saturate(0.92) contrast(1.03);
+	}
+
+	.gm-hero-body {
+		padding: 24px;
+		flex: 1;
+		display: flex;
+		flex-direction: column;
+	}
+
+	.gm-hero-title {
+		font-family: 'Fraunces', Georgia, serif;
+		font-size: 2.35rem;
+		font-weight: 700;
+		font-optical-sizing: auto;
+		color: var(--gm-cream);
+		line-height: 1.22;
+		margin-bottom: 12px;
+	}
+
+	.gm-hero-excerpt {
+		font-family: 'Source Serif 4', Georgia, serif;
+		color: var(--gm-stone);
+		font-size: 0.94rem;
+		line-height: 1.7;
+		margin-bottom: 18px;
+		flex: 1;
+	}
+
+	.gm-hero-meta {
+		display: flex;
+		align-items: center;
+		justify-content: space-between;
+		margin-top: auto;
+		flex-wrap: wrap;
+		gap: 12px;
+		padding-top: 14px;
+		border-top: 1px dashed var(--gm-line);
+	}
+
+	.gm-hero-meta-text {
+		font-family: 'IBM Plex Mono', monospace;
+		font-size: 0.72rem;
+		color: var(--gm-stone);
+	}
+
+	.gm-cta {
+		display: inline-flex;
+		align-items: center;
+		gap: 7px;
+		background: var(--gm-oxblood);
+		color: var(--gm-cream);
+		font-family: 'IBM Plex Mono', monospace;
+		font-size: 0.74rem;
+		font-weight: 700;
+		letter-spacing: 0.5px;
+		text-transform: uppercase;
+		padding: 9px 18px;
+		border-radius: 3px;
+		transition: background 0.18s ease, transform 0.18s ease;
+		border: none;
+	}
+
+	.gm-cta:hover {
+		background: var(--gm-oxblood-deep);
+		color: var(--gm-cream);
+		transform: translateY(-1px);
+	}
+
+	.gm-side {
+		display: flex;
+		flex-direction: column;
+		gap: 16px;
+	}
+
+	.gm-streak {
+		display: flex;
+		align-items: center;
+		gap: 14px;
+		padding: 14px 16px;
+		background: linear-gradient(120deg, rgba(154, 62, 46, 0.18), var(--gm-panel) 70%);
+		border: 1px solid var(--gm-line);
+		border-left: 3px solid var(--gm-oxblood);
+		border-radius: 4px;
+	}
+
+	.gm-streak-badge {
+		width: 40px;
+		height: 40px;
+		border-radius: 3px;
+		background: var(--gm-oxblood);
+		display: flex;
+		align-items: center;
+		justify-content: center;
+		color: var(--gm-cream);
+		font-family: 'IBM Plex Mono', monospace;
+		font-weight: 800;
+		font-size: 1.1rem;
+		flex-shrink: 0;
+	}
+
+	.gm-streak-info {
+		flex: 1;
+		min-width: 0;
+	}
+
+	.gm-streak-number {
+		font-family: 'Fraunces', Georgia, serif;
+		font-size: 1.15rem;
+		font-weight: 700;
+		color: var(--gm-cream);
+		line-height: 1;
+		display: flex;
+		align-items: baseline;
+		gap: 6px;
+	}
+
+	.gm-streak-number span {
+		font-family: 'IBM Plex Mono', monospace;
+		font-size: 0.66rem;
+		font-weight: 600;
+		color: var(--gm-stone);
+		text-transform: uppercase;
+		letter-spacing: 1px;
+	}
+
+	.gm-streak-label {
+		font-size: 0.72rem;
+		color: var(--gm-stone);
+		margin-top: 3px;
+	}
+
+	.gm-talent {
+		display: flex;
+		flex-direction: column;
+	}
+
+	.gm-talent-frame {
+		position: relative;
+		height: 150px;
+		overflow: hidden;
+	}
+
+	.gm-talent-frame img {
+		width: 100%;
+		height: 100%;
+		object-fit: cover;
+		display: block;
+		filter: saturate(0.9);
+	}
+
+	.gm-talent-frame::after {
+		content: "";
+		position: absolute;
+		inset: 0;
+		background: linear-gradient(to bottom, transparent 45%, rgba(10, 8, 6, 0.88));
+	}
+
+	.gm-talent-badge {
+		position: absolute;
+		top: 10px;
+		left: 10px;
+		z-index: 2;
+		font-family: 'IBM Plex Mono', monospace;
+		font-size: 0.62rem;
+		font-weight: 700;
+		letter-spacing: 0.6px;
+		text-transform: uppercase;
+		color: var(--gm-ink);
+		background: var(--gm-brass);
+		padding: 3px 9px;
+		border-radius: 2px;
+	}
+
+	.gm-talent-flag {
+		width: 16px;
+		border-radius: 1px;
+		margin-left: 5px;
+		vertical-align: middle;
+	}
+
+	.gm-talent-row {
+		padding: 12px 14px;
+		display: flex;
+		align-items: center;
+		justify-content: space-between;
+		gap: 10px;
+	}
+
+	.gm-talent-name {
+		font-family: 'Fraunces', Georgia, serif;
+		font-size: 0.9rem;
+		font-weight: 700;
+		color: var(--gm-cream);
+		line-height: 1.3;
+	}
+
+	.gm-rating-chip {
+		display: inline-flex;
+		align-items: center;
+		gap: 5px;
+		background: var(--gm-panel-alt);
+		border: 1px solid var(--gm-line);
+		border-radius: 3px;
+		padding: 4px 10px;
+		font-family: 'IBM Plex Mono', monospace;
+		font-size: 0.72rem;
+		font-weight: 600;
+		color: var(--gm-stone);
+	}
+
+	.gm-rating-chip b {
+		color: var(--gm-brass);
+		font-size: 0.86rem;
+	}
+
+	.gm-tour-list {
+		max-height: 150px;
+		overflow-y: auto;
+		padding: 6px 14px 12px;
+	}
+
+	.gm-tour-list::-webkit-scrollbar {
+		width: 4px;
+	}
+
+	.gm-tour-list::-webkit-scrollbar-thumb {
+		background: var(--gm-line);
+		border-radius: 99px;
+	}
+
+	.gm-tour-item {
+		display: flex;
+		align-items: center;
+		gap: 12px;
+		padding: 9px 4px;
+		border-bottom: 1px solid var(--gm-line);
+	}
+
+	.gm-tour-item:last-child {
+		border-bottom: none;
+	}
+
+	.gm-tour-square {
+		width: 42px;
+		height: 42px;
+		flex-shrink: 0;
+		background: repeating-conic-gradient(var(--gm-panel-alt) 0% 25%, var(--gm-ink) 0% 50%) 0 0/21px 21px;
+		border: 1px solid var(--gm-line);
+		border-radius: 3px;
+		display: flex;
+		flex-direction: column;
+		align-items: center;
+		justify-content: center;
+		line-height: 1.05;
+	}
+
+	.gm-tour-month {
+		font-family: 'IBM Plex Mono', monospace;
+		font-size: 0.55rem;
+		font-weight: 700;
+		letter-spacing: 0.4px;
+		text-transform: uppercase;
+		color: var(--gm-brass);
+	}
+
+	.gm-tour-day {
+		font-family: 'Fraunces', Georgia, serif;
+		font-size: 1rem;
+		font-weight: 700;
+		color: var(--gm-cream);
+	}
+
+	.gm-tour-details {
+		flex: 1;
+		min-width: 0;
+	}
+
+	.gm-tour-name {
+		font-size: 0.85rem;
+		font-weight: 700;
+		color: var(--gm-cream);
+		white-space: nowrap;
+		overflow: hidden;
+		text-overflow: ellipsis;
+	}
+
+	.gm-tour-dates {
+		font-family: 'IBM Plex Mono', monospace;
+		font-size: 0.68rem;
+		color: var(--gm-stone);
+	}
+
+	.gm-puzzle-section {
+		margin-bottom: 36px;
+	}
+
+	.gm-puzzle-card {
+		background: var(--gm-panel);
+		border: 1px solid var(--gm-line);
+		border-radius: 6px;
+		overflow: hidden;
+		display: grid;
+		grid-template-columns: 220px 1fr;
+	}
+
+	.gm-puzzle-board-wrap {
+		position: relative;
+		background: var(--gm-ink);
+		border-right: 1px solid var(--gm-line);
+		display: flex;
+		align-items: center;
+		justify-content: center;
+		padding: 18px;
+	}
+
+	#gm-random-puzzle-board {
+		width: 100%;
+		max-width: 300px;
+		aspect-ratio: 1 / 1;
+	}
+
+	#gm-random-puzzle-board .white-1e1d7 {
+		background-color: #EFE7D6 !important;
+	}
+
+	#gm-random-puzzle-board .black-3c85d {
+		background-color: #7A2F22 !important;
+	}
+
+	#gm-random-puzzle-board .board-b72b1 {
+		border: 2px solid var(--gm-line);
+		border-radius: 3px;
+		overflow: hidden;
+	}
+
+	@media (max-width: 700px) {
+		.gm-puzzle-board-wrap {
+			border-right: none;
+			border-bottom: 1px solid var(--gm-line);
+			padding: 22px;
+		}
+
+		#gm-random-puzzle-board {
+			width: 100%;
+			max-width: 300px;
+		}
+	}
+
+	.gm-puzzle-body {
+		padding: 20px 22px;
+		display: flex;
+		flex-direction: column;
+		justify-content: center;
+		gap: 10px;
+	}
+
+	.gm-puzzle-badges {
+		display: flex;
+		align-items: center;
+		gap: 8px;
+	}
+
+	.gm-puzzle-day-tag {
+		font-family: 'IBM Plex Mono', monospace;
+		font-size: 0.64rem;
+		font-weight: 700;
+		letter-spacing: 1.5px;
+		text-transform: uppercase;
+		color: var(--gm-cream);
+		background: var(--gm-oxblood);
+		padding: 3px 10px;
+		border-radius: 2px;
+	}
+
+	.gm-puzzle-diff {
+		font-family: 'IBM Plex Mono', monospace;
+		font-size: 0.64rem;
+		font-weight: 700;
+		letter-spacing: 1px;
+		text-transform: uppercase;
+		color: var(--gm-brass);
+		border: 1px solid rgba(201, 160, 61, 0.4);
+		padding: 3px 10px;
+		border-radius: 2px;
+	}
+
+	.gm-puzzle-title {
+		font-family: 'Fraunces', Georgia, serif;
+		font-size: 1.5rem;
+		font-weight: 700;
+		color: var(--gm-cream);
+		line-height: 1.25;
+	}
+
+	.gm-puzzle-desc {
+		font-family: 'Source Serif 4', Georgia, serif;
+		font-size: 0.9rem;
+		color: var(--gm-stone);
+		line-height: 1.65;
+		max-width: 46ch;
+	}
+
+	.gm-puzzle-meta-row {
+		display: flex;
+		align-items: center;
+		gap: 16px;
+		margin-top: 4px;
+		flex-wrap: wrap;
+	}
+
+	.gm-puzzle-meta {
+		font-family: 'IBM Plex Mono', monospace;
+		font-size: 0.72rem;
+		color: var(--gm-stone);
+		display: flex;
+		align-items: center;
+		gap: 5px;
+	}
+
+	.gm-puzzle-meta .gm-piece-mark {
+		font-size: 0.9rem;
+	}
+
+	.gm-puzzle-solve {
+		margin-top: 8px;
+		align-self: flex-start;
+	}
+
+	@media (max-width: 700px) {
+		.gm-puzzle-card {
+			grid-template-columns: 1fr;
+		}
+
+		.gm-puzzle-board-wrap {
+			border-right: none;
+			border-bottom: 1px solid var(--gm-line);
+			padding: 22px 22px 10px;
+		}
+
+		.gm-puzzle-board {
+			max-width: 260px;
+			margin: 0 auto;
+		}
+
+		.gm-puzzle-body {
+			padding: 18px 20px 22px;
+		}
+
+		.gm-puzzle-title {
+			font-size: 1.25rem;
+		}
+	}
+
+	.gm-players-section {
+		margin-bottom: 36px;
+	}
+
+	.gm-section-row {
+		display: flex;
+		align-items: center;
+		justify-content: space-between;
+		margin-bottom: 16px;
+		flex-wrap: wrap;
+		gap: 10px;
+	}
+
+	.gm-section-heading {
+		font-family: 'Fraunces', Georgia, serif;
+		font-size: 1.3rem;
+		font-weight: 700;
+		color: var(--gm-cream);
+		margin: 0;
+		display: flex;
+		align-items: center;
+		gap: 10px;
+	}
+
+	.gm-piece-mark {
+		color: var(--gm-brass);
+		font-size: 1.1rem;
+	}
+
+	.gm-view-all {
+		display: inline-flex;
+		align-items: center;
+		gap: 5px;
+		font-family: 'IBM Plex Mono', monospace;
+		font-size: 0.7rem;
+		font-weight: 700;
+		letter-spacing: 0.5px;
+		text-transform: uppercase;
+		color: var(--gm-brass);
+		border: 1px solid rgba(201, 160, 61, 0.4);
+		border-radius: 3px;
+		padding: 6px 13px;
+		transition: all 0.15s ease;
+	}
+
+	.gm-view-all:hover {
+		background: var(--gm-brass);
+		color: var(--gm-ink);
+	}
+
+	.gm-tabs {
+		display: flex;
+		gap: 3px;
+		background: var(--gm-panel);
+		border: 1px solid var(--gm-line);
+		border-radius: 4px;
+		padding: 3px;
+	}
+
+	.gm-tab {
+		display: flex;
+		align-items: center;
+		gap: 6px;
+		padding: 6px 15px;
+		border-radius: 3px;
+		border: none;
+		background: transparent;
+		color: var(--gm-stone);
+		font-family: 'IBM Plex Mono', monospace;
+		font-size: 0.72rem;
+		font-weight: 600;
+		letter-spacing: 0.3px;
+		text-transform: uppercase;
+		cursor: pointer;
+		transition: all 0.2s ease;
+	}
+
+	.gm-tab .gm-piece-mark {
+		font-size: 0.95rem;
+		color: inherit;
+	}
+
+	.gm-tab.active {
+		background: var(--gm-oxblood);
+		color: var(--gm-cream);
+	}
+
+	.gm-tab.active .gm-piece-mark {
+		color: var(--gm-cream);
+	}
+
+	.gm-tab[data-target$="-women"].active {
+		background: #6C4F8C;
+	}
+
+	.gm-tab:not(.active):hover {
+		color: var(--gm-cream);
+		background: var(--gm-panel-alt);
+	}
+
+	.gm-panel-set {
+		display: none;
+	}
+
+	.gm-panel-set.active {
+		display: block;
+		animation: gm-fade 0.28s ease;
+	}
+
+	@keyframes gm-fade {
+		from {
+			opacity: 0;
+			transform: translateY(6px);
+		}
+
+		to {
+			opacity: 1;
+			transform: translateY(0);
+		}
+	}
+
+	.gm-players-grid {
+		display: grid;
+		grid-template-columns: repeat(auto-fill, minmax(175px, 1fr));
+		gap: 14px;
+	}
+
+	.gm-loading {
+		display: flex;
+		justify-content: center;
+		align-items: center;
+		min-height: 180px;
+		grid-column: 1/-1;
+	}
+
+	.gm-spinner {
+		width: 34px;
+		height: 34px;
+		border: 3px solid var(--gm-line);
+		border-top-color: var(--gm-oxblood);
+		border-radius: 50%;
+		animation: gm-spin 0.9s linear infinite;
+	}
+
+	@keyframes gm-spin {
+		to {
+			transform: rotate(360deg);
+		}
+	}
+
+	.gm-error {
+		grid-column: 1/-1;
+		text-align: center;
+		padding: 30px;
+		color: var(--gm-stone);
+		font-size: 0.85rem;
+		font-family: 'IBM Plex Mono', monospace;
+	}
+
+	.gm-retry {
+		background: var(--gm-oxblood);
+		color: var(--gm-cream);
+		border: none;
+		padding: 7px 18px;
+		border-radius: 3px;
+		margin-top: 10px;
+		cursor: pointer;
+		font-weight: 700;
+		font-size: 0.75rem;
+		font-family: 'IBM Plex Mono', monospace;
+		transition: background 0.15s;
+	}
+
+	.gm-retry:hover {
+		background: var(--gm-oxblood-deep);
+	}
+
+	.gm-player-card {
+		background: var(--gm-panel);
+		border: 1px solid var(--gm-line);
+		border-radius: 5px;
+		overflow: hidden;
+		position: relative;
+		transition: transform 0.2s ease, border-color 0.2s ease;
+	}
+
+	.gm-player-card:hover {
+		transform: translateY(-4px);
+		border-color: var(--gm-oxblood);
+	}
+
+	.gm-player-card.gm-women:hover {
+		border-color: #6C4F8C;
+	}
+
+	.gm-player-img {
+		width: 100%;
+		height: 185px;
+		object-fit: cover;
+		display: block;
+		filter: saturate(0.88) brightness(0.94);
+	}
+
+	.gm-player-shade {
+		position: absolute;
+		top: 0;
+		left: 0;
+		right: 0;
+		height: 185px;
+		background: linear-gradient(to bottom, transparent 42%, rgba(8, 6, 4, 0.82));
+	}
+
+	.gm-player-rank {
+		position: absolute;
+		top: 9px;
+		left: 9px;
+		background: var(--gm-oxblood);
+		color: var(--gm-cream);
+		font-family: 'IBM Plex Mono', monospace;
+		font-size: 0.68rem;
+		font-weight: 700;
+		padding: 3px 8px;
+		border-radius: 2px;
+	}
+
+	.gm-player-rank.gm-women {
+		background: #6C4F8C;
+	}
+
+	.gm-player-flag {
+		position: absolute;
+		top: 9px;
+		right: 9px;
+		width: 21px;
+		border-radius: 1px;
+	}
+
+	.gm-player-name {
+		position: absolute;
+		bottom: 32px;
+		left: 0;
+		right: 0;
+		text-align: center;
+		font-family: 'Fraunces', Georgia, serif;
+		font-size: 0.86rem;
+		font-weight: 700;
+		color: var(--gm-cream);
+		text-shadow: 0 1px 5px rgba(0, 0, 0, 0.85);
+		padding: 0 8px;
+	}
+
+	.gm-player-foot {
+		padding: 8px 10px;
+		display: flex;
+		justify-content: center;
+		border-top: 1px solid var(--gm-line);
+	}
+
+	.gm-blogs-section {
+		margin-bottom: 36px;
+	}
+
+	.gm-blogs-grid {
+		display: grid;
+		grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+		gap: 18px;
+	}
+
+	.gm-blog-card {
+		background: var(--gm-panel);
+		border: 1px solid var(--gm-line);
+		border-radius: 5px;
+		overflow: hidden;
+		display: flex;
+		flex-direction: column;
+		transition: transform 0.2s ease, border-color 0.2s ease;
+	}
+
+	.gm-blog-card:hover {
+		transform: translateY(-3px);
+		border-color: var(--gm-brass);
+	}
+
+	.gm-blog-card img {
+		width: 100%;
+		height: 168px;
+		object-fit: cover;
+		display: block;
+		filter: saturate(0.9);
+	}
+
+	.gm-blog-body {
+		padding: 16px;
+		flex: 1;
+		display: flex;
+		flex-direction: column;
+	}
+
+	.gm-blog-tag {
+		display: inline-block;
+		font-family: 'IBM Plex Mono', monospace;
+		background: transparent;
+		color: var(--gm-brass);
+		font-size: 0.63rem;
+		font-weight: 700;
+		letter-spacing: 1.5px;
+		text-transform: uppercase;
+		margin-bottom: 9px;
+	}
+
+	.gm-blog-title {
+		font-family: 'Fraunces', Georgia, serif;
+		font-size: 1.02rem;
+		font-weight: 700;
+		color: var(--gm-cream);
+		line-height: 1.38;
+		margin-bottom: 9px;
+		flex: 1;
+	}
+
+	.gm-blog-title a {
+		color: inherit;
+	}
+
+	.gm-blog-title a:hover {
+		color: var(--gm-brass);
+	}
+
+	.gm-blog-excerpt {
+		font-family: 'Source Serif 4', Georgia, serif;
+		font-size: 0.85rem;
+		color: var(--gm-stone);
+		line-height: 1.6;
+		margin-bottom: 13px;
+	}
+
+	.gm-blog-foot {
+		display: flex;
+		align-items: center;
+		gap: 9px;
+		padding-top: 11px;
+		border-top: 1px dashed var(--gm-line);
+		margin-top: auto;
+	}
+
+	.gm-blog-foot img {
+		width: 26px;
+		height: 26px;
+		border-radius: 50%;
+		object-fit: cover;
+		border: 1px solid var(--gm-line);
+	}
+
+	.gm-blog-author {
+		font-family: 'IBM Plex Mono', monospace;
+		font-size: 0.7rem;
+		font-weight: 600;
+		color: var(--gm-stone);
+	}
+
+	.gm-blog-time {
+		font-family: 'IBM Plex Mono', monospace;
+		font-size: 0.66rem;
+		color: var(--gm-stone);
+		margin-left: auto;
+	}
+
+	.gm-empty {
+		grid-column: 1/-1;
+		text-align: center;
+		color: var(--gm-stone);
+		padding: 34px;
+		font-family: 'IBM Plex Mono', monospace;
+		font-size: 0.82rem;
+	}
+
+	@media (max-width: 900px) {
+		.gm-grid {
+			grid-template-columns: 1fr;
+		}
+
+		.gm-hero img {
+			height: 220px;
+		}
+
+		.gm-hero-title {
+			font-size: 1.7rem;
+		}
+	}
+
+	@media (max-width: 600px) {
+		.gm-players-grid {
+			grid-template-columns: repeat(2, 1fr);
+		}
+
+		.gm-blogs-grid {
+			grid-template-columns: 1fr;
+		}
+
+		.gm-hero-title {
+			font-size: 1.3rem;
+		}
+
+		.gm-userbar {
+			flex-wrap: wrap;
+		}
+
+		.gm-section-row {
+			align-items: flex-start;
+		}
+	}
+</style>
+
+{% if user.is_authenticated %}
+<div class="gm-userbar">
+	<div class="gm-userbar-frame">
+		{% if user.userprofile.image %}
+		<img src="{{ user.userprofile.image.url }}" alt="{{ user.username }}">
+		{% else %}
+		<img src="{% static 'profile_images/user.png' %}" alt="Default Profile">
+		{% endif %}
+	</div>
+	<div class="gm-userbar-id">
+		<a href="{% url 'progress' %}">
+			<span class="gm-userbar-name">{{ user.username }}</span>
+		</a>
+		<div class="gm-userbar-sub">
+			{% if user|is_online %}
+			<span class="gm-dot-live"></span> Online
+			{% else %}
+			Offline
+			{% endif %}
+		</div>
+	</div>
+	{% if profile and profile.is_premium %}
+	<span class="gm-tag gm-tag-premium">Premium</span>
+	{% elif profile and profile.free_premium_start %}
+	<span class="gm-tag gm-tag-trial">Trial</span>
+	{% else %}
+	<span class="gm-tag gm-tag-guest">Guest</span>
+	{% endif %}
+</div>
+{% endif %}
+
+<div class="gm-wire">
+	<div class="gm-wire-label">Live Board</div>
+	<div class="gm-wire-track">
+		<div class="gm-wire-text" id="ticker-content">
+			{% for player in players %}
+			<span style="margin-right:28px;">
+				<span class="gm-wire-rank">#{{ player.rank }}</span>
+				<span style="margin:0 4px;">{{ player.name }}</span>
+				<span class="gm-wire-rating">{{ player.rating }}</span>
+			</span>
+			{% endfor %}
+		</div>
+	</div>
+</div>
+
+{% if home_banner %}
+<div class="gm-banner">
+	<img src="{{ home_banner.image.url }}" alt="Banner">
+</div>
+{% endif %}
+
+<div class="gm-grid">
+
+	<div>
+		{% if big_news %}
+		<div class="gm-hero">
+			{% if big_news.image %}
+			<img src="{{ big_news.image.url }}" alt="{{ big_news.title }}">
+			{% endif %}
+			<div class="gm-hero-body">
+				<h2 class="gm-hero-title">{{ big_news.title }}</h2>
+				<p class="gm-hero-excerpt">
+					{{ big_news.content|remove_img_tags|truncatewords:80|safe }}
+				</p>
+				<div class="gm-hero-meta">
+					<span class="gm-hero-meta-text">
+						{{ big_news.author.username }} &middot; {{ big_news.published_at|date:"M d, Y" }}
+					</span>
+					<a href="{% url 'article_detail' slug=big_news.slug %}" class="gm-cta">
+						Read More &rarr;
+					</a>
+				</div>
+			</div>
+		</div>
+		{% else %}
+		<div class="gm-plate">
+			<div class="gm-plate-body" style="color:var(--gm-stone);text-align:center;">
+				No featured article available yet.
+			</div>
+		</div>
+		{% endif %}
+	</div>
+
+	<div class="gm-side">
+
+		{% if user.is_authenticated %}
+		<div class="gm-streak">
+			<div class="gm-streak-badge">{{ request.user.streak.streak }}</div>
+			<div class="gm-streak-info">
+				<div class="gm-streak-number">{{ request.user.streak.streak }} <span>days</span></div>
+				<div class="gm-streak-label">Current Streak</div>
+			</div>
+		</div>
+		{% endif %}
+
+		<div class="gm-plate">
+			<div class="gm-plate-head">
+				<span class="gm-plate-title"><span class="gm-piece-mark">&#9821;</span> Rising Talent</span>
+			</div>
+			<div class="gm-talent">
+				<div class="gm-talent-frame">
+					<img src="{% static 'rayan_rashid_mugdho.jpg' %}" alt="Rayhan Rashid Mugdho">
+					<span class="gm-talent-badge">Rising Star</span>
+				</div>
+				<div class="gm-talent-row">
+					<div class="gm-talent-name">
+						Rayhan Rashid Mugdho
+						<img src="https://flagcdn.com/w20/bd.png" alt="BD" class="gm-talent-flag">
+					</div>
+					<div class="gm-rating-chip">Rating <b>2210</b></div>
+				</div>
+			</div>
+		</div>
+
+	</div>
+</div>
+
+<div class="gm-puzzle-section">
+	<div class="gm-eyebrow">Sharpen Your Eye</div>
+	<div class="gm-puzzle-card">
+
+	<div class="gm-puzzle-board-wrap">
+		<div id="gm-random-puzzle-board"></div>
+	</div>
+
+	<div class="gm-puzzle-body">
+		<div class="gm-puzzle-badges">
+			<span class="gm-puzzle-day-tag">Puzzle of the Day</span>
+			<span class="gm-puzzle-diff">{{ daily_puzzle.difficulty }}</span>
+		</div>
+
+		<div class="gm-puzzle-title">
+			{{ daily_puzzle.title }}
+		</div>
+
+		<a href="{% url 'daily-puzzle' %}" class="gm-cta gm-puzzle-solve">
+			Solve Puzzle &rarr;
+		</a>
+	</div>
+
+</div>
+</div>
+
+<div class="gm-players-section">
+	<div class="gm-section-row">
+		<h2 class="gm-section-heading"><span class="gm-piece-mark">&#9813;</span> Top World Players</h2>
+		<div class="gm-tabs" id="world-tabs">
+			<button class="gm-tab active" data-target="world-men">
+				<span class="gm-piece-mark">&#9812;</span> Men
+			</button>
+			<button class="gm-tab" data-target="world-women">
+				<span class="gm-piece-mark">&#9813;</span> Women
+			</button>
+		</div>
+	</div>
+
+	<div id="world-men" class="gm-panel-set active">
+		<div id="world-players-container" class="gm-players-grid">
+			<div class="gm-loading">
+				<div class="gm-spinner"></div>
+			</div>
+		</div>
+	</div>
+
+	<div id="world-women" class="gm-panel-set">
+		<div id="world-women-container" class="gm-players-grid">
+			<div class="gm-loading">
+				<div class="gm-spinner"></div>
+			</div>
+		</div>
+	</div>
+</div>
+
+<div class="gm-players-section">
+	<div class="gm-section-row">
+		<h2 class="gm-section-heading"><span class="gm-piece-mark">&#9813;</span> Top Bangladeshi Players</h2>
+		<div class="gm-tabs" id="bd-tabs">
+			<button class="gm-tab active" data-target="bd-men">
+				<span class="gm-piece-mark">&#9812;</span> Men
+			</button>
+			<button class="gm-tab" data-target="bd-women">
+				<span class="gm-piece-mark">&#9813;</span> Women
+			</button>
+		</div>
+	</div>
+
+	<div id="bd-men" class="gm-panel-set active">
+		<div id="bd-players-container" class="gm-players-grid">
+			<div class="gm-loading">
+				<div class="gm-spinner"></div>
+			</div>
+		</div>
+	</div>
+
+	<div id="bd-women" class="gm-panel-set">
+		<div id="bd-women-container" class="gm-players-grid">
+			<div class="gm-loading">
+				<div class="gm-spinner"></div>
+			</div>
+		</div>
+	</div>
+</div>
+
+<div class="gm-blogs-section">
+	<div class="gm-section-row">
+		<h2 class="gm-section-heading"><span class="gm-piece-mark">&#9814;</span> Latest Dispatches</h2>
+		<a href="{% url 'all_blogs' %}" class="gm-view-all">
+			View All &rsaquo;
+		</a>
+	</div>
+
+	<div class="gm-blogs-grid">
+		{% for article in small_news %}
+		<div class="gm-blog-card">
+			{% if article.image %}
+			<img src="{{ article.image.url }}" alt="{{ article.title }}">
+			{% else %}
+			<img src="{% static 'img/default_blog.jpeg' %}" alt="{{ article.title }}">
+			{% endif %}
+			<div class="gm-blog-body">
+				<span class="gm-blog-tag">Chess</span>
+				<div class="gm-blog-title">
+					<a href="{% url 'article_detail' slug=article.slug %}">{{ article.title }}</a>
+				</div>
+				<p class="gm-blog-excerpt">{{ article.content|remove_img_tags|truncatewords:22|safe }}</p>
+				<div class="gm-blog-foot">
+					<img src="https://ui-avatars.com/api/?name={{ article.author.username }}&background=random&size=32&rounded=true"
+						alt="{{ article.author.username }}">
+					<span class="gm-blog-author">{{ article.author.username }}</span>
+					<span class="gm-blog-time">{{ article.published_at|timesince }} ago</span>
+				</div>
+			</div>
+		</div>
+		{% empty %}
+		<div class="gm-empty">
+			No articles yet. Check back soon.
+		</div>
+		{% endfor %}
+	</div>
+</div>
+
+<script>
+	function gmEscape(t) {
+		if (!t) return '';
+		const d = document.createElement('div');
+		d.textContent = t;
+		return d.innerHTML;
+	}
+
+	function gmPlayerCard(player, isBD, isWomen) {
+		const flagCode = isBD ? 'bd' : (player.country || '').toLowerCase().slice(0, 2);
+		const flagUrl = `https://flagcdn.com/h20/${flagCode}.png`;
+		const defaultImg = '/static/img/default-player.jpg';
+		const womenClass = isWomen ? ' gm-women' : '';
+
+		return `
+      <div class="gm-player-card${womenClass}">
+        <img src="${player.image_url || defaultImg}"
+             class="gm-player-img" alt="${gmEscape(player.name)}" loading="lazy"
+             onerror="this.src='${defaultImg}'">
+        <div class="gm-player-shade"></div>
+        <span class="gm-player-rank${womenClass}">#${player.rank}</span>
+        <img class="gm-player-flag" src="${flagUrl}" alt="">
+        <div class="gm-player-name">${gmEscape(player.name)}</div>
+        <div class="gm-player-foot">
+          <div class="gm-rating-chip"><b>${player.rating}</b></div>
+        </div>
+      </div>`;
+	}
+
+	function gmRenderPlayers(containerId, players, isBD, isWomen, retryFn) {
+		const el = document.getElementById(containerId);
+		if (!el) return;
+		if (players && players.length) {
+			el.innerHTML = players.map(p => gmPlayerCard(p, isBD, isWomen)).join('');
+		} else {
+			el.innerHTML = `<div class="gm-error">No data.<div><button class="gm-retry" onclick="${retryFn}()">Retry</button></div></div>`;
+		}
+	}
+
+	function gmRenderError(containerId, retryFn) {
+		const el = document.getElementById(containerId);
+		if (el) el.innerHTML = `<div class="gm-error">Failed to load.<div><button class="gm-retry" onclick="${retryFn}()">Retry</button></div></div>`;
+	}
+
+	async function loadWorldPlayers() {
+		try { const d = await (await fetch('/api/world-players/')).json(); gmRenderPlayers('world-players-container', d.success ? d.players : null, false, false, 'loadWorldPlayers'); }
+		catch { gmRenderError('world-players-container', 'loadWorldPlayers'); }
+	}
+
+	async function loadWorldWomenPlayers() {
+		try { const d = await (await fetch('/api/world-women-players/')).json(); gmRenderPlayers('world-women-container', d.success ? d.players : null, false, true, 'loadWorldWomenPlayers'); }
+		catch { gmRenderError('world-women-container', 'loadWorldWomenPlayers'); }
+	}
+
+	async function loadBDPlayers() {
+		try { const d = await (await fetch('/api/bd-players/')).json(); gmRenderPlayers('bd-players-container', d.success ? d.players : null, true, false, 'loadBDPlayers'); }
+		catch { gmRenderError('bd-players-container', 'loadBDPlayers'); }
+	}
+
+	async function loadBDWomenPlayers() {
+		try {
+			const d = await (await fetch('/api/bd-women-players/')).json();
+			gmRenderPlayers('bd-women-container', d.success ? d.players : null, true, true, 'loadBDWomenPlayers');
+		}
+		catch { gmRenderError('bd-women-container', 'loadBDWomenPlayers'); }
+	}
+
+	async function loadTickerData() {
+		const el = document.getElementById('ticker-content');
+		if (!el) return;
+
+		try {
+			const results = await Promise.allSettled([
+				fetch('/api/world-players/'),
+				fetch('/api/bd-players/'),
+				fetch('/api/world-women-players/'),
+				fetch('/api/bd-women-players/')
+			]);
+
+			let combined = [];
+
+			async function handle(res, type) {
+				if (res.status === 'fulfilled') {
+					const data = await res.value.json();
+					if (data.success && data.players) {
+						combined.push(...data.players.map(p => ({ ...p, type })));
+					}
+				}
+			}
+
+			await handle(results[0], 'world');
+			await handle(results[1], 'bd');
+			await handle(results[2], 'women');
+			await handle(results[3], 'bd-women');
+
+			if (combined.length) {
+				el.innerHTML = combined.map(p => {
+					let color = 'var(--gm-brass)';
+					let prefix = '';
+
+					if (p.type === 'bd') {
+						color = '#4E7A52';
+					}
+					else if (p.type === 'women') {
+						color = '#6C4F8C';
+					}
+					else if (p.type === 'bd-women') {
+						color = '#6C4F8C';
+						prefix = 'BD';
+					}
+
+					return `
+					<span style="margin-right:28px;">
+						<span class="gm-wire-rank" style="color:${color};">#${p.rank}</span>
+						<span style="margin:0 4px;">
+							${prefix} ${gmEscape(p.name)}
+						</span>
+						<span class="gm-wire-rating">${p.rating}</span>
+					</span>
+				`;
+				}).join('');
+
+				el.style.animation = 'none';
+				el.offsetHeight;
+				el.style.animation = '';
+
+			} else {
+				el.innerHTML = '<span style="color:var(--gm-stone);">No rankings available</span>';
+			}
+
+		} catch (err) {
+			console.error('Ticker error:', err);
+			el.innerHTML = '<span style="color:var(--gm-stone);">Failed to load rankings</span>';
+		}
+	}
+
+	function gmInitTabs(tabsId) {
+		const container = document.getElementById(tabsId);
+		if (!container) return;
+		const section = container.closest('.gm-players-section');
+		const heading = section.querySelector('.gm-section-heading');
+
+		const activeBtn = container.querySelector('.gm-tab.active');
+		if (activeBtn) {
+			gmUpdateHeading(activeBtn, heading);
+		}
+
+		container.querySelectorAll('.gm-tab').forEach(btn => {
+			btn.addEventListener('click', () => {
+
+				container.querySelectorAll('.gm-tab').forEach(b => b.classList.remove('active'));
+				btn.classList.add('active');
+
+				gmUpdateHeading(btn, heading);
+
+				section.querySelectorAll('.gm-panel-set').forEach(p => p.classList.remove('active'));
+				const panel = document.getElementById(btn.dataset.target);
+				if (panel) panel.classList.add('active');
+			});
+		});
+
+		function gmUpdateHeading(btn, heading) {
+			const mark = '<span class="gm-piece-mark">&#9813;</span>';
+			if (btn.dataset.target === 'world-women') {
+				heading.innerHTML = mark + ' Top Women Players';
+			} else if (btn.dataset.target === 'bd-men') {
+				heading.innerHTML = mark + ' Top Men Players';
+			} else if (btn.dataset.target === 'bd-women') {
+				heading.innerHTML = mark + ' Top Women Players';
+			} else {
+				heading.innerHTML = mark + ' Top Men Players';
+			}
+		}
+	}
+
+	document.addEventListener('DOMContentLoaded', () => {
+		gmInitTabs('world-tabs');
+		gmInitTabs('bd-tabs');
+		loadWorldPlayers();
+		loadWorldWomenPlayers();
+		loadBDPlayers();
+		loadBDWomenPlayers();
+		loadTickerData();
+
+		setInterval(() => {
+			if (document.visibilityState !== 'visible') return;
+			loadWorldPlayers(); loadWorldWomenPlayers();
+			loadBDPlayers(); loadBDWomenPlayers();
+			loadTickerData();
+		}, 300000);
+	});
+</script>
+
+<script>
+	document.addEventListener("DOMContentLoaded", function () {
+
+		const boardElement = document.getElementById("gm-random-puzzle-board");
+
+		if (!boardElement) {
+			return;
+		}
+
+		// const randomPositions = [
+		// 	"r1bqk2r/pppp1ppp/2n2n2/8/2B1P3/2N2N2/PPPP1PPP/R1BQK2R w KQkq - 0 1",
+
+		// 	"r2q1rk1/ppp1bppp/2npbn2/8/2BPP3/2N2N2/PPP2PPP/R1BQ1RK1 w - - 0 1",
+
+		// 	"rnbqk2r/ppp1bppp/5n2/3pp3/8/2N2N2/PPPPBPPP/R1BQK2R w KQkq - 0 1",
+
+		// 	"r1bq1rk1/ppp2ppp/2n1pn2/3p4/3P4/2P1PN2/PP1NBPPP/R1BQ1RK1 w - - 0 1",
+
+		// 	"rnbq1rk1/pp2bppp/2p1pn2/8/2B1P3/2N2N2/PPP2PPP/R1BQ1RK1 w - - 0 1"
+		// ];
+		const randomPositions = [
+			'{{daily_puzzle.fen}}'
+		]
+		const randomFen =
+			randomPositions[
+			Math.floor(Math.random() * randomPositions.length)
+			];
+
+		Chessboard("gm-random-puzzle-board", {
+			position: randomFen,
+			draggable: false,
+			showNotation: false,
+			pieceTheme: "{% static 'chessboardjs-1.0.0/img/chesspieces/wikipedia/' %}" + '{piece}' + '.png',
+		});
+
+	});
+</script>
+{% endblock %}

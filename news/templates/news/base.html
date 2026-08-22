@@ -10,17 +10,23 @@
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.0/font/bootstrap-icons.css">
     <link
-        href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;600;700;800&family=Playfair+Display:wght@700&display=swap"
+        href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,500;9..144,600;9..144,700;9..144,800&family=Source+Serif+4:wght@400;500;600&family=IBM+Plex+Mono:wght@500;600;700&family=Montserrat:wght@400;600;700;800&display=swap"
         rel="stylesheet">
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/lipis/flag-icons@7.3.2/css/flag-icons.min.css" />
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
     <link rel="icon" type="image/png" href="/static/knight.png">
-    <!-- Open Graph for social & AI discovery -->
     <meta property="og:title" content="{% block og_title %}{% endblock %}">
     <meta property="og:description" content="{% block og_desc %}{% endblock %}">
     <meta property="og:type" content="website">
+    <!-- Google tag (gtag.js) -->
+    <script async src="https://www.googletagmanager.com/gtag/js?id=G-7CWXEW5MJJ"></script>
+    <script>
+      window.dataLayer = window.dataLayer || [];
+      function gtag(){dataLayer.push(arguments);}
+      gtag('js', new Date());
 
-    <!-- Organization Schema for Brand Authority -->
+      gtag('config', 'G-7CWXEW5MJJ');
+    </script>
     <script type="application/ld+json">
   {
     "@context": "https://schema.org",
@@ -33,15 +39,14 @@
 
     {% block schema_json %}{% endblock %}
     <style>
-        /* ── CSS Variables ──────────────────────────────────────── */
         :root {
-            --chess-dark: oklch(14.5% 0 0);
-            --navbar-color: #09090b;
-            --chess-light: #f8f1e5;
-            --chess-primary: #779556;
-            --chess-secondary: #ebecd0;
-            --chess-accent: #b58863;
-            --chess-red: #c84b4b;
+            --chess-dark: #171310;
+            --navbar-color: #120E0A;
+            --chess-light: #F3ECDA;
+            --chess-primary: #9A3E2E;
+            --chess-secondary: #A99C82;
+            --chess-accent: #C9A03D;
+            --chess-red: #B8493A;
             --dark-gray: #2a2a2a;
             --slate-gray: #4b4b4b;
             --light-gray: #a3a3a3;
@@ -49,15 +54,18 @@
             --cool-accent: #6aa8d7;
             --warm-orange: #d87a2a;
             --cool-teal: #2aa6a6;
-            --card-color: oklch(27.8% .033 256.848);
-            --color-gray-400: oklch(70.7% .022 261.325);
-            --border: oklch(26.9% 0 0);
-            --status: oklch(52.7% .154 150.069);
+            --card-color: #211B14;
+            --color-gray-400: #A99C82;
+            --border: #3E3423;
+            --status: #4E7A52;
             --box: #232323;
             --move: #ebebeb;
             --move-hover: #b9b9b9;
             --move-active: #292b32b3;
             --notation-box: #0f1013b3;
+            --gm-oxblood-deep: #7A2F22;
+            --gm-panel-alt: #2A2219;
+            --gm-plum: #6C4F8C;
         }
 
         html,
@@ -81,11 +89,10 @@
             flex-shrink: 0;
         }
 
-        /* ── Navbar ─────────────────────────────────────────────── */
         .navbar {
-            background: rgba(9, 9, 11, 0.96) !important;
+            background: rgba(18, 14, 10, 0.96) !important;
             backdrop-filter: blur(12px);
-            border-bottom: 1px solid rgba(119, 149, 86, 0.15);
+            border-bottom: 1px solid var(--border);
             padding: 0 0;
             position: sticky;
             top: 0;
@@ -97,10 +104,29 @@
             padding-bottom: 10px;
         }
 
-        /* Logo */
         .navbar-brand {
             gap: 10px;
             text-decoration: none;
+            display: flex;
+            align-items: center;
+        }
+
+        .brand-mark {
+            width: 34px;
+            height: 34px;
+            border-radius: 3px;
+            background: repeating-conic-gradient(var(--chess-light) 0% 25%, var(--chess-dark) 0% 50%) 0 0/10px 10px;
+            border: 1px solid var(--border);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            flex-shrink: 0;
+        }
+
+        .brand-mark span {
+            font-size: 1.15rem;
+            color: var(--chess-primary);
+            filter: drop-shadow(0 1px 1px rgba(0, 0, 0, 0.6));
         }
 
         .logo-text {
@@ -110,62 +136,87 @@
         }
 
         .logo-main {
-            font-family: 'Playfair Display', serif;
+            font-family: 'Fraunces', Georgia, serif;
             font-weight: 700;
             font-size: 1.3rem;
             color: var(--chess-light);
-            letter-spacing: 0.5px;
+            letter-spacing: 0.3px;
         }
 
         .logo-sub {
-            font-size: 0.65rem;
-            font-weight: 700;
-            letter-spacing: 2px;
+            font-family: 'IBM Plex Mono', monospace;
+            font-size: 0.62rem;
+            font-weight: 600;
+            letter-spacing: 2.5px;
             text-transform: uppercase;
-            color: var(--chess-primary);
-            margin-top: 1px;
+            color: var(--chess-accent);
+            margin-top: 2px;
         }
 
-        /* Nav links */
         .navbar-nav {
             gap: 2px;
             align-items: center;
         }
 
         .nav-link {
-            font-size: 0.82rem;
-            font-weight: 700;
-            letter-spacing: 0.5px;
-            color: rgba(255, 255, 255, 0.7) !important;
-            padding: 7px 12px !important;
-            border-radius: 8px;
+            font-family: 'IBM Plex Mono', monospace;
+            font-size: 0.74rem;
+            font-weight: 600;
+            letter-spacing: 1px;
+            text-transform: uppercase;
+            color: var(--chess-secondary) !important;
+            padding: 8px 13px !important;
+            border-radius: 3px;
             transition: all 0.18s ease;
             position: relative;
         }
 
+        .nav-link::after {
+            content: "";
+            position: absolute;
+            left: 13px;
+            right: 13px;
+            bottom: 3px;
+            height: 2px;
+            background: var(--chess-accent);
+            transform: scaleX(0);
+            transform-origin: left;
+            transition: transform 0.2s ease;
+        }
+
         .nav-link:hover {
             color: var(--chess-light) !important;
-            background: rgba(255, 255, 255, 0.06);
+            background: var(--gm-panel-alt);
+        }
+
+        .nav-link:hover::after {
+            transform: scaleX(1);
         }
 
         .nav-link.active-nav {
             color: var(--chess-primary) !important;
-            background: rgba(119, 149, 86, 0.1);
         }
 
-        /* Support Us special */
+        .nav-link.active-nav::after {
+            transform: scaleX(1);
+            background: var(--chess-primary);
+        }
+
         .nav-link.support-link {
             color: var(--chess-accent) !important;
-            border: 1px solid rgba(181, 136, 99, 0.25);
+            border: 1px solid rgba(201, 160, 61, 0.35);
+        }
+
+        .nav-link.support-link::after {
+            display: none;
         }
 
         .nav-link.support-link:hover {
-            background: rgba(181, 136, 99, 0.1);
+            background: rgba(201, 160, 61, 0.1);
             border-color: var(--chess-accent);
             color: var(--chess-accent) !important;
         }
 
-        /* Divider dot */
         .nav-dot {
             width: 4px;
             height: 4px;
@@ -175,31 +226,32 @@
             vertical-align: middle;
         }
 
-        /* Dropdown */
         .dropdown-menu {
-            background: oklch(18% 0.01 256);
+            background: var(--gm-panel-alt);
             border: 1px solid var(--border);
-            border-radius: 12px;
+            border-radius: 6px;
+            border-top: 2px solid var(--chess-accent);
             padding: 6px;
             box-shadow: 0 12px 32px rgba(0, 0, 0, 0.5);
-            min-width: 200px;
+            min-width: 210px;
             margin-top: 8px !important;
         }
 
         .dropdown-item {
             color: var(--chess-secondary);
-            font-size: 0.82rem;
+            font-family: 'Source Serif 4', Georgia, serif;
+            font-size: 0.86rem;
             font-weight: 600;
             padding: 8px 12px;
-            border-radius: 8px;
+            border-radius: 4px;
             display: flex;
             align-items: center;
-            gap: 8px;
+            gap: 9px;
             transition: all 0.15s;
         }
 
         .dropdown-item:hover {
-            background: oklch(24% 0.015 256);
+            background: var(--card-color);
             color: var(--chess-light);
         }
 
@@ -214,69 +266,79 @@
         }
 
         .dropdown-item .bi-bullseye {
-            color: var(--chess-red);
-        }
-
-        .dropdown-item .bi-journal-bookmark-fill {
             color: var(--chess-primary);
         }
 
-        .dropdown-item .bi-diagram-3-fill {
-            color: #f59e0b;
-        }
-
-        .dropdown-item .bi-plus-circle-fill {
-            color: #22d3ee;
-        }
-
-        .dropdown-item .bi-box-arrow-right {
+        .dropdown-item .bi-journal-bookmark-fill {
             color: var(--chess-accent);
         }
 
-        .dropdown-divider {
-            border-color: var(--border);
-            margin: 4px 0;
+        .dropdown-item .bi-diagram-3-fill {
+            color: var(--chess-primary);
         }
 
-        /* User avatar in nav */
+        .dropdown-item .bi-sd-card-fill {
+            color: var(--gm-plum) !important;
+        }
+
+        .dropdown-item .bi-plus-circle-fill {
+            color: var(--status);
+        }
+
+        .dropdown-item .bi-box-arrow-right {
+            color: var(--chess-secondary);
+        }
+
+        .dropdown-divider {
+            border-top: 1px dashed var(--border);
+            margin: 4px 0;
+            opacity: 1;
+        }
+
         .nav-user-avatar {
-            width: 28px;
-            height: 28px;
-            border-radius: 6px;
+            width: 27px;
+            height: 27px;
+            border-radius: 3px;
             background: var(--chess-primary);
             display: inline-flex;
             align-items: center;
             justify-content: center;
-            font-size: 0.72rem;
-            font-weight: 800;
-            color: #fff;
-            margin-right: 6px;
-            border: 1px solid rgba(119, 149, 86, 0.4);
+            font-family: 'IBM Plex Mono', monospace;
+            font-size: 0.7rem;
+            font-weight: 700;
+            color: var(--chess-light);
+            margin-right: 7px;
+            border: 1px solid rgba(154, 62, 46, 0.5);
         }
 
-        /* Login button */
         .nav-login-btn {
-            font-size: 0.78rem;
+            font-family: 'IBM Plex Mono', monospace;
+            font-size: 0.72rem;
             font-weight: 700;
-            padding: 6px 16px;
+            letter-spacing: 0.5px;
+            text-transform: uppercase;
+            padding: 7px 17px;
             border-radius: 99px;
-            border: 1px solid rgba(119, 149, 86, 0.4);
+            border: 1px solid rgba(154, 62, 46, 0.45);
             color: var(--chess-primary) !important;
-            background: rgba(119, 149, 86, 0.08);
+            background: rgba(154, 62, 46, 0.1);
             transition: all 0.18s;
+        }
+
+        .nav-login-btn::after {
+            display: none;
         }
 
         .nav-login-btn:hover {
             background: var(--chess-primary) !important;
             border-color: var(--chess-primary) !important;
-            color: #fff !important;
+            color: var(--chess-light) !important;
         }
 
-        /* Toggler */
         .navbar-toggler {
             border: 1px solid var(--border);
             padding: 6px 10px;
-            border-radius: 8px;
+            border-radius: 4px;
         }
 
         .navbar-toggler:focus {
@@ -284,13 +346,13 @@
         }
 
         .navbar-toggler-icon {
-            background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 30 30'%3e%3cpath stroke='rgba%28248,241,229,0.7%29' stroke-linecap='round' stroke-miterlimit='10' stroke-width='2' d='M4 7h22M4 15h22M4 23h22'/%3e%3c/svg%3e");
+            background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 30 30'%3e%3cpath stroke='rgba%28243,236,218,0.8%29' stroke-linecap='round' stroke-miterlimit='10' stroke-width='2' d='M4 7h22M4 15h22M4 23h22'/%3e%3c/svg%3e");
         }
 
         @media (max-width: 991.98px) {
             .navbar-collapse {
                 padding: 12px 0;
-                border-top: 1px solid var(--border);
+                border-top: 1px dashed var(--border);
                 margin-top: 10px;
             }
 
@@ -304,7 +366,11 @@
             }
 
             .nav-link {
-                padding: 10px 14px !important;
+                padding: 11px 14px !important;
+            }
+
+            .nav-link::after {
+                display: none;
             }
 
             .nav-login-btn {
@@ -314,7 +380,6 @@
             }
         }
 
-        /* ── Global helpers ─────────────────────────────────────── */
         a {
             text-decoration: none;
             color: var(--chess-light);
@@ -334,7 +399,6 @@
             white-space: nowrap;
         }
 
-        /* Ticker */
         .ticker-container {
             overflow: hidden;
             white-space: nowrap;
@@ -373,11 +437,10 @@
             }
         }
 
-        /* Cards */
         .card {
             background-color: var(--card-color);
             border: none;
-            border-radius: 10px;
+            border-radius: 8px;
             transition: all 0.3s ease;
         }
 
@@ -405,7 +468,6 @@
             font-size: 0.875rem;
         }
 
-        /* Hover helpers */
         .hover-scale {
             transition: transform 0.3s ease;
         }
@@ -423,17 +485,16 @@
             box-shadow: 0 10px 20px rgba(0, 0, 0, 0.1) !important;
         }
 
-        /* Player cards */
         .player-card {
             width: 210px;
-            border-radius: 12px;
+            border-radius: 8px;
             overflow: hidden;
             box-shadow: 0 15px 30px rgba(0, 0, 0, 0.2);
             margin-bottom: 20px;
             position: relative;
             color: white;
             transition: transform 0.3s ease;
-            border: 1px solid rgba(255, 255, 255, 0.1);
+            border: 1px solid var(--border);
         }
 
         .player-card:hover {
@@ -463,7 +524,7 @@
             left: 20px;
             background-color: var(--chess-primary);
             padding: 0px 5px;
-            border-radius: 8px;
+            border-radius: 4px;
             box-shadow: 0 4px 8px rgba(0, 0, 0, 0.3);
             font-size: 1.8rem;
         }
@@ -522,7 +583,6 @@
             margin-top: 5px;
         }
 
-        /* Buttons */
         .bg-danger {
             background-color: var(--chess-red) !important;
         }
@@ -537,8 +597,8 @@
         }
 
         .btn-primary:hover {
-            background-color: #67804a;
-            border-color: #67804a;
+            background-color: var(--gm-oxblood-deep);
+            border-color: var(--gm-oxblood-deep);
         }
 
         .btn-unsolved {
@@ -550,11 +610,10 @@
         .book-cover {
             height: 220px;
             object-fit: cover;
-            border-top-left-radius: 10px;
-            border-top-right-radius: 10px;
+            border-top-left-radius: 8px;
+            border-top-right-radius: 8px;
         }
 
-        /* Footer */
         footer {
             background-color: var(--chess-dark);
             color: var(--color-gray-400);
@@ -562,7 +621,6 @@
             font-size: 0.82rem;
         }
 
-        /* Puzzle layout (#main-layout defined in base for puzzle/memory/find-square pages) */
         #main-layout {
             display: grid;
             grid-template-columns: 280px 1fr 300px;
@@ -590,7 +648,7 @@
         }
 
         .puzzle-btn {
-            border-radius: 8px;
+            border-radius: 6px;
             padding: 10px;
             text-align: left;
         }
@@ -625,15 +683,15 @@
             width: 100%;
             height: auto;
             aspect-ratio: 1/1;
-            border: 2px solid #ddd;
+            border: 2px solid var(--border);
         }
 
         #board .white-1e1d7 {
-            background-color: #eeeed2 !important;
+            background-color: #EFE7D6 !important;
         }
 
         #board .black-3c85d {
-            background-color: #769656 !important;
+            background-color: #7A2F22 !important;
         }
 
         .puzzle-info {
@@ -699,7 +757,7 @@
         }
 
         .solved {
-            color: #6f42c1;
+            color: var(--gm-plum);
             background-color: #f0e6ff;
             font-size: 1.1em;
         }
@@ -791,9 +849,8 @@
             height: 20px;
         }
 
-        /* Find square */
         .stats-panel {
-            border-radius: 12px;
+            border-radius: 8px;
             box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
             width: 300px;
         }
@@ -803,8 +860,8 @@
             font-weight: 600;
             color: #fff;
             padding: 10px 20px;
-            background: linear-gradient(135deg, #007bff, #0056b3);
-            border-radius: 8px;
+            background: linear-gradient(135deg, var(--chess-primary), var(--gm-oxblood-deep));
+            border-radius: 6px;
             margin-bottom: 1rem;
             transition: transform 0.2s ease-in-out;
         }
@@ -815,7 +872,7 @@
             justify-content: center;
             align-items: center;
             padding: 5px;
-            border-radius: 8px;
+            border-radius: 6px;
             font-size: 1.1rem;
             width: 100%;
             margin-bottom: 0.1rem;
@@ -874,13 +931,13 @@
             font-size: 1.2rem;
             font-weight: 600;
             letter-spacing: 0.5px;
-            border-radius: 8px;
+            border-radius: 6px;
             transition: all 0.3s ease;
         }
 
         #start-btn:hover {
             transform: translateY(-3px);
-            box-shadow: 0 4px 10px rgba(40, 167, 69, 0.4);
+            box-shadow: 0 4px 10px rgba(154, 62, 46, 0.4);
         }
 
         #feedback {
@@ -888,14 +945,14 @@
             font-weight: 600;
         }
 
-        /* Article editor */
         .editor-container {
-            border-radius: 12px;
+            border-radius: 8px;
             padding: 25px;
             box-shadow: 0 4px 15px rgba(0, 0, 0, 0.08);
         }
 
         .editor-header {
+            font-family: 'Fraunces', Georgia, serif;
             font-size: 1.4rem;
             font-weight: bold;
             margin-bottom: 20px;
@@ -909,28 +966,27 @@
 
         .form-control,
         .form-select {
-            border-radius: 6px;
+            border-radius: 5px;
             padding: 0.75rem 1rem;
         }
 
         .ck-editor__editable {
             min-height: 350px;
-            border-radius: 6px;
+            border-radius: 5px;
         }
 
         .btn-success {
-            background: linear-gradient(45deg, #16a085, #27ae60);
+            background: linear-gradient(45deg, var(--status), #3f6543);
             border: none;
         }
 
         .btn-success:hover {
-            background: linear-gradient(45deg, #138d75, #229954);
+            background: linear-gradient(45deg, #3f6543, var(--status));
         }
 
-        /* Banner modal */
         .banner-modal .modal-content {
-            background: oklch(18% 0.01 256);
-            border-radius: 14px;
+            background: var(--gm-panel-alt);
+            border-radius: 8px;
             border: 1px solid var(--border);
             color: white;
         }
@@ -942,8 +998,8 @@
             left: 0;
             right: 0;
             height: 3px;
-            background: var(--chess-primary);
-            border-radius: 14px 14px 0 0;
+            background: var(--chess-accent);
+            border-radius: 8px 8px 0 0;
         }
 
         .banner-modal .modal-header {
@@ -952,6 +1008,7 @@
         }
 
         .banner-modal .modal-title {
+            font-family: 'Fraunces', Georgia, serif;
             font-weight: 700;
             font-size: 1.4rem;
             color: var(--chess-light);
@@ -979,7 +1036,7 @@
             width: 100%;
             max-height: 360px;
             object-fit: cover;
-            border-radius: 10px;
+            border-radius: 6px;
             margin-bottom: 1.2rem;
             border: 1px solid var(--border);
         }
@@ -1007,10 +1064,10 @@
         }
 
         .banner-modal .action-button:hover {
-            background: #67804a;
+            background: var(--gm-oxblood-deep);
             color: white;
             transform: translateY(-2px);
-            box-shadow: 0 6px 18px rgba(119, 149, 86, 0.35);
+            box-shadow: 0 6px 18px rgba(154, 62, 46, 0.35);
         }
 
         .modal-backdrop {
@@ -1021,11 +1078,10 @@
             opacity: 0.9;
         }
 
-        /* Support modal */
         #qrSupportModal .modal-content {
-            background: oklch(18% 0.01 256);
+            background: var(--gm-panel-alt);
             border: 1px solid var(--border);
-            border-radius: 14px;
+            border-radius: 8px;
             color: var(--chess-light);
         }
 
@@ -1041,35 +1097,32 @@
             filter: invert(1);
         }
 
-        /* Responsive mobile */
         @media (max-width: 768px) {
             .stats-panel {
                 width: 100% !important;
             }
         }
     </style>
+    {% block extra_head %}{% endblock %}
 </head>
 
 <body>
 
-    <!-- ── NAVBAR ─────────────────────────────────────────────── -->
     <nav class="navbar navbar-expand-lg navbar-dark">
         <div class="container">
 
-            <!-- Brand -->
-            <a class="navbar-brand d-flex align-items-center gap-2" href="{% url 'home' %}">
+            <a class="navbar-brand" href="{% url 'home' %}">
+                <div class="brand-mark"><span>&#9822;</span></div>
                 <div class="logo-text">
                     <span class="logo-main">GM</span>
                     <span class="logo-sub">Bangladesh</span>
                 </div>
             </a>
 
-            <!-- Toggler -->
             <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
                 <span class="navbar-toggler-icon"></span>
             </button>
 
-            <!-- Links -->
             <div class="collapse navbar-collapse" id="navbarNav">
                 <ul class="navbar-nav ms-auto align-items-center">
 
@@ -1081,7 +1134,7 @@
 
                     <li class="nav-item">
                         <a class="nav-link" href="{% url 'all_events' %}">
-                            <i class="bi bi-trophy me-1" style="color:#f59e0b;"></i>Events
+                            <i class="bi bi-trophy me-1" style="color:var(--chess-accent);"></i>Events
                         </a>
                     </li>
 
@@ -1129,7 +1182,7 @@
                             </li>
                             <li>
                                 <a class="dropdown-item" href="{% url 'memory_test' %}">
-                                    <i class="bi bi-sd-card-fill" style="color:#a855f7;"></i> Memory Trainer
+                                    <i class="bi bi-sd-card-fill"></i> Memory Trainer
                                 </a>
                             </li>
                             <li>
@@ -1177,7 +1230,6 @@
         </div>
     </nav>
 
-    <!-- ── Content ────────────────────────────────────────────── -->
     <div class="container content py-3">
         {% block content %}{% endblock %}
 
@@ -1189,7 +1241,6 @@
         </script>
     </div>
 
-    <!-- ── Support QR Modal ───────────────────────────────────── -->
     {% load static %}
     <div class="modal fade" id="qrSupportModal" tabindex="-1">
         <div class="modal-dialog modal-dialog-centered">
@@ -1203,13 +1254,12 @@
                         Scan the QR code to support us. <strong>bKash only.</strong>
                     </p>
                     <img src="{% static 'phone_qr.jpg' %}" alt="Support QR"
-                        style="max-width:220px;border-radius:12px;border:1px solid var(--border);">
+                        style="max-width:220px;border-radius:8px;border:1px solid var(--border);">
                 </div>
             </div>
         </div>
     </div>
 
-    <!-- ── Banner Modal ───────────────────────────────────────── -->
     {% if banner %}
     <div class="modal fade banner-modal" id="tournamentBannerModal" tabindex="-1" aria-hidden="true"
         data-bs-backdrop="static" data-bs-keyboard="false">
@@ -1259,7 +1309,6 @@
     <script src="{% static 'jquery.min.js' %}"></script>
     <script src="{% static 'chessboardjs-1.0.0/js/chessboard-1.0.0.min.js' %}"></script>
 
-    <!-- Active nav highlight -->
     <script>
         document.addEventListener('DOMContentLoaded', function () {
             const path = window.location.pathname;

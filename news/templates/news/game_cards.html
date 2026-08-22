@@ -1,27 +1,202 @@
-{% for game in games %}
-<a href="{% url 'game_detail' game.slug_link %}" class="game-card"
-   data-pgn="{{ game.pgn|escapejs }}" data-id="{{ game.id }}">
+<style>
+    /* ── Hover & animation ────────────────────────────────────── */
+    .game-card {
+        text-decoration: none !important;
+        color: var(--chess-light) !important;
+        transition: transform 0.22s ease, box-shadow 0.22s ease, border-color 0.22s ease;
+        animation: fadeInUp 0.5s ease-out both;
+    }
+    .game-card:hover {
+        transform: translateY(-6px);
+        border-color: var(--chess-primary);
+        box-shadow: 0 12px 32px rgba(119,149,86,0.18), 0 4px 12px rgba(0,0,0,0.3);
+    }
+    .game-card:hover .mini-board {
+        transform: scale(1.04);
+    }
+    .view-game-btn {
+        transition: all 0.18s ease;
+    }
+    .view-game-btn:hover {
+        background: var(--chess-primary);
+        color: #fff;
+        border-color: var(--chess-primary);
+        transform: translateX(3px);
+    }
+    @keyframes fadeInUp {
+        from { opacity: 0; transform: translateY(18px); }
+        to   { opacity: 1; transform: translateY(0); }
+    }
+    /* stagger delay for cards – can be added inline via style, but we keep it here */
+    .game-card:nth-child(1)  { animation-delay: 0.05s; }
+    .game-card:nth-child(2)  { animation-delay: 0.10s; }
+    .game-card:nth-child(3)  { animation-delay: 0.15s; }
+    .game-card:nth-child(4)  { animation-delay: 0.20s; }
+    .game-card:nth-child(5)  { animation-delay: 0.25s; }
+    .game-card:nth-child(6)  { animation-delay: 0.30s; }
+    .game-card:nth-child(7)  { animation-delay: 0.35s; }
+    .game-card:nth-child(8)  { animation-delay: 0.40s; }
+    .game-card:nth-child(9)  { animation-delay: 0.45s; }
+</style>
 
-    <div class="game-header">
-        <h3 class="game-title">{{ game.title }}</h3>
-        <div class="game-meta">
-            <span>{{ game.created_at|date:"M d, Y" }}</span>
+{% for game in games %}
+<a href="{% url 'game_detail' game.slug_link %}"
+   class="game-card"
+   data-pgn="{{ game.pgn|escapejs }}"
+   data-id="{{ game.id }}"
+   style="
+       display: flex;
+       flex-direction: column;
+       position: relative;
+       background: var(--card-color);
+       border: 1px solid var(--border);
+       border-radius: 14px;
+       overflow: hidden;
+       text-decoration: none !important;
+       color: var(--chess-light) !important;
+   ">
+    <!-- decorative top border -->
+    <div style="
+        position: absolute;
+        top: 0; left: 0; right: 0;
+        height: 3px;
+        background: var(--chess-primary);
+        border-radius: 14px 14px 0 0;
+    "></div>
+
+    <div class="game-header" style="padding: 16px 18px 10px;">
+        <h3 class="game-title" style="
+            font-size: 1rem;
+            font-weight: 700;
+            color: var(--chess-light);
+            margin: 0 0 6px;
+            line-height: 1.4;
+            display: -webkit-box;
+            -webkit-line-clamp: 2;
+            -webkit-box-orient: vertical;
+            overflow: hidden;
+        ">{{ game.title }}</h3>
+
+        <div class="game-meta" style="
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+            font-size: 0.75rem;
+            color: var(--color-gray-400);
+            font-weight: 600;
+        ">
+            <span style="display: flex; align-items: center; gap: 4px;">
+                <i class="fas fa-clock" style="color: var(--chess-accent);"></i>
+                {{ game.created_at|date:"M d, Y" }}
+            </span>
             {% if game.user %}
-            <span>By {{ game.user.username }}</span>
+            <span style="display: flex; align-items: center; gap: 4px;">
+                <i class="fas fa-user" style="color: var(--chess-accent);"></i>
+                {{ game.user.username }}
+            </span>
             {% endif %}
         </div>
     </div>
 
-    <div class="game-board-container">
-        <div class="mini-board" id="board-{{ game.id }}"></div>
+    <div class="game-board-container" style="
+        padding: 8px 18px;
+        display: flex;
+        justify-content: center;
+    ">
+        <div class="mini-board" id="board-{{ game.id }}" style="
+            width: 100%;
+            max-width: 190px;
+            border-radius: 8px;
+            overflow: hidden;
+            box-shadow: 0 4px 14px rgba(0,0,0,0.35);
+            transition: transform 0.25s ease;
+        "></div>
     </div>
 
-    <div class="game-footer">
-        <span class="view-game-btn">View Game</span>
+    <div class="game-footer" style="
+        padding: 10px 18px 16px;
+        margin-top: auto;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        border-top: 1px solid var(--border);
+    ">
+        <span class="view-game-btn" style="
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            font-size: 0.8rem;
+            font-weight: 700;
+            color: var(--chess-primary);
+            background: rgba(119,149,86,0.12);
+            border: 1px solid rgba(119,149,86,0.3);
+            border-radius: 99px;
+            padding: 5px 14px;
+            letter-spacing: 0.3px;
+            cursor: pointer;
+        ">
+            <i class="fas fa-chess-board"></i> View Game
+        </span>
+        {# optional: add comment badge if you want, but it wasn't in the snippet #}
     </div>
 </a>
 {% empty %}
-<div class="empty-state">
-    <h3>No Games Found</h3>
+<div class="empty-state" style="
+    grid-column: 1 / -1;
+    text-align: center;
+    padding: 5rem 2rem;
+    color: var(--color-gray-400);
+">
+    <div style="font-size: 3.5rem; margin-bottom: 1.2rem; color: var(--chess-accent);">
+        <i class="fas fa-chess-board"></i>
+    </div>
+    <h3 style="
+        font-size: 1.5rem;
+        font-weight: 700;
+        color: var(--chess-light);
+        margin-bottom: 0.6rem;
+    ">No Games Found</h3>
+    <p style="
+        max-width: 440px;
+        margin: 0 auto 1.8rem;
+        font-size: 0.9rem;
+    ">
+        Be the first to share a chess game. Upload your PGN to start analyzing and discussing with the community.
+    </p>
+    {% if user.is_authenticated %}
+    <a href="{% url 'game_page' %}" style="
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+        background: var(--chess-primary);
+        color: #fff;
+        border: none;
+        padding: 10px 24px;
+        border-radius: 99px;
+        font-size: 0.9rem;
+        font-weight: 700;
+        text-decoration: none;
+        transition: all 0.2s ease;
+    ">
+        <i class="fas fa-upload"></i> Upload a Game
+    </a>
+    {% else %}
+    <a href="{% url 'login' %}" style="
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+        background: var(--chess-primary);
+        color: #fff;
+        border: none;
+        padding: 10px 24px;
+        border-radius: 99px;
+        font-size: 0.9rem;
+        font-weight: 700;
+        text-decoration: none;
+        transition: all 0.2s ease;
+    ">
+        <i class="fas fa-sign-in-alt"></i> Login to Upload
+    </a>
+    {% endif %}
 </div>
 {% endfor %}

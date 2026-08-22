@@ -1,225 +1,404 @@
 {% extends "news/base.html" %}
 {% block content %}
-<div class="container py-3">
-    <div class="text-center mb-4">
-        <h3 class="display-7 fw-bold mb-2"
-            style="background: linear-gradient(90deg, #779556, #b58863, #d76a6a); -webkit-background-clip: text; color: transparent;">
-            <i class="bi bi-book me-2"></i> Chess Book Collection
-        </h3>
-    </div>
-
-    <div class="row g-4">
-        {% for book in books %}
-        <div class="col-lg-4 col-md-6">
-            <div class="card h-100 border-0 shadow-sm book-card">
-                <div class="position-relative overflow-hidden book-cover-container">
-                    {% if book.cover_image %}
-                    <img src="{{ book.cover_image.url }}" class="img-fluid w-100 h-100 book-cover"
-                        alt="{{ book.title }}">
-                    {% endif %}
-
-                    <!-- Overlay with Title + Price -->
-                    <div class="book-info-overlay d-flex justify-content-between align-items-center px-3">
-                        <h5 class="book-title mb-0">{{ book.title }}</h5>
-                        <span class="badge price-badge">BDT {{ book.price }}</span>
-                    </div>
-                </div>
-
-                <div class="card-body d-flex flex-column bg-chess-secondary p-3">
-                    {% if book.description %}
-                    <p class="card-text text-dark mt-2">
-                        <i class="bi bi-card-text me-2"></i>{{ book.description|truncatewords:20 }}
-                    </p>
-                    {% endif %}
-                    <button class="btn btn-chess-primary mt-auto align-self-stretch py-2 fw-semibold rounded-1"
-                        data-bs-toggle="modal" data-bs-target="#orderModal" data-book-title="{{ book.title }}"
-                        data-book-price="{{ book.price }}">
-                        <i class="bi bi-telephone-plus-fill me-2"></i>Order Now
-                    </button>
-                </div>
-            </div>
-        </div>
-        {% empty %}
-        <div class="col-12 text-center py-5">
-            <div class="alert alert-info" role="alert">
-                <i class="bi bi-bookmark-x-fill fa-2x mb-3"></i>
-                <h4 class="alert-heading">Our Book Collection is Coming Soon!</h4>
-                <p>We're currently curating the best chess books for you. Check back later!</p>
-            </div>
-        </div>
-        {% endfor %}
-    </div>
-</div>
-
-<!-- Order Modal -->
-<div class="modal fade" id="orderModal" tabindex="-1" aria-labelledby="orderModalLabel" aria-hidden="true">
-    <div class="modal-dialog modal-dialog-centered">
-        <div class="modal-content border-0 shadow-lg">
-            <div class="modal-header bg-chess-primary text-white">
-                <h5 class="modal-title" style="color: #779556" id="orderModalLabel"><i class="bi bi-cart-check-fill me-2"></i>Order Chess Book
-                </h5>
-                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"
-                    aria-label="Close"></button>
-            </div>
-            <div class="modal-body p-4">
-                <form id="orderForm">
-                    <div class="mb-3">
-                        <label for="bookName" class="form-label fw-medium"><i class="bi bi-book-fill me-1"></i>Book
-                            Title</label>
-                        <input type="text" class="form-control py-2 bg-chess-light border-0 rounded" id="bookName"
-                            name="bookName" readonly>
-                    </div>
-                    <div class="mb-3">
-                        <label for="bookPrice" class="form-label fw-medium"><i
-                                class="bi bi-currency-exchange me-1"></i>Price</label>
-                        <input type="text" class="form-control py-2 bg-chess-light border-0 rounded" id="bookPrice"
-                            name="bookPrice" readonly>
-                    </div>
-                    <div class="mb-3">
-                        <label for="customerName" class="form-label fw-medium"><i
-                                class="bi bi-person-fill me-1"></i>Your Name</label>
-                        <input type="text" class="form-control py-2 bg-chess-light border-0 rounded" id="customerName"
-                            required>
-                    </div>
-                    <div class="mb-3">
-                        <label for="address" class="form-label fw-medium"><i
-                                class="bi bi-house-door-fill me-1"></i>Delivery Address</label>
-                        <textarea class="form-control py-2 bg-chess-light border-0 rounded" id="address" rows="3"
-                            required></textarea>
-                    </div>
-                    <div class="mb-3">
-                        <label for="phone" class="form-label fw-medium"><i class="bi bi-telephone-fill me-1"></i>Phone
-                            Number</label>
-                        <input type="tel" class="form-control py-2 bg-chess-light border-0 rounded" id="phone" required>
-                    </div>
-                    <div class="d-grid mt-4">
-                        <button type="submit" class="btn btn-chess-accent py-2 rounded fw-semibold">
-                            <i class="bi bi-check-circle-fill me-2"></i>Confirm Order
-                        </button>
-                    </div>
-                </form>
-            </div>
-        </div>
-    </div>
-</div>
 
 <style>
-    /* Card layout */
-    .book-card {
-        display: flex;
-        flex-direction: column;
-        height: 100%;
-        border-radius: 10px;
-        overflow: hidden;
-        background-color: #ebecd0;
-        /* chess-secondary */
+  .gm-books-page {
+    max-width: 1180px;
+    margin: 0 auto;
+  }
+
+  .gm-books-header {
+    text-align: center;
+    margin-bottom: 30px;
+  }
+
+  .gm-books-eyebrow {
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 0.68rem;
+    font-weight: 600;
+    letter-spacing: 3px;
+    text-transform: uppercase;
+    color: var(--chess-accent);
+    margin-bottom: 10px;
+  }
+
+  .gm-books-title {
+    font-family: 'Fraunces', Georgia, serif;
+    font-weight: 700;
+    font-size: 2rem;
+    color: var(--chess-light);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 12px;
+  }
+
+  .gm-books-title .gm-piece-mark {
+    color: var(--chess-primary);
+    font-size: 1.7rem;
+  }
+
+  .gm-book-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+    gap: 22px;
+  }
+
+  .gm-book-card {
+    background: var(--card-color);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    overflow: hidden;
+    display: flex;
+    flex-direction: column;
+    transition: transform 0.22s ease, border-color 0.22s ease, box-shadow 0.22s ease;
+  }
+
+  .gm-book-card:hover {
+    transform: translateY(-5px);
+    border-color: var(--chess-accent);
+    box-shadow: 0 14px 30px rgba(0, 0, 0, 0.28);
+  }
+
+  .gm-book-cover-wrap {
+    position: relative;
+    height: 300px;
+    overflow: hidden;
+    background: repeating-conic-gradient(var(--gm-panel-alt) 0% 25%, var(--chess-dark) 0% 50%) 0 0/26px 26px;
+  }
+
+  .gm-book-cover {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    display: block;
+    transition: transform 0.35s ease;
+  }
+
+  .gm-book-card:hover .gm-book-cover {
+    transform: scale(1.04);
+  }
+
+  .gm-book-overlay {
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    padding: 12px 14px;
+    background: linear-gradient(to top, rgba(10, 8, 6, 0.92), transparent);
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-end;
+    gap: 10px;
+  }
+
+  .gm-book-title {
+    font-family: 'Fraunces', Georgia, serif;
+    font-weight: 700;
+    font-size: 1.02rem;
+    color: var(--chess-light);
+    line-height: 1.3;
+    margin: 0;
+  }
+
+  .gm-book-price {
+    flex-shrink: 0;
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 0.72rem;
+    font-weight: 700;
+    letter-spacing: 0.5px;
+    color: var(--chess-dark);
+    background: var(--chess-accent);
+    padding: 4px 10px;
+    border-radius: 3px;
+    white-space: nowrap;
+  }
+
+  .gm-book-body {
+    padding: 16px;
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    gap: 14px;
+  }
+
+  .gm-book-desc {
+    font-family: 'Source Serif 4', Georgia, serif;
+    font-size: 0.87rem;
+    color: var(--chess-secondary);
+    line-height: 1.6;
+    flex: 1;
+  }
+
+  .gm-book-order-btn {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    background: var(--chess-primary);
+    border: 1px solid var(--chess-primary);
+    color: var(--chess-light);
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 0.76rem;
+    font-weight: 700;
+    letter-spacing: 0.5px;
+    text-transform: uppercase;
+    padding: 11px;
+    border-radius: 3px;
+    cursor: pointer;
+    transition: background 0.18s ease;
+  }
+
+  .gm-book-order-btn:hover {
+    background: var(--gm-oxblood-deep);
+    border-color: var(--gm-oxblood-deep);
+  }
+
+  .gm-books-empty {
+    grid-column: 1/-1;
+    text-align: center;
+    padding: 60px 20px;
+    background: var(--card-color);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+  }
+
+  .gm-books-empty i {
+    font-size: 2.6rem;
+    color: var(--chess-accent);
+    opacity: 0.6;
+    margin-bottom: 14px;
+    display: block;
+  }
+
+  .gm-books-empty h4 {
+    font-family: 'Fraunces', Georgia, serif;
+    font-weight: 700;
+    color: var(--chess-light);
+    font-size: 1.2rem;
+    margin-bottom: 6px;
+  }
+
+  .gm-books-empty p {
+    font-family: 'Source Serif 4', Georgia, serif;
+    color: var(--chess-secondary);
+    margin: 0;
+  }
+
+  .gm-order-modal .modal-content {
+    background: var(--gm-panel-alt);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    border-top: 3px solid var(--chess-accent);
+    color: var(--chess-light);
+  }
+
+  .gm-order-modal .modal-header {
+    border-bottom: 1px solid var(--border);
+    padding: 1.3rem 1.5rem 1rem;
+  }
+
+  .gm-order-modal .modal-title {
+    font-family: 'Fraunces', Georgia, serif;
+    font-weight: 700;
+    font-size: 1.2rem;
+    color: var(--chess-light);
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+
+  .gm-order-modal .modal-title i {
+    color: var(--chess-accent);
+  }
+
+  .gm-order-modal .btn-close {
+    filter: invert(1) brightness(2);
+    opacity: 0.75;
+  }
+
+  .gm-order-modal .btn-close:hover {
+    opacity: 1;
+  }
+
+  .gm-order-modal .modal-body {
+    padding: 1.4rem 1.5rem 1.6rem;
+  }
+
+  .gm-order-label {
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 0.68rem;
+    font-weight: 600;
+    letter-spacing: 1px;
+    text-transform: uppercase;
+    color: var(--chess-secondary);
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    margin-bottom: 6px;
+  }
+
+  .gm-order-label i {
+    color: var(--chess-accent);
+  }
+
+  .gm-order-modal .form-control {
+    background: var(--card-color);
+    border: 1px solid var(--border);
+    color: var(--chess-light);
+    border-radius: 4px;
+    padding: 0.7rem 0.9rem;
+    font-family: 'Source Serif 4', Georgia, serif;
+    font-size: 0.9rem;
+  }
+
+  .gm-order-modal .form-control:focus {
+    background: var(--card-color);
+    border-color: var(--chess-accent);
+    color: var(--chess-light);
+    box-shadow: 0 0 0 3px rgba(201, 160, 61, 0.15);
+  }
+
+  .gm-order-modal .form-control::placeholder {
+    color: var(--chess-secondary);
+  }
+
+  .gm-order-modal .form-control[readonly] {
+    color: var(--chess-secondary);
+    opacity: 0.85;
+  }
+
+  .gm-order-submit {
+    background: var(--chess-primary);
+    border: 1px solid var(--chess-primary);
+    color: var(--chess-light);
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 0.78rem;
+    font-weight: 700;
+    letter-spacing: 0.5px;
+    text-transform: uppercase;
+    padding: 11px;
+    border-radius: 4px;
+    transition: background 0.18s ease;
+  }
+
+  .gm-order-submit:hover {
+    background: var(--gm-oxblood-deep);
+    border-color: var(--gm-oxblood-deep);
+    color: var(--chess-light);
+  }
+
+  @media (max-width: 600px) {
+    .gm-books-title {
+      font-size: 1.5rem;
     }
 
-    /* Cover Image */
-    .book-cover-container {
-        position: relative;
-        height: 300px;
-        overflow: hidden;
+    .gm-book-cover-wrap {
+      height: 240px;
     }
 
-    .book-cover {
-        width: 100%;
-        height: 100%;
-        object-fit: cover;
+    .gm-book-grid {
+      grid-template-columns: 1fr;
     }
-
-    /* Overlay Title + Price */
-    .book-info-overlay {
-        position: absolute;
-        bottom: 0;
-        left: 0;
-        right: 0;
-        padding: 0.5rem 1rem;
-        background: linear-gradient(to top, rgba(0, 0, 0, 0.8), transparent);
-        color: white;
-        display: flex;
-        justify-content: space-between;
-        align-items: center;
-    }
-
-    .book-title {
-        font-weight: 700;
-        font-size: 1rem;
-    }
-
-    .price-badge {
-        background-color: #b58863;
-        /* chess-accent */
-        color: white;
-        font-weight: 600;
-        padding: 0.25rem 0.5rem;
-        border-radius: 0.25rem;
-        font-size: 0.85rem;
-    }
-
-    /* Card body */
-    .card-body {
-        display: flex;
-        flex-direction: column;
-        background-color: #ebecd0;
-        /* chess-secondary */
-    }
-
-    /* Buttons */
-    .btn-chess-primary {
-        background-color: #779556;
-        /* chess-primary */
-        color: white;
-        font-weight: 600;
-        transition: all 0.3s ease;
-    }
-
-    .btn-chess-primary:hover {
-        background-color: #b58863;
-        /* chess-accent */
-    }
-
-    .btn-chess-accent {
-        background-color: #b58863;
-        /* chess-accent */
-        color: white;
-        font-weight: 600;
-    }
-
-    .btn-chess-accent:hover {
-        background-color: #779556;
-        /* chess-primary */
-    }
-
-    /* Hover lift effect */
-    .hover-zoom {
-        transition: transform 0.3s ease, box-shadow 0.3s ease;
-    }
-
-    .hover-zoom:hover {
-        transform: translateY(-5px);
-        box-shadow: 0 10px 20px rgba(0, 0, 0, 0.2);
-    }
+  }
 </style>
 
+<div class="gm-books-page">
+  <div class="gm-books-header">
+    <div class="gm-books-eyebrow">The Library</div>
+    <h3 class="gm-books-title"><span class="gm-piece-mark">&#9820;</span> Chess Book Collection</h3>
+  </div>
+
+  <div class="gm-book-grid">
+    {% for book in books %}
+    <div class="gm-book-card">
+      <div class="gm-book-cover-wrap">
+        {% if book.cover_image %}
+        <img src="{{ book.cover_image.url }}" class="gm-book-cover" alt="{{ book.title }}">
+        {% endif %}
+        <div class="gm-book-overlay">
+          <h5 class="gm-book-title">{{ book.title }}</h5>
+          <span class="gm-book-price">BDT {{ book.price }}</span>
+        </div>
+      </div>
+
+      <div class="gm-book-body">
+        {% if book.description %}
+        <p class="gm-book-desc">{{ book.description|truncatewords:20 }}</p>
+        {% endif %}
+        <button class="gm-book-order-btn" data-bs-toggle="modal" data-bs-target="#orderModal"
+          data-book-title="{{ book.title }}" data-book-price="{{ book.price }}">
+          <i class="bi bi-telephone-plus-fill"></i> Order Now
+        </button>
+      </div>
+    </div>
+    {% empty %}
+    <div class="gm-books-empty">
+      <i class="bi bi-bookmark-x-fill"></i>
+      <h4>Our Book Collection is Coming Soon</h4>
+      <p>We're currently curating the best chess books for you. Check back later.</p>
+    </div>
+    {% endfor %}
+  </div>
+</div>
+
+<div class="modal fade gm-order-modal" id="orderModal" tabindex="-1" aria-labelledby="orderModalLabel" aria-hidden="true">
+  <div class="modal-dialog modal-dialog-centered">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title" id="orderModalLabel"><i class="bi bi-cart-check-fill"></i> Order Chess Book</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+      </div>
+      <div class="modal-body">
+        <form id="orderForm">
+          <div class="mb-3">
+            <label for="bookName" class="gm-order-label"><i class="bi bi-book-fill"></i> Book Title</label>
+            <input type="text" class="form-control" id="bookName" name="bookName" readonly>
+          </div>
+          <div class="mb-3">
+            <label for="bookPrice" class="gm-order-label"><i class="bi bi-currency-exchange"></i> Price</label>
+            <input type="text" class="form-control" id="bookPrice" name="bookPrice" readonly>
+          </div>
+          <div class="mb-3">
+            <label for="customerName" class="gm-order-label"><i class="bi bi-person-fill"></i> Your Name</label>
+            <input type="text" class="form-control" id="customerName" required>
+          </div>
+          <div class="mb-3">
+            <label for="address" class="gm-order-label"><i class="bi bi-house-door-fill"></i> Delivery Address</label>
+            <textarea class="form-control" id="address" rows="3" required></textarea>
+          </div>
+          <div class="mb-3">
+            <label for="phone" class="gm-order-label"><i class="bi bi-telephone-fill"></i> Phone Number</label>
+            <input type="tel" class="form-control" id="phone" required>
+          </div>
+          <div class="d-grid mt-4">
+            <button type="submit" class="gm-order-submit">
+              <i class="bi bi-check-circle-fill"></i> Confirm Order
+            </button>
+          </div>
+        </form>
+      </div>
+    </div>
+  </div>
+</div>
 
 <script>
-    document.addEventListener('DOMContentLoaded', function () {
-        var orderModal = document.getElementById('orderModal');
-        orderModal.addEventListener('show.bs.modal', function (event) {
-            var button = event.relatedTarget;
-            var bookTitle = button.getAttribute('data-book-title');
-            var bookPrice = button.getAttribute('data-book-price');
-            document.getElementById('bookName').value = bookTitle;
-            document.getElementById('bookPrice').value = 'BDT ' + bookPrice;
-        });
-
-        document.getElementById('orderForm').addEventListener('submit', function (e) {
-            e.preventDefault();
-            alert('Order submitted for: ' + document.getElementById('bookName').value);
-            var modal = bootstrap.Modal.getInstance(orderModal);
-            modal.hide();
-        });
+  document.addEventListener('DOMContentLoaded', function () {
+    var orderModal = document.getElementById('orderModal');
+    orderModal.addEventListener('show.bs.modal', function (event) {
+      var button = event.relatedTarget;
+      var bookTitle = button.getAttribute('data-book-title');
+      var bookPrice = button.getAttribute('data-book-price');
+      document.getElementById('bookName').value = bookTitle;
+      document.getElementById('bookPrice').value = 'BDT ' + bookPrice;
     });
+
+    document.getElementById('orderForm').addEventListener('submit', function (e) {
+      e.preventDefault();
+      alert('Order submitted for: ' + document.getElementById('bookName').value);
+      var modal = bootstrap.Modal.getInstance(orderModal);
+      modal.hide();
+    });
+  });
 </script>
 {% endblock %}
