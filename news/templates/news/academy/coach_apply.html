@@ -1,0 +1,146 @@
+{% extends 'news/base.html' %}
+{% load static %}
+{% block title %}Apply as Coach | GM Bangladesh{% endblock %}
+{% block content %}
+
+<style>
+  .apply-page { font-family: 'Montserrat', sans-serif; max-width: 640px; margin: 0 auto; }
+
+  .apply-page .page-eyebrow {
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 0.7rem;
+    font-weight: 600;
+    letter-spacing: 2.5px;
+    text-transform: uppercase;
+    color: var(--chess-accent);
+    margin-bottom: 10px;
+    display: block;
+  }
+
+  .apply-page h1 {
+    font-family: 'Fraunces', Georgia, serif;
+    font-weight: 700;
+    font-size: clamp(1.8rem, 3vw, 2.3rem);
+    color: var(--chess-light);
+    margin-bottom: 10px;
+  }
+
+  .apply-page .page-intro {
+    color: var(--chess-secondary);
+    font-size: 0.95rem;
+    line-height: 1.6;
+    margin-bottom: 28px;
+  }
+
+  .apply-page .editor-container { margin-bottom: 24px; }
+
+  .apply-page .form-label {
+    color: var(--chess-light);
+    font-size: 0.88rem;
+    margin-bottom: 6px;
+  }
+
+  .apply-page .form-control,
+  .apply-page .form-select {
+    background: var(--gm-panel-alt);
+    border: 1px solid var(--border);
+    color: var(--chess-light);
+  }
+
+  .apply-page .form-control:focus,
+  .apply-page .form-select:focus {
+    background: var(--gm-panel-alt);
+    color: var(--chess-light);
+    border-color: var(--chess-accent);
+    box-shadow: 0 0 0 0.2rem rgba(201, 160, 61, 0.15);
+  }
+
+  .apply-page .form-control::placeholder { color: var(--light-gray); opacity: 0.6; }
+
+  .apply-page .field-block { margin-bottom: 18px; }
+
+  .apply-page .field-error {
+    color: var(--chess-red);
+    font-size: 0.8rem;
+    margin-top: 4px;
+  }
+
+  .apply-page .row-2 {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 16px;
+  }
+
+  @media (max-width: 575.98px) {
+    .apply-page .row-2 { grid-template-columns: 1fr; }
+  }
+</style>
+
+<div class="apply-page">
+
+  <span class="page-eyebrow">Coaching Panel</span>
+  <h1>Apply as a Coach</h1>
+  <p class="page-intro">Tell us about your rating, playing history, and any coaching experience. We review every application and get back to titled and strong club-level players alike.</p>
+
+  {% if messages %}
+    {% for message in messages %}
+      <div class="alert alert-success" role="alert">{{ message }}</div>
+    {% endfor %}
+  {% endif %}
+
+  <div class="editor-container">
+    <form method="post" novalidate>
+      {% csrf_token %}
+
+      <div class="field-block">
+        <label class="form-label" for="{{ form.full_name.id_for_label }}">Full name</label>
+        {{ form.full_name }}
+        {% if form.full_name.errors %}<div class="field-error">{{ form.full_name.errors.0 }}</div>{% endif %}
+      </div>
+
+      <div class="row-2">
+        <div class="field-block">
+          <label class="form-label" for="{{ form.email.id_for_label }}">Email</label>
+          {{ form.email }}
+          {% if form.email.errors %}<div class="field-error">{{ form.email.errors.0 }}</div>{% endif %}
+        </div>
+        <div class="field-block">
+          <label class="form-label" for="{{ form.phone.id_for_label }}">Phone</label>
+          {{ form.phone }}
+        </div>
+      </div>
+
+      <div class="row-2">
+        <div class="field-block">
+          <label class="form-label" for="{{ form.fide_title.id_for_label }}">FIDE title</label>
+          {{ form.fide_title }}
+        </div>
+        <div class="field-block">
+          <label class="form-label" for="{{ form.fide_rating.id_for_label }}">FIDE rating</label>
+          {{ form.fide_rating }}
+          {% if form.fide_rating.errors %}<div class="field-error">{{ form.fide_rating.errors.0 }}</div>{% endif %}
+        </div>
+      </div>
+
+      <div class="field-block">
+        <label class="form-label" for="{{ form.playing_history.id_for_label }}">Playing history</label>
+        {{ form.playing_history }}
+      </div>
+
+      <div class="field-block">
+        <label class="form-label" for="{{ form.coaching_experience.id_for_label }}">Coaching experience</label>
+        {{ form.coaching_experience }}
+      </div>
+
+      <div class="field-block">
+        <label class="form-label" for="{{ form.message.id_for_label }}">Anything else</label>
+        {{ form.message }}
+      </div>
+
+      <button type="submit" class="btn btn-primary">Submit application</button>
+    </form>
+  </div>
+
+</div>
+
+{% endblock %}

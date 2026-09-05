@@ -4,7 +4,7 @@ from .models import Article, \
     Category, TopPlayerImg, TournamentBanner, BangladeshiTopPlayer, \
     Book, Puzzle, EmailOTP, Quote, PuzzleSolve, UserProfile, BoardVision, \
     Ticket, UploadedGame, GameComment, Events, Comment, Message, MemoryPosition, \
-        SecurityQuestion, Streak
+        SecurityQuestion, Streak, Coach, CoachApplication
         
 
 admin.site.site_header = "♟️ ChessBD Admin Panel"
@@ -248,3 +248,101 @@ class ChessPuzzleSolveAdmin(admin.ModelAdmin):
     list_display = ("user", "daily_puzzle", "solved_at", "time_taken", "made_mistake", "wrong_attempts")
     list_filter = ("made_mistake",)
     search_fields = ("user__username",)
+    
+
+
+from django.contrib import admin
+from django.urls import reverse
+from django.utils.html import format_html
+
+@admin.register(Coach)
+class CoachAdmin(admin.ModelAdmin):
+    list_display = ("photo_thumb", "display_name", "role", "rating", "is_active", "order")
+    list_display_links = ("photo_thumb", "display_name")
+    list_editable = ("order", "is_active")
+    list_filter = ("is_active", "title")
+    search_fields = ("name", "role")
+    ordering = ("order", "-rating")
+ 
+    fieldsets = (
+        ("Identity", {
+            "fields": ("title", "name", "role", "photo")
+        }),
+        ("Profile", {
+            "fields": ("rating", "bio")
+        }),
+        ("Display", {
+            "fields": ("order", "is_active")
+        }),
+    )
+    readonly_fields = ("created_at", "updated_at")
+ 
+    def display_name(self, obj):
+        return str(obj)
+    display_name.short_description = "Name"
+ 
+    def photo_thumb(self, obj):
+        if obj.photo:
+            return format_html(
+                '<img src="{}" style="width:36px;height:36px;object-fit:cover;">',
+                obj.photo.url,
+            )
+        return "—"
+    photo_thumb.short_description = ""
+ 
+ 
+@admin.register(CoachApplication)
+class CoachApplicationAdmin(admin.ModelAdmin):
+    list_display = ("full_name", "email", "fide_title", "fide_rating", "status", "coach_link", "submitted_at")
+    list_editable = ("status",)
+    list_filter = ("status", "fide_title")
+    search_fields = ("full_name", "email", "playing_history", "coaching_experience")
+    ordering = ("-submitted_at",)
+    readonly_fields = ("submitted_at", "created_coach")
+ 
+    fieldsets = (
+        ("Applicant", {
+            "fields": ("full_name", "email", "phone")
+        }),
+        ("Chess background", {
+            "fields": ("fide_title", "fide_rating", "playing_history", "coaching_experience")
+        }),
+        ("Application", {
+            "fields": ("message", "status", "created_coach", "submitted_at")
+        }),
+    )
+ 
+    actions = ["mark_reviewed", "mark_accepted", "mark_rejected"]
+ 
+    def coach_link(self, obj):
+        if obj.created_coach_id:
+            url = reverse("admin:news_coach_change", args=[obj.created_coach_id])
+            return format_html('<a href="{}">{}</a>', url, obj.created_coach)
+        return "—"
+    coach_link.short_description = "Coach profile"
+ 
+    @admin.action(description="Mark selected applications as reviewed")
+    def mark_reviewed(self, request, queryset):
+        queryset.update(status="reviewed")
+ 
+    @admin.action(description="Mark selected applications as accepted")
+    def mark_accepted(self, request, queryset):
+        # Looping and calling .save() (instead of queryset.update()) so each
+        # instance's save() hook runs and auto-creates its Coach profile.
+        created = 0
+        for application in queryset:
+            was_accepted = application.status == "accepted"
+            application.status = "accepted"
+            application.save()
+            if not was_accepted:
+                created += 1
+        self.message_user(
+            request,
+            f"Accepted {queryset.count()} application(s). "
+            f"{created} new inactive coach profile(s) were created — "
+            f"fill in a role and photo, then mark each active from the Coaches page."
+        )
+ 
+    @admin.action(description="Mark selected applications as rejected")
+    def mark_rejected(self, request, queryset):
+        queryset.update(status="rejected")

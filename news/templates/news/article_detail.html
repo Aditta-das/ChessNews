@@ -6,17 +6,39 @@
 {% block content %}
 
 <style>
-    /* ── Reading progress bar ─────────────────────────────────── */
-    .reading-progress-bar {
+    /* ── Reading progress: a pawn advances rank by rank as you read ── */
+    .reading-progress-track {
         position: fixed;
         top: 0;
         left: 0;
-        width: 0%;
+        width: 100%;
         height: 3px;
-        background: var(--chess-primary);
         z-index: 9999;
-        transition: width 0.1s linear;
-        box-shadow: 0 0 8px rgba(119, 149, 86, 0.5);
+        background: color-mix(in oklch, var(--border) 60%, transparent);
+    }
+
+    .reading-progress-bar {
+        position: relative;
+        width: 0%;
+        height: 100%;
+        background: linear-gradient(90deg, var(--chess-primary), #a3c585);
+        transition: width 0.12s linear;
+        box-shadow: 0 0 10px rgba(119, 149, 86, 0.6);
+    }
+
+    .reading-progress-piece {
+        position: fixed;
+        top: 3px;
+        left: 0%;
+        transform: translate(-50%, 0);
+        font-size: 15px;
+        line-height: 1;
+        color: var(--chess-light);
+        text-shadow: 0 1px 0 rgba(0, 0, 0, 0.5), 0 0 6px rgba(119, 149, 86, 0.7);
+        transition: left 0.12s linear;
+        pointer-events: none;
+        z-index: 9999;
+        user-select: none;
     }
 
     /* ── Layout ───────────────────────────────────────────────── */
@@ -28,12 +50,31 @@
 
     /* ── Article card ─────────────────────────────────────────── */
     .article-card {
+        position: relative;
         background: var(--card-color);
         border: 1px solid var(--border);
         border-radius: 14px;
         overflow: hidden;
         margin-bottom: 16px;
         animation: fadeInUp 0.5s ease-out;
+        box-shadow: 0 4px 24px rgba(0, 0, 0, 0.18);
+    }
+
+    /* Faint checkerboard, like a board corner glimpsed behind the page */
+    .article-card::after {
+        content: '';
+        position: absolute;
+        top: 0;
+        right: 0;
+        width: 180px;
+        height: 180px;
+        background-image:
+            repeating-conic-gradient(var(--chess-primary) 0% 25%, transparent 0% 50%);
+        background-size: 22px 22px;
+        opacity: 0.05;
+        -webkit-mask-image: linear-gradient(135deg, black 0%, transparent 65%);
+        mask-image: linear-gradient(135deg, black 0%, transparent 65%);
+        pointer-events: none;
     }
 
     @keyframes fadeInUp {
@@ -52,7 +93,14 @@
         content: '';
         display: block;
         height: 3px;
-        background: var(--chess-primary);
+        background: linear-gradient(90deg, var(--chess-primary), #a3c585, var(--chess-primary));
+        background-size: 200% 100%;
+        animation: shimmer 6s linear infinite;
+    }
+
+    @keyframes shimmer {
+        0% { background-position: 0% 0; }
+        100% { background-position: 200% 0; }
     }
 
     .article-inner {
@@ -81,13 +129,14 @@
         border-radius: 10px;
         padding: 12px 16px;
         margin-bottom: 20px;
+        flex-wrap: wrap;
     }
 
     .author-avatar {
         width: 44px;
         height: 44px;
         border-radius: 50%;
-        background: var(--chess-primary);
+        background: linear-gradient(145deg, var(--chess-primary), #5c7440);
         display: flex;
         align-items: center;
         justify-content: center;
@@ -96,6 +145,7 @@
         color: #fff;
         flex-shrink: 0;
         border: 2px solid rgba(119, 149, 86, 0.3);
+        box-shadow: 0 2px 8px rgba(119, 149, 86, 0.25);
     }
 
     .author-name {
@@ -128,12 +178,14 @@
         background: oklch(22% 0.01 256);
         color: var(--chess-secondary);
         text-decoration: none;
-        transition: all 0.15s;
+        cursor: pointer;
+        transition: all 0.15s ease;
     }
 
     .edit-btn:hover {
         border-color: var(--chess-primary);
         color: var(--chess-primary);
+        transform: translateY(-1px);
     }
 
     .delete-btn {
@@ -144,6 +196,7 @@
     .delete-btn:hover {
         background: rgba(200, 75, 75, 0.1);
         border-color: var(--chess-red);
+        color: var(--chess-red);
     }
 
     /* ── Meta badges ──────────────────────────────────────────── */
@@ -166,6 +219,7 @@
         background: oklch(20% 0.01 256);
         color: var(--color-gray-400);
         letter-spacing: 0.3px;
+        font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
     }
 
     .meta-pill i {
@@ -173,43 +227,29 @@
     }
 
     /* ── Article content ──────────────────────────────────────── */
-    .article-content img {
-        display: block;
-        margin: 16px auto;
-        max-width: 100%;
-        max-height: 420px;
-        object-fit: cover;
-        border-radius: 10px;
-        border: 1px solid var(--border);
+    .article-content {
+        font-size: 1rem;
+        line-height: 1.75;
+        color: var(--chess-secondary);
     }
 
     .article-content p {
         margin-bottom: 1.5rem;
     }
 
-    .article-content p:first-of-type::first-letter {
-        font-size: 3.2rem;
-        float: left;
-        padding-right: 12px;
-        line-height: 1;
-        color: var(--chess-primary);
-        font-weight: 800;
+    /* Guard: never let bold/strong text inside the article inherit an oversized
+       font-size from pasted/rich-text content — this is what was blowing up
+       to "huge" before. Force it back to the surrounding paragraph's scale. */
+    .article-content strong,
+    .article-content b {
+        font-size: 1em !important;
+        font-weight: 700;
+        color: var(--chess-light);
     }
 
-    .article-content img {
-        display: block !important;
-        margin-left: auto !important;
-        margin-right: auto !important;
-
-        width: 100%;
-        max-width: 800px;
-
-        height: auto;
-        max-height: 420px;
-        object-fit: cover;
-
-        border-radius: 10px;
-        border: 1px solid var(--border);
+    .article-content em,
+    .article-content i {
+        font-size: 1em !important;
     }
 
     .article-content img,
@@ -217,6 +257,13 @@
         display: block !important;
         margin: 20px auto !important;
         text-align: center !important;
+        max-width: 100%;
+        width: auto;
+        max-height: 420px;
+        height: auto;
+        object-fit: cover;
+        border-radius: 10px;
+        border: 1px solid var(--border);
     }
 
     .article-content iframe {
@@ -253,6 +300,16 @@
 
     .article-content li {
         margin-bottom: 0.4rem;
+    }
+
+    .article-content a {
+        color: var(--chess-primary);
+        text-decoration: underline;
+        text-underline-offset: 2px;
+    }
+
+    .article-content a:hover {
+        color: var(--chess-light);
     }
 
     .article-content blockquote {
@@ -297,10 +354,16 @@
 
     .stat-chip.likes-chip {
         cursor: pointer;
-        transition: all 0.15s;
+        transition: all 0.15s ease;
     }
 
-    .stat-chip.likes-chip:hover,
+    .stat-chip.likes-chip:hover {
+        border-color: var(--chess-red);
+        color: var(--chess-red);
+        background: rgba(200, 75, 75, 0.08);
+        transform: translateY(-1px);
+    }
+
     .stat-chip.likes-chip.liked {
         border-color: var(--chess-red);
         color: var(--chess-red);
@@ -309,35 +372,35 @@
 
     .stat-chip.likes-chip.liked i {
         color: var(--chess-red);
+        animation: pop 0.3s ease;
+    }
+
+    @keyframes pop {
+        0% { transform: scale(1); }
+        40% { transform: scale(1.35); }
+        100% { transform: scale(1); }
     }
 
     .share-chip {
         cursor: pointer;
-        transition: all 0.15s;
+        transition: all 0.15s ease;
         margin-left: auto;
     }
 
     .share-chip:hover {
         border-color: var(--chess-primary);
         color: var(--chess-primary);
+        transform: translateY(-1px);
     }
 
     /* ── Comments section ─────────────────────────────────────── */
-    .section-label {
-        font-size: 0.62rem;
-        font-weight: 700;
-        letter-spacing: 2px;
-        text-transform: uppercase;
-        color: var(--color-gray-400);
-        margin-bottom: 12px;
-    }
-
     .comments-card {
         background: var(--card-color);
         border: 1px solid var(--border);
         border-radius: 14px;
         overflow: hidden;
         margin-bottom: 12px;
+        box-shadow: 0 4px 24px rgba(0, 0, 0, 0.14);
     }
 
     .comments-header-bar {
@@ -382,13 +445,14 @@
         padding: 10px 12px;
         resize: vertical;
         font-family: inherit;
-        transition: border-color 0.15s;
+        transition: border-color 0.15s ease, box-shadow 0.15s ease;
         min-height: 72px;
     }
 
     .comment-textarea:focus {
         outline: none;
         border-color: var(--chess-primary);
+        box-shadow: 0 0 0 3px rgba(119, 149, 86, 0.15);
     }
 
     .comment-textarea::placeholder {
@@ -405,16 +469,18 @@
         background: var(--chess-primary);
         color: #fff;
         cursor: pointer;
-        transition: all 0.18s;
+        transition: all 0.18s ease;
     }
 
     .comment-submit-btn:hover:not(:disabled) {
         background: #67804a;
+        transform: translateY(-1px);
     }
 
     .comment-submit-btn:disabled {
         opacity: 0.5;
         cursor: not-allowed;
+        transform: none;
     }
 
     .login-notice {
@@ -464,13 +530,13 @@
         align-items: center;
         gap: 10px;
         margin-bottom: 8px;
+        flex-wrap: wrap;
     }
 
     .c-avatar {
         width: 34px;
         height: 34px;
-        border-radius: 50%;
-        background: var(--chess-primary);
+        border-radius: 8px;
         display: flex;
         align-items: center;
         justify-content: center;
@@ -479,6 +545,19 @@
         color: #fff;
         flex-shrink: 0;
         border: 1px solid rgba(119, 149, 86, 0.3);
+    }
+
+    /* Comments alternate like light/dark squares down the thread */
+    .comment-item:nth-child(odd) .c-avatar {
+        background: linear-gradient(145deg,
+            color-mix(in oklch, var(--chess-primary) 70%, white 25%),
+            var(--chess-primary));
+    }
+
+    .comment-item:nth-child(even) .c-avatar {
+        background: linear-gradient(145deg,
+            var(--chess-primary),
+            color-mix(in oklch, var(--chess-primary) 65%, black 40%));
     }
 
     .c-username {
@@ -491,6 +570,7 @@
         font-size: 0.72rem;
         color: var(--color-gray-400);
         margin-left: 2px;
+        font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
     }
 
     .c-actions {
@@ -507,7 +587,7 @@
         border-radius: 6px;
         cursor: pointer;
         color: var(--color-gray-400);
-        transition: all 0.15s;
+        transition: all 0.15s ease;
         display: inline-flex;
         align-items: center;
         gap: 3px;
@@ -524,7 +604,8 @@
         background: rgba(96, 165, 250, 0.08);
     }
 
-    .c-action-btn.delete-comment:hover {
+    .c-action-btn.delete-comment:hover,
+    .c-action-btn.delete-reply:hover {
         color: var(--chess-red);
         background: rgba(200, 75, 75, 0.08);
     }
@@ -535,6 +616,7 @@
         line-height: 1.6;
         margin: 0;
         padding-left: 44px;
+        word-break: break-word;
     }
 
     /* Edit box */
@@ -559,6 +641,7 @@
     .edit-input:focus {
         outline: none;
         border-color: var(--chess-primary);
+        box-shadow: 0 0 0 3px rgba(119, 149, 86, 0.15);
     }
 
     .edit-actions {
@@ -575,7 +658,7 @@
         background: var(--chess-primary);
         color: #fff;
         cursor: pointer;
-        transition: background 0.15s;
+        transition: background 0.15s ease;
     }
 
     .save-edit-btn:hover {
@@ -591,7 +674,7 @@
         background: oklch(22% 0.01 256);
         color: var(--chess-secondary);
         cursor: pointer;
-        transition: all 0.15s;
+        transition: all 0.15s ease;
     }
 
     .cancel-edit-btn:hover {
@@ -616,12 +699,13 @@
         padding: 8px 10px;
         font-family: inherit;
         resize: none;
-        transition: border-color 0.15s;
+        transition: border-color 0.15s ease, box-shadow 0.15s ease;
     }
 
     .reply-textarea:focus {
         outline: none;
         border-color: var(--chess-primary);
+        box-shadow: 0 0 0 3px rgba(119, 149, 86, 0.15);
     }
 
     .reply-textarea::placeholder {
@@ -638,11 +722,16 @@
         background: var(--chess-primary);
         color: #fff;
         cursor: pointer;
-        transition: background 0.15s;
+        transition: background 0.15s ease, transform 0.15s ease;
     }
 
     .reply-submit-btn:hover {
         background: #67804a;
+    }
+
+    .reply-submit-btn:disabled {
+        opacity: 0.5;
+        cursor: not-allowed;
     }
 
     /* Replies */
@@ -669,6 +758,7 @@
         margin: 0;
         padding-left: 36px;
         line-height: 1.55;
+        word-break: break-word;
     }
 
     /* No comments */
@@ -700,13 +790,14 @@
         background: oklch(20% 0.01 256);
         color: var(--chess-secondary);
         text-decoration: none;
-        transition: all 0.18s;
+        transition: all 0.18s ease;
         margin-top: 8px;
     }
 
     .back-btn:hover {
         border-color: var(--chess-primary);
         color: var(--chess-primary);
+        transform: translateX(-2px);
     }
 
     /* Notification */
@@ -750,6 +841,43 @@
         }
     }
 
+    /* Accessibility: visible focus rings on interactive elements */
+    .edit-btn:focus-visible,
+    .back-btn:focus-visible,
+    .stat-chip:focus-visible,
+    .comment-submit-btn:focus-visible,
+    .reply-submit-btn:focus-visible,
+    .save-edit-btn:focus-visible,
+    .cancel-edit-btn:focus-visible,
+    .c-action-btn:focus-visible,
+    .comment-textarea:focus-visible,
+    .reply-textarea:focus-visible,
+    .edit-input:focus-visible {
+        outline: 2px solid var(--chess-primary);
+        outline-offset: 2px;
+    }
+
+    /* Reduced motion */
+    @media (prefers-reduced-motion: reduce) {
+        .article-card, .comment-item, .reply-item, .notif-toast {
+            animation: none !important;
+        }
+        .article-card::before {
+            animation: none !important;
+        }
+        .reading-progress-bar,
+        .reading-progress-piece {
+            transition: none !important;
+        }
+    }
+
+    /* Small screens: the pawn is a nice-to-have, not worth the clutter */
+    @media (max-width: 480px) {
+        .reading-progress-piece {
+            display: none;
+        }
+    }
+
     /* Responsive */
     @media (max-width: 600px) {
         .article-inner {
@@ -771,10 +899,6 @@
             border-radius: 8px;
         }
 
-        .article-content p:first-of-type::first-letter {
-            font-size: 2.4rem;
-        }
-
         .comments-list {
             padding: 8px 14px 14px;
         }
@@ -787,10 +911,22 @@
         .replies-section {
             margin-left: 0;
         }
+
+        .author-actions {
+            margin-left: 0;
+            width: 100%;
+        }
+
+        .share-chip {
+            margin-left: 0;
+        }
     }
 </style>
 
-<div class="reading-progress-bar" id="reading-progress"></div>
+<div class="reading-progress-track" aria-hidden="true">
+    <div class="reading-progress-bar" id="reading-progress"></div>
+</div>
+<div class="reading-progress-piece" id="reading-piece" aria-hidden="true">♟</div>
 
 <div class="article-layout">
 
@@ -812,7 +948,7 @@
                     <a href="{% url 'edit_article' article.slug %}" class="edit-btn">
                         <i class="bi bi-pencil-fill"></i> Edit
                     </a>
-                    <button id="delete-article-btn" class="edit-btn delete-btn">
+                    <button id="delete-article-btn" class="edit-btn delete-btn" type="button">
                         <i class="bi bi-trash-fill"></i> Delete
                     </button>
                 </div>
@@ -826,9 +962,12 @@
                 </span>
                 {% if article.updated_at != article.created_at %}
                 <span class="meta-pill">
-                    <i class="bi bi-arrow-clockwise"></i> Updated {{ article.published_at|date:"M d, Y" }}
+                    <i class="bi bi-arrow-clockwise"></i> Updated {{ article.updated_at|date:"M d, Y" }}
                 </span>
                 {% endif %}
+                <span class="meta-pill" id="read-time-pill" hidden>
+                    <i class="bi bi-hourglass-split"></i> <span id="read-time-value"></span>
+                </span>
             </div>
 
             <!-- Content -->
@@ -837,7 +976,7 @@
             <!-- Stats -->
             <div class="stats-bar">
                 <span class="stat-chip likes-chip {% if user in article.likes.all %}liked{% endif %}" id="like-btn"
-                    data-slug="{{ article.slug }}" style="cursor:pointer;">
+                    data-slug="{{ article.slug }}" role="button" tabindex="0">
                     <i class="bi bi-heart{% if user in article.likes.all %}-fill{% endif %}"></i>
                     <span id="like-count">{{ article.likes.count }}</span>
                     <span id="like-label">{% if user in article.likes.all %}Liked{% else %}Like{% endif %}</span>
@@ -846,7 +985,7 @@
                     <i class="bi bi-chat" style="color:var(--chess-primary);"></i>
                     {{ article.comments.count }} Comments
                 </span>
-                <span class="stat-chip share-chip" id="share-btn">
+                <span class="stat-chip share-chip" id="share-btn" role="button" tabindex="0">
                     <i class="bi bi-share"></i> Share
                 </span>
             </div>
@@ -909,11 +1048,12 @@
 {
   "@context": "https://schema.org",
   "@type": "Article",
-  "headline": "{{ article.title }}",
+  "headline": "{{ article.title|escapejs }}",
   "datePublished": "{{ article.created_at|date:'c' }}",
+  "dateModified": "{{ article.updated_at|date:'c' }}",
   "author": {
     "@type": "Person",
-    "name": "{{ article.author.username }}"
+    "name": "{{ article.author.username|escapejs }}"
   }
 }
 </script>
@@ -937,11 +1077,30 @@
         setTimeout(() => { el.style.opacity = '0'; el.style.transition = '0.3s'; setTimeout(() => el.remove(), 300); }, 2800);
     }
 
-    // ── Reading progress ──────────────────────────────────────────
-    window.addEventListener('scroll', () => {
+    // ── Reading progress: pawn advances with scroll ─────────────────
+    const progressBar = document.getElementById('reading-progress');
+    const progressPiece = document.getElementById('reading-piece');
+    function updateReadingProgress() {
         const h = document.documentElement.scrollHeight - window.innerHeight;
-        document.getElementById('reading-progress').style.width = ((window.scrollY / h) * 100) + '%';
-    });
+        const pct = h > 0 ? Math.min(100, Math.max(0, (window.scrollY / h) * 100)) : 0;
+        if (progressBar) progressBar.style.width = pct + '%';
+        if (progressPiece) progressPiece.style.left = pct + '%';
+    }
+    window.addEventListener('scroll', updateReadingProgress, { passive: true });
+    updateReadingProgress();
+
+    // ── Reading time, computed from the actual article text ─────────
+    (function () {
+        const contentEl = document.querySelector('.article-content');
+        const pill = document.getElementById('read-time-pill');
+        const valueEl = document.getElementById('read-time-value');
+        if (!contentEl || !pill || !valueEl) return;
+        const words = contentEl.innerText.trim().split(/\s+/).filter(Boolean).length;
+        if (words < 20) return; // not enough content to bother estimating
+        const minutes = Math.max(1, Math.round(words / 200));
+        valueEl.textContent = `${minutes} min read`;
+        pill.hidden = false;
+    })();
 
     // ── Like ──────────────────────────────────────────────────────
     document.getElementById('like-btn')?.addEventListener('click', function () {
@@ -952,13 +1111,24 @@
                 this.querySelector('i').className = `bi bi-heart${data.liked ? '-fill' : ''}`;
                 document.getElementById('like-count').textContent = data.like_count;
                 document.getElementById('like-label').textContent = data.liked ? 'Liked' : 'Like';
-            });
+            })
+            .catch(() => showNotif('Could not update like', 'error'));
+    });
+
+    // Allow keyboard activation (Enter/Space) on the like & share chips
+    document.querySelectorAll('.stat-chip[role="button"]').forEach(chip => {
+        chip.addEventListener('keydown', (e) => {
+            if (e.key === 'Enter' || e.key === ' ') {
+                e.preventDefault();
+                chip.click();
+            }
+        });
     });
 
     // ── Share ─────────────────────────────────────────────────────
     document.getElementById('share-btn')?.addEventListener('click', function () {
         if (navigator.share) {
-            navigator.share({ title: '{{ article.title|escapejs }}', url: location.href });
+            navigator.share({ title: '{{ article.title|escapejs }}', url: location.href }).catch(() => {});
         } else {
             navigator.clipboard.writeText(location.href).then(() => showNotif('Link copied!', 'success'));
         }
@@ -967,7 +1137,8 @@
     // ── Post comment ──────────────────────────────────────────────
     document.getElementById('comment-form')?.addEventListener('submit', function (e) {
         e.preventDefault();
-        const content = document.getElementById('comment-content').value.trim();
+        const contentField = document.getElementById('comment-content');
+        const content = contentField.value.trim();
         if (!content) return;
         const btn = document.getElementById('comment-submit');
         btn.disabled = true; btn.textContent = 'Posting…';
@@ -982,7 +1153,7 @@
                 if (data.status === 'success') {
                     document.getElementById('no-comments-message')?.remove();
                     document.getElementById('comments-list').insertAdjacentHTML('afterbegin', data.html);
-                    document.getElementById('comment-content').value = '';
+                    contentField.value = '';
                     showNotif('Comment posted!', 'success');
                 } else { showNotif('Error posting comment', 'error'); }
             })
@@ -993,7 +1164,7 @@
     // ── Delete article ────────────────────────────────────────────
     document.getElementById('delete-article-btn')?.addEventListener('click', function () {
         if (!confirm('Delete this article? This cannot be undone.')) return;
-        fetch(`/article/{{ article.slug }}/delete/`, {
+        fetch(`/article/${articleSlug}/delete/`, {
             method: 'POST',
             headers: { 'X-CSRFToken': csrftoken }
         })
@@ -1002,8 +1173,11 @@
                 if (data.status === 'success') {
                     showNotif('Article deleted', 'success');
                     setTimeout(() => location.href = "{% url 'all_blogs' %}", 1400);
+                } else {
+                    showNotif('Could not delete article', 'error');
                 }
-            });
+            })
+            .catch(() => showNotif('Network error', 'error'));
     });
 
     // ── Delegated events ──────────────────────────────────────────
@@ -1014,7 +1188,11 @@
         if (replyToggle) {
             const id = replyToggle.dataset.commentId;
             const form = document.getElementById(`reply-form-${id}`);
-            if (form) form.style.display = form.style.display === 'none' ? 'block' : 'none';
+            if (form) {
+                const isHidden = form.style.display === 'none' || !form.style.display;
+                form.style.display = isHidden ? 'block' : 'none';
+                if (isHidden) form.querySelector('textarea')?.focus();
+            }
         }
 
         // Edit comment
@@ -1022,7 +1200,9 @@
         if (editBtn) {
             const id = editBtn.dataset.commentId;
             document.getElementById(`text-${id}`).style.display = 'none';
-            document.getElementById(`edit-container-${id}`).style.display = 'block';
+            const container = document.getElementById(`edit-container-${id}`);
+            container.style.display = 'block';
+            container.querySelector('textarea, input')?.focus();
         }
 
         // Cancel edit
@@ -1039,6 +1219,7 @@
             const id = saveBtn.dataset.commentId;
             const content = document.getElementById(`edit-input-${id}`).value.trim();
             if (!content) return;
+            saveBtn.disabled = true;
             fetch(`/comment/${id}/edit/`, {
                 method: 'POST',
                 headers: { 'X-CSRFToken': csrftoken, 'Content-Type': 'application/x-www-form-urlencoded' },
@@ -1051,8 +1232,12 @@
                         document.getElementById(`text-${id}`).style.display = 'block';
                         document.getElementById(`edit-container-${id}`).style.display = 'none';
                         showNotif('Comment updated', 'success');
+                    } else {
+                        showNotif('Could not update comment', 'error');
                     }
-                });
+                })
+                .catch(() => showNotif('Network error', 'error'))
+                .finally(() => { saveBtn.disabled = false; });
         }
 
         // Delete comment
@@ -1069,8 +1254,11 @@
                         const el = document.getElementById(`comment-${id}`);
                         if (el) { el.style.opacity = '0'; el.style.transition = '0.3s'; setTimeout(() => el.remove(), 300); }
                         showNotif('Comment deleted', 'success');
+                    } else {
+                        showNotif('Could not delete comment', 'error');
                     }
-                });
+                })
+                .catch(() => showNotif('Network error', 'error'));
         }
 
         // Delete reply
@@ -1087,8 +1275,11 @@
                         const el = document.getElementById(`reply-${id}`);
                         if (el) { el.style.opacity = '0'; el.style.transition = '0.3s'; setTimeout(() => el.remove(), 300); }
                         showNotif('Reply deleted', 'success');
+                    } else {
+                        showNotif('Could not delete reply', 'error');
                     }
-                });
+                })
+                .catch(() => showNotif('Network error', 'error'));
         }
     });
 
@@ -1127,8 +1318,11 @@
                     const reply = tmp.firstElementChild;
                     if (reply && !document.getElementById(reply.id)) section.appendChild(reply);
                     showNotif('Reply posted!', 'success');
+                } else {
+                    showNotif('Could not post reply', 'error');
                 }
             })
+            .catch(() => showNotif('Network error', 'error'))
             .finally(() => { btn.disabled = false; });
     });
 </script>

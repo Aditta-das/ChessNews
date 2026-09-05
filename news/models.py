@@ -712,3 +712,145 @@ class ChessPuzzleSolve(models.Model):
             f"{self.user.username} solved "
             f"{self.daily_puzzle}"
         )
+        
+        
+############### Academy ###########################
+from django.db import models
+from django.core.validators import MinValueValidator, MaxValueValidator
+
+
+class Coach(models.Model):
+
+    TITLE_CHOICES = [
+        ("GM", "Grandmaster"),
+        ("IM", "International Master"),
+        ("FM", "FIDE Master"),
+        ("CM", "Candidate Master"),
+        ("WGM", "Woman Grandmaster"),
+        ("WIM", "Woman International Master"),
+        ("WFM", "Woman FIDE Master"),
+        ("NM", "National Master"),
+        ("", "No title"),
+    ]
+
+    title = models.CharField(max_length=4, choices=TITLE_CHOICES, blank=True)
+    name = models.CharField(max_length=120)
+    role = models.CharField(max_length=120, help_text="e.g. Head Coach, Openings Specialist")
+    rating = models.PositiveSmallIntegerField(
+        validators=[MinValueValidator(0), MaxValueValidator(3500)],
+        help_text="Current FIDE rating"
+    )
+    bio = models.TextField(max_length=600)
+    photo = models.ImageField(upload_to="coaches/", blank=True, null=True)
+    order = models.PositiveSmallIntegerField(
+        default=0,
+        help_text="Lower numbers appear first on the coaches page"
+    )
+    is_active = models.BooleanField(default=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        ordering = ["order", "-rating"]
+        verbose_name = "Coach"
+        verbose_name_plural = "Coaches"
+
+    def __str__(self):
+        if self.title:
+            return f"{self.title} {self.name}"
+        return self.name
+
+    @property
+    def display_name(self):
+        return str(self)
+
+    @property
+    def initials(self):
+        parts = self.name.split()
+        return "".join(p[0].upper() for p in parts[:2])
+
+
+class CoachApplication(models.Model):
+
+    STATUS_CHOICES = [
+        ("pending", "Pending"),
+        ("reviewed", "Reviewed"),
+        ("accepted", "Accepted"),
+        ("rejected", "Rejected"),
+    ]
+
+    full_name = models.CharField(max_length=120)
+    email = models.EmailField()
+    phone = models.CharField(max_length=30, blank=True)
+    fide_rating = models.PositiveSmallIntegerField(
+        blank=True, null=True,
+        validators=[MinValueValidator(0), MaxValueValidator(3500)]
+    )
+    fide_title = models.CharField(max_length=4, choices=Coach.TITLE_CHOICES, blank=True)
+    playing_history = models.TextField(blank=True, help_text="Notable tournaments, achievements")
+    coaching_experience = models.TextField(blank=True)
+    message = models.TextField(blank=True)
+    status = models.CharField(max_length=10, choices=STATUS_CHOICES, default="pending")
+    submitted_at = models.DateTimeField(auto_now_add=True)
+
+    created_coach = models.OneToOneField(
+        Coach,
+        null=True,
+        blank=True,
+        on_delete=models.SET_NULL,
+        related_name="application",
+        help_text="Coach profile auto-created when this application was accepted."
+    )
+
+    class Meta:
+        ordering = ["-submitted_at"]
+        verbose_name = "Coach Application"
+        verbose_name_plural = "Coach Applications"
+
+    def __str__(self):
+        return f"{self.full_name} ({self.get_status_display()})"
+
+    def save(self, *args, **kwargs):
+        previous_status = None
+        if self.pk:
+            previous_status = (
+                CoachApplication.objects
+                .filter(pk=self.pk)
+                .values_list("status", flat=True)
+                .first()
+            )
+
+        super().save(*args, **kwargs)
+
+        if previous_status != "accepted" and self.status == "accepted":
+            self.create_coach_profile()
+
+
+    def build_bio(self):
+        """Fall back through whatever the applicant actually wrote, in priority order."""
+        text = self.coaching_experience.strip() or self.playing_history.strip() or self.message.strip()
+        return text[:600]
+
+    def create_coach_profile(self):
+        """
+        Auto-fill a Coach record from this application's data.
+        Called when an application is accepted. Safe to call more than
+        once — returns the existing linked Coach instead of duplicating it.
+        The new profile is created inactive (is_active=False) so it stays
+        off the public coaches page until someone fills in a role and photo
+        and publishes it from the admin.
+        """
+        if self.created_coach_id:
+            return self.created_coach
+
+        coach = Coach.objects.create(
+            title=self.fide_title,
+            name=self.full_name,
+            role="Coach",
+            rating=self.fide_rating or 0,
+            bio=self.build_bio() or "Bio coming soon.",
+            is_active=False,
+        )
+        self.created_coach = coach
+        self.save(update_fields=["created_coach"])
+        return coach

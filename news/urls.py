@@ -105,6 +105,9 @@ urlpatterns = [
     re_path(r"^game/(?P<slug>[-\w\u0980-\u09FF]+)/$", views.game_detail, name="game_detail"),
     path('game/<slug:slug>/add-comment/', views.add_comment, name='add_comment'),
     path("analyze/", views.analyze_position),
+    path("analyze-game/", views.analyze_game, name="analyze_game"),
+    # urls.py
+    path('classify-game/', views.classify_game, name='classify_game'), 
     path("search-games/", views.search_games, name="search_games"),
     path('event/', views.all_events, name='all_events'),
     path("events/", views.events_json, name="events_json"),
@@ -121,5 +124,8 @@ urlpatterns = [
     path("api/messages/<str:username>/", views.get_messages, name="get_messages"),
     path("bot", views.PlayBot, name="bot"),
     ###################################################################################
+    ########## Trial #########################
+    path("coach/", views.coach_list, name="coach_list"),
+    path("coach/apply/", views.coach_apply, name="coach_apply"),
 ]
 

@@ -1,0 +1,407 @@
+{% extends 'news/base.html' %}
+{% load static %}
+{% block title %}Coaches | GM Bangladesh{% endblock %}
+{% block content %}
+
+<style>
+  .coaches-page {
+    font-family: 'Montserrat', sans-serif;
+  }
+
+  .coaches-page .page-eyebrow {
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 0.7rem;
+    font-weight: 600;
+    letter-spacing: 2.5px;
+    text-transform: uppercase;
+    color: var(--chess-accent);
+    margin-bottom: 10px;
+    display: block;
+  }
+
+  .coaches-page h1 {
+    font-family: 'Fraunces', Georgia, serif;
+    font-weight: 700;
+    font-size: clamp(1.9rem, 3.2vw, 2.6rem);
+    color: var(--chess-light);
+    margin-bottom: 12px;
+  }
+
+  .coaches-page .page-intro {
+    color: var(--chess-secondary);
+    max-width: 56ch;
+    font-size: 0.98rem;
+    line-height: 1.65;
+  }
+
+  /* ---------- Coach cards ---------- */
+
+  .coach-card {
+    display: flex;
+    gap: 20px;
+    padding: 22px;
+    margin-bottom: 22px;
+  }
+
+  .coach-avatar {
+    flex-shrink: 0;
+    width: 84px;
+    height: 84px;
+    border-radius: 6px;
+    background: var(--gm-panel-alt);
+    border: 1px solid var(--border);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-family: 'Fraunces', Georgia, serif;
+    font-weight: 600;
+    font-size: 1.5rem;
+    color: var(--chess-accent);
+    overflow: hidden;
+  }
+
+  .coach-avatar img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+  }
+
+  .coach-main {
+    flex: 1;
+    min-width: 0;
+  }
+
+  .coach-top-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    gap: 12px;
+    flex-wrap: wrap;
+  }
+
+  .coach-card .card-title {
+    font-family: 'Fraunces', Georgia, serif;
+    font-size: 1.2rem;
+    margin-bottom: 2px;
+  }
+
+  .coach-role {
+    color: var(--color-gray-400);
+    font-weight: 600;
+    font-size: 0.85rem;
+    margin-bottom: 12px;
+  }
+
+  .coach-rating-box {
+    text-align: right;
+    flex-shrink: 0;
+  }
+
+  .coach-rating-box .rating-value {
+    font-family: 'Fraunces', Georgia, serif;
+    font-weight: 700;
+    font-size: 1.35rem;
+    color: var(--chess-accent);
+    line-height: 1;
+  }
+
+  .coach-rating-box .rating-label {
+    display: block;
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 0.62rem;
+    letter-spacing: 1.5px;
+    text-transform: uppercase;
+    color: var(--chess-secondary);
+    opacity: 0.8;
+    margin-top: 4px;
+  }
+
+  .coach-bio {
+    color: var(--chess-secondary);
+    font-size: 0.92rem;
+    line-height: 1.62;
+    margin-bottom: 14px;
+  }
+
+  /* ---------- Sidebar ---------- */
+
+  .coach-sidebar {
+    position: sticky;
+    top: 90px;
+  }
+
+  .side-card {
+    padding: 22px;
+    margin-bottom: 22px;
+  }
+
+  .side-card h3 {
+    font-family: 'Fraunces', Georgia, serif;
+    font-size: 1.1rem;
+    color: var(--chess-light);
+    margin-bottom: 10px;
+  }
+
+  .side-card p {
+    color: var(--chess-secondary);
+    font-size: 0.87rem;
+    line-height: 1.6;
+    margin-bottom: 16px;
+  }
+
+  .side-card.apply-card {
+    position: relative;
+    overflow: hidden;
+  }
+
+  .side-card.apply-card::before {
+    content: "";
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 3px;
+    background: var(--chess-accent);
+  }
+
+  .side-card ul {
+    list-style: none;
+    padding: 0;
+    margin: 0 0 18px;
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+  }
+
+  .side-card ul li {
+    font-size: 0.85rem;
+    color: var(--chess-secondary);
+    padding-left: 14px;
+    position: relative;
+  }
+
+  .side-card ul li::before {
+    content: "";
+    position: absolute;
+    left: 0;
+    top: 0.55em;
+    width: 4px;
+    height: 4px;
+    background: var(--chess-accent);
+  }
+
+  .side-card .btn {
+    width: 100%;
+  }
+
+  .stat-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: baseline;
+    padding: 10px 0;
+    border-top: 1px dashed var(--border);
+  }
+
+  .stat-row:first-child { border-top: none; padding-top: 0; }
+  .stat-row:last-child { padding-bottom: 0; }
+
+  .stat-row .stat-value {
+    font-family: 'Fraunces', Georgia, serif;
+    font-weight: 700;
+    font-size: 1.2rem;
+    color: var(--chess-accent);
+  }
+
+  .stat-row .stat-label {
+    font-size: 0.78rem;
+    color: var(--chess-secondary);
+    text-align: right;
+  }
+
+  .format-row {
+    display: flex;
+    justify-content: space-between;
+    font-size: 0.85rem;
+    padding: 8px 0;
+    border-top: 1px dashed var(--border);
+  }
+
+  .format-row:first-child { border-top: none; padding-top: 0; }
+  .format-row span:first-child { color: var(--chess-light); font-weight: 600; }
+  .format-row span:last-child { color: var(--chess-secondary); }
+
+  .side-card.contact-card address {
+    font-style: normal;
+    font-size: 0.87rem;
+    line-height: 2;
+    color: var(--chess-secondary);
+  }
+
+  .side-card.contact-card a {
+    color: var(--chess-accent);
+  }
+
+  .side-card.contact-card a:hover {
+    color: var(--chess-light);
+  }
+
+  @media (max-width: 991.98px) {
+    .coach-sidebar {
+      position: static;
+      margin-top: 8px;
+    }
+  }
+
+  @media (max-width: 575.98px) {
+    .coach-card {
+      flex-direction: column;
+    }
+    .coach-avatar {
+      width: 64px;
+      height: 64px;
+    }
+  }
+</style>
+
+<div class="coaches-page">
+
+  <div class="mb-4">
+    <span class="page-eyebrow">Coaching Panel</span>
+    <h1>Meet the Coaches</h1>
+    <p class="page-intro">Titled players working with students from their first tournament to their first norm. Book a session below, or apply to join the panel.</p>
+  </div>
+
+  <div class="row">
+
+    <div class="col-lg-8">
+
+      {% for coach in coaches %}
+      <div class="card coach-card hover-lift">
+        <div class="coach-avatar">
+          {% if coach.photo %}
+            <img src="{{ coach.photo.url }}" alt="{{ coach.display_name }}">
+          {% else %}
+            {{ coach.initials }}
+          {% endif %}
+        </div>
+        <div class="coach-main">
+          <div class="coach-top-row">
+            <div>
+              <div class="card-title">{{ coach.display_name }}</div>
+              <div class="coach-role">{{ coach.role }}</div>
+            </div>
+            <div class="coach-rating-box">
+              <span class="rating-value">{{ coach.rating }}</span>
+              <span class="rating-label">FIDE rating</span>
+            </div>
+          </div>
+          <p class="coach-bio">{{ coach.bio }}</p>
+          <button class="btn btn-primary btn-sm">Book a session</button>
+        </div>
+      </div>
+      {% empty %}
+
+      <div class="card coach-card hover-lift">
+        <div class="coach-avatar">AC</div>
+        <div class="coach-main">
+          <div class="coach-top-row">
+            <div>
+              <div class="card-title">GM Arman Chowdhury</div>
+              <div class="coach-role">Head Coach</div>
+            </div>
+            <div class="coach-rating-box">
+              <span class="rating-value">2510</span>
+              <span class="rating-label">FIDE rating</span>
+            </div>
+          </div>
+          <p class="coach-bio">Leads the senior training group, with a focus on classical middlegame strategy and tournament preparation for national-level players.</p>
+          <button class="btn btn-primary btn-sm">Book a session</button>
+        </div>
+      </div>
+
+      <div class="card coach-card hover-lift">
+        <div class="coach-avatar">FY</div>
+        <div class="coach-main">
+          <div class="coach-top-row">
+            <div>
+              <div class="card-title">IM Farzana Yasmin</div>
+              <div class="coach-role">Head of Youth Program</div>
+            </div>
+            <div class="coach-rating-box">
+              <span class="rating-value">2340</span>
+              <span class="rating-label">FIDE rating</span>
+            </div>
+          </div>
+          <p class="coach-bio">Runs the junior curriculum, helping young players build calculation habits early and preparing them for their first rated events.</p>
+          <button class="btn btn-primary btn-sm">Book a session</button>
+        </div>
+      </div>
+
+      <div class="card coach-card hover-lift">
+        <div class="coach-avatar">RK</div>
+        <div class="coach-main">
+          <div class="coach-top-row">
+            <div>
+              <div class="card-title">FM Rezaul Karim</div>
+              <div class="coach-role">Openings Specialist</div>
+            </div>
+            <div class="coach-rating-box">
+              <span class="rating-value">2280</span>
+              <span class="rating-label">FIDE rating</span>
+            </div>
+          </div>
+          <p class="coach-bio">Builds repertoires tailored to each student's style, from sharp gambits for attacking players to solid systems for positional ones.</p>
+          <button class="btn btn-primary btn-sm">Book a session</button>
+        </div>
+      </div>
+
+      <div class="card coach-card hover-lift">
+        <div class="coach-avatar">NJ</div>
+        <div class="coach-main">
+          <div class="coach-top-row">
+            <div>
+              <div class="card-title">WIM Nusrat Jahan</div>
+              <div class="coach-role">Endgames &amp; Girls' Program</div>
+            </div>
+            <div class="coach-rating-box">
+              <span class="rating-value">2260</span>
+              <span class="rating-label">FIDE rating</span>
+            </div>
+          </div>
+          <p class="coach-bio">Specializes in endgame technique and leads the academy's girls' program, mentoring several state-level junior champions.</p>
+          <button class="btn btn-primary btn-sm">Book a session</button>
+        </div>
+      </div>
+
+      {% endfor %}
+
+    </div>
+
+    <div class="col-lg-4">
+      <div class="coach-sidebar">
+
+        <div class="card side-card apply-card" id="apply">
+          <h3>Coach with us</h3>
+          <p>We're a small panel and we grow it carefully. Titled players and strong tournament competitors with teaching experience are welcome to apply.</p>
+          <ul>
+            <li>Current FIDE rating and title, if any</li>
+            <li>A short playing history and peak rating</li>
+            <li>Any prior coaching experience</li>
+          </ul>
+          <a href="{% url 'coach_apply' %}" class="btn btn-primary">Apply as coach</a>
+        </div>
+        <div class="card side-card contact-card">
+          <h3>Get in touch</h3>
+          <address>
+            <a href="mailto:team@gmbangladesh.com">team@gmbangladesh.com</a><br>
+          </address>
+        </div>
+
+      </div>
+    </div>
+
+  </div>
+
+</div>
+
+{% endblock %}

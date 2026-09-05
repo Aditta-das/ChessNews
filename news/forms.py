@@ -220,3 +220,62 @@ class GameCommentForm(forms.ModelForm):
                 'placeholder': 'Enter your comment'
             }),
         }
+
+
+
+from django import forms
+
+from .models import CoachApplication
+
+
+class CoachApplicationForm(forms.ModelForm):
+
+    class Meta:
+        model = CoachApplication
+        fields = [
+            "full_name",
+            "email",
+            "phone",
+            "fide_title",
+            "fide_rating",
+            "playing_history",
+            "coaching_experience",
+            "message",
+        ]
+        widgets = {
+            "full_name": forms.TextInput(attrs={
+                "class": "form-control", "placeholder": "Your full name"
+            }),
+            "email": forms.EmailInput(attrs={
+                "class": "form-control", "placeholder": "you@example.com"
+            }),
+            "phone": forms.TextInput(attrs={
+                "class": "form-control", "placeholder": "Optional"
+            }),
+            "fide_title": forms.Select(attrs={"class": "form-select"}),
+            "fide_rating": forms.NumberInput(attrs={
+                "class": "form-control", "placeholder": "e.g. 2280"
+            }),
+            "playing_history": forms.Textarea(attrs={
+                "class": "form-control", "rows": 4,
+                "placeholder": "Notable tournaments, results, peak rating"
+            }),
+            "coaching_experience": forms.Textarea(attrs={
+                "class": "form-control", "rows": 4,
+                "placeholder": "Prior coaching, individual or group"
+            }),
+            "message": forms.Textarea(attrs={
+                "class": "form-control", "rows": 3,
+                "placeholder": "Anything else we should know"
+            }),
+        }
+        labels = {
+            "fide_title": "FIDE title",
+            "fide_rating": "FIDE rating",
+        }
+
+    def clean_full_name(self):
+        name = self.cleaned_data["full_name"].strip()
+        if len(name) < 2:
+            raise forms.ValidationError("Enter your full name.")
+        return name

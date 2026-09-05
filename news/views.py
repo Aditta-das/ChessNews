@@ -5,7 +5,8 @@ from io import StringIO
 from .models import Article, TopPlayerImg, \
     TournamentBanner, BangladeshiTopPlayer, Book, \
         Puzzle, EmailOTP, PuzzleSolve, UserProfile, \
-            BoardVision, UploadedGame, GameComment, Events, Message, MemoryPosition, ChessPuzzleSolve, DailyPuzzle
+            BoardVision, UploadedGame, GameComment, Events, Message, \
+                MemoryPosition, ChessPuzzleSolve, DailyPuzzle, Coach
 from django.contrib.auth.models import User
 from django.contrib.auth import logout
 import requests, random, json
@@ -24,6 +25,7 @@ from django.http import JsonResponse, HttpResponseForbidden
 from django.views.decorators.http import require_POST
 from django.core.cache import cache
 from django.views.decorators.cache import never_cache
+from .services.engine import analyze_fen, analyze_fens
 
 @csrf_exempt
 def api_world_players(request):
@@ -723,17 +725,162 @@ from django.contrib.auth.decorators import login_required
 from django.http import JsonResponse
 from django.shortcuts import render, redirect
 from django.urls import reverse
+from django.templatetags.static import static
 
 from .forms import UploadedGameForm
 from .models import UploadedGame
 
+import requests
+import chess
+import chess.pgn
+
+from io import StringIO
+
+
+# ============================================================
+# Player thumbnail helper
+# ============================================================
+
+def get_player_thumbnail(player_name):
+    """
+    Find player by name from FastAPI and return the Django
+    static URL for the player's thumbnail.
+
+    Example:
+
+        API:
+            playerImages/carlsen__magnus.jpeg
+
+        Returns:
+            /static/playerImages/carlsen__magnus.jpeg
+
+    If player is not found, returns None.
+    """
+
+    if not player_name:
+        return None
+
+    player_name = player_name.strip()
+
+    if not player_name:
+        return None
+
+    try:
+        response = requests.get(
+            "http://127.0.0.1:10000/players/by-name",
+            params={
+                "name": player_name
+            },
+            timeout=5
+        )
+
+        if response.status_code != 200:
+            return None
+
+        data = response.json()
+        # Expected response:
+        #
+        # {
+        #   "ok": true,
+        #   "err": null,
+        #   "data": [
+        #       {
+        #           "name": "Carlsen, Magnus",
+        #           "thumbUrl": "playerImages/carlsen__magnus.jpeg"
+        #       }
+        #   ]
+        # }
+
+        if not data.get("ok"):
+            return None
+
+        players = data.get("data")
+        # if not isinstance(players, list):
+        #     return None
+
+        # if not players:
+        #     return None
+
+        # # First matching result
+        # player = players[0]
+        # print(player)
+        print("========== PLAYER ==========")
+        print(players)
+
+        if not isinstance(players, dict):
+            print("PLAYER DATA IS NOT A DICT")
+            return None
+
+        player = players
+
+        print("PLAYER:", player)
+
+        thumb_url = player.get("thumbUrl")
+
+        print("THUMB URL:", thumb_url)
+
+        if not thumb_url:
+            print("NO THUMB URL")
+            return None
+
+        # IMPORTANT:
+        # Do NOT use the 127.0.0.1 URL in the browser.
+        # Convert:
+        #
+        # http://127.0.0.1:10000/playerImages/carlsen__magnus.jpeg
+        #
+        # to:
+        #
+        # /static/playerImages/carlsen__magnus.jpeg
+
+        if thumb_url.startswith("http://127.0.0.1:10000/"):
+            thumb_url = thumb_url.replace(
+                "http://127.0.0.1:10000/",
+                "/static/",
+                1
+            )
+
+        elif thumb_url.startswith("/playerImages/"):
+            thumb_url = "/static" + thumb_url
+
+        elif thumb_url.startswith("playerImages/"):
+            thumb_url = "/static/" + thumb_url
+
+        print("FINAL IMAGE URL:", thumb_url)
+
+        return thumb_url
+
+    except requests.RequestException as e:
+        print(
+            f"[player thumbnail] API request failed for "
+            f"{player_name}: {e}"
+        )
+        return None
+
+    except Exception as e:
+        print(
+            f"[player thumbnail] Error for "
+            f"{player_name}: {e}"
+        )
+        return None
+
+
+# ============================================================
+# Game page
+# ============================================================
 
 @login_required
 def game_page(request):
+
     if request.method == 'POST':
-        form = UploadedGameForm(request.POST, request.FILES)
+
+        form = UploadedGameForm(
+            request.POST,
+            request.FILES
+        )
 
         if form.is_valid():
+
             game = form.save(commit=False)
 
             # Attach current user
@@ -742,15 +889,13 @@ def game_page(request):
             # Save game
             game.save()
 
-            # IMPORTANT:
-            # Normal PGN upload should redirect directly
-            # to the game detail page.
+            # Redirect to game detail
             return redirect(
                 'game_detail',
                 slug=game.slug_link
             )
 
-        # If form is invalid, show the page again
+        # Invalid form
         return render(
             request,
             'news/game_page.html',
@@ -759,7 +904,7 @@ def game_page(request):
             }
         )
 
-    # GET request
+    # GET
     form = UploadedGameForm()
 
     return render(
@@ -771,60 +916,69 @@ def game_page(request):
     )
 
 
+# ============================================================
+# Upload PGN file
+# ============================================================
+
 @login_required
 def upload_pgn_file(request):
 
     if request.method != "POST":
 
         return JsonResponse({
-            "success":False,
-            "error":"Invalid request"
+            "success": False,
+            "error": "Invalid request"
         })
-    file = request.FILES.get(
-        "file"
-    )
-    if not file:
-        return JsonResponse({
-            "success":False,
-            "error":"No PGN file selected"
-        })
-    try:
-        pgn_text = file.read().decode(
-            "utf-8"
-        )
-        pgn_io = StringIO(
-            pgn_text
-        )
-        game = chess.pgn.read_game(
-            pgn_io
-        )
-        # no game
-        if game is None:
-            return JsonResponse({
-                "success":False,
-                "error":"Invalid PGN file"
-            })
-        # Check second game
-        second_game = chess.pgn.read_game(
-            pgn_io
-        )
-        if second_game:
-            return JsonResponse({
-                "success":False,
-                "error":
-                "This file contains multiple games. Upload one game only."
 
+    file = request.FILES.get("file")
+
+    if not file:
+
+        return JsonResponse({
+            "success": False,
+            "error": "No PGN file selected"
+        })
+
+    try:
+
+        pgn_text = file.read().decode("utf-8")
+
+        pgn_io = StringIO(pgn_text)
+
+        game = chess.pgn.read_game(pgn_io)
+
+        # No game
+        if game is None:
+
+            return JsonResponse({
+                "success": False,
+                "error": "Invalid PGN file"
             })
+
+        # Check second game
+        second_game = chess.pgn.read_game(pgn_io)
+
+        if second_game:
+
+            return JsonResponse({
+                "success": False,
+                "error":
+                    "This file contains multiple games. "
+                    "Upload one game only."
+            })
+
         white = game.headers.get(
             "White",
             ""
         )
+
         black = game.headers.get(
             "Black",
             ""
         )
 
         title = f"{white} vs {black}"
+
         uploaded_game = UploadedGame.objects.create(
             uploaded_by=request.user,
             title=title,
@@ -832,10 +986,10 @@ def upload_pgn_file(request):
             white_player=white,
             black_player=black
         )
+
         return JsonResponse({
-            "success":True,
-            "redirect_url":
-            reverse(
+            "success": True,
+            "redirect_url": reverse(
                 "game_detail",
                 args=[
                     uploaded_game.slug_link
@@ -844,15 +998,22 @@ def upload_pgn_file(request):
         })
 
     except Exception as e:
+
         return JsonResponse({
-            "success":False,
-            "error":str(e)
+            "success": False,
+            "error": str(e)
         })
-        
-        
+
+
+# ============================================================
+# Fetch Chess.com games
+# ============================================================
+
 @login_required
 def fetch_chesscom_games(request):
+
     if request.method != "POST":
+
         return JsonResponse({
             'success': False,
             'error': 'Invalid method'
@@ -863,21 +1024,23 @@ def fetch_chesscom_games(request):
     month = request.POST.get("month")
 
     if not username or not year or not month:
+
         return JsonResponse({
             'success': False,
             'error': 'Missing parameters'
         }, status=400)
 
     try:
+
         year = int(year)
         month = int(month)
+
     except (ValueError, TypeError):
+
         return JsonResponse({
             'success': False,
             'error': 'Invalid month/year'
         }, status=400)
-
-    import requests
 
     url = (
         f"https://api.chess.com/pub/player/"
@@ -885,6 +1048,7 @@ def fetch_chesscom_games(request):
     )
 
     try:
+
         response = requests.get(
             url,
             timeout=15,
@@ -892,16 +1056,20 @@ def fetch_chesscom_games(request):
                 "User-Agent": "ChessNewsBD/1.0"
             }
         )
+
     except requests.RequestException as e:
+
         return JsonResponse({
             'success': False,
             'error': f'Connection failed: {str(e)}'
         }, status=502)
 
     if response.status_code != 200:
+
         return JsonResponse({
             'success': False,
-            'error': f'Failed to fetch: {response.status_code}'
+            'error':
+                f'Failed to fetch: {response.status_code}'
         }, status=response.status_code)
 
     data = response.json()
@@ -909,12 +1077,36 @@ def fetch_chesscom_games(request):
     games_list = []
 
     for game in data.get("games", []):
+
         games_list.append({
-            "white": game.get("white", {}).get("username", ""),
-            "black": game.get("black", {}).get("username", ""),
-            "url": game.get("url", "#"),
-            "pgn": game.get("pgn", ""),
-            "end_time": game.get("end_time"),
+            "white":
+                game.get("white", {}).get(
+                    "username",
+                    ""
+                ),
+
+            "black":
+                game.get("black", {}).get(
+                    "username",
+                    ""
+                ),
+
+            "url":
+                game.get(
+                    "url",
+                    "#"
+                ),
+
+            "pgn":
+                game.get(
+                    "pgn",
+                    ""
+                ),
+
+            "end_time":
+                game.get(
+                    "end_time"
+                ),
         })
 
     return JsonResponse({
@@ -922,27 +1114,55 @@ def fetch_chesscom_games(request):
         'games': games_list
     })
 
+
+# ============================================================
+# Save Chess.com game
+# ============================================================
+
 @login_required
 def save_chesscom_game(request):
+
     if request.method != 'POST':
+
         return JsonResponse({
             'success': False,
             'error': 'Invalid request'
         }, status=405)
 
-    username = request.POST.get('username')
-    white = request.POST.get('white')
-    black = request.POST.get('black')
-    url = request.POST.get('url')
-    end_time = request.POST.get('end_time')
-    pgn = request.POST.get('pgn', '')
+    username = request.POST.get(
+        'username'
+    )
 
-    title = request.POST.get('title')
+    white = request.POST.get(
+        'white'
+    )
+
+    black = request.POST.get(
+        'black'
+    )
+
+    url = request.POST.get(
+        'url'
+    )
+
+    end_time = request.POST.get(
+        'end_time'
+    )
+
+    pgn = request.POST.get(
+        'pgn',
+        ''
+    )
+
+    title = request.POST.get(
+        'title'
+    )
 
     if not title:
+
         title = f"{white} vs {black}"
 
-    # Validate required data
+    # Validate
     if not all([
         username,
         white,
@@ -950,6 +1170,7 @@ def save_chesscom_game(request):
         url,
         end_time
     ]):
+
         return JsonResponse({
             'success': False,
             'error': 'Missing data'
@@ -964,14 +1185,16 @@ def save_chesscom_game(request):
         black_player=black,
     )
 
-    # Send detail URL back to JavaScript
     return JsonResponse({
         'success': True,
         'redirect_url': reverse(
             'game_detail',
-            args=[game.slug_link]
+            args=[
+                game.slug_link
+            ]
         )
     })
+
 
 def all_games(request):
     games = UploadedGame.objects.all().order_by("-created_at")
@@ -985,20 +1208,153 @@ def search_games(request):
 
 
 
+@csrf_exempt
+@require_POST
+def analyze_position(request):
+
+    try:
+
+        data = json.loads(request.body)
+
+        fen = data.get("fen")
+
+        if not fen:
+
+            return JsonResponse({
+                "error": "FEN is required"
+            }, status=400)
+
+
+        result = analyze_fen(
+            fen,
+            include_best_move=True
+        )
+
+
+        return JsonResponse(result)
+
+
+    except Exception as e:
+
+        return JsonResponse({
+            "error": str(e)
+        }, status=500)
+
+@csrf_exempt
+@require_POST
+def analyze_game(request):
+
+    try:
+
+        data = json.loads(request.body)
+
+        fens = data.get("fens", [])
+
+
+        if not isinstance(fens, list):
+
+            return JsonResponse({
+                "error": "fens must be a list"
+            }, status=400)
+
+
+        if not fens:
+
+            return JsonResponse({
+                "results": []
+            })
+
+
+        if len(fens) > 1000:
+
+            return JsonResponse({
+                "error": "Too many positions"
+            }, status=400)
+
+
+        results = analyze_fens(fens)
+
+
+        return JsonResponse({
+            "results": results
+        })
+
+
+    except Exception as e:
+
+        return JsonResponse({
+            "error": str(e)
+        }, status=500)
+        
+
 def game_detail(request, slug):
-    game = get_object_or_404(UploadedGame, slug_link=slug)
-    # Prepare comments
-    comments = GameComment.objects.filter(game=game).values(
-        'id', 'user__username', 'move_number', 'comment',
+    game = get_object_or_404(
+        UploadedGame,
+        slug_link=slug
     )
-    # Initialize empty form for adding comments
+
+    comments = GameComment.objects.filter(
+        game=game
+    ).values(
+        'id',
+        'user__username',
+        'move_number',
+        'comment',
+    )
+
     form = GameCommentForm()
-    
-    return render(request, 'news/game_detail4.html', {
-        'game': game,
-        'comments_json': list(comments),
-        'form': form
-    })
+
+    white_player_image = get_player_thumbnail(
+        game.white_player
+    )
+
+    black_player_image = get_player_thumbnail(
+        game.black_player
+    )
+
+    return render(
+        request,
+        'news/game_detail2.html',
+        {
+            'game': game,
+            'comments_json': list(comments),
+            'form': form,
+            'white_player_image': white_player_image,
+            'black_player_image': black_player_image,
+        }
+    )
+
+from .services.engine import *
+
+@csrf_exempt
+@require_POST
+def classify_game(request):
+
+    try:
+
+        data = json.loads(request.body)
+
+        fens = data.get("fens", [])
+        moves_uci = data.get("moves", [])
+
+        if not isinstance(fens, list) or not isinstance(moves_uci, list):
+            return JsonResponse({"error": "fens and moves must be lists"}, status=400)
+
+        if len(fens) != len(moves_uci) + 1:
+            return JsonResponse({
+                "error": "fens must have exactly one more entry than moves"
+            }, status=400)
+
+        if len(moves_uci) > 400:
+            return JsonResponse({"error": "Too many moves"}, status=400)
+
+        classifications = analyze_game_with_classification(fens, moves_uci)
+
+        return JsonResponse({"classifications": classifications})
+
+    except Exception as e:
+
+        return JsonResponse({"error": str(e)}, status=500)
 
 @login_required
 @csrf_exempt
@@ -1027,46 +1383,6 @@ def add_comment(request, slug):
             }, status=400)
 
     return JsonResponse({"status": "error"}, status=400)
-
-# End of trial section
-
-
-from django.http import JsonResponse
-from django.views.decorators.csrf import csrf_exempt
-from django.views.decorators.cache import cache_page
-from django.core.cache import cache
-import json
-import hashlib
-from .services.cache import cached_analyze_fen
-
-@csrf_exempt
-def analyze_position(request):
-    if request.method == "POST":
-        try:
-            data = json.loads(request.body)
-            fen = data.get("fen")
-            
-            if not fen:
-                return JsonResponse({"error": "No FEN provided"}, status=400)
-            
-            # Generate cache key
-            cache_key = f"analysis_{hashlib.md5(fen.encode()).hexdigest()}"
-            
-            # Try to get from cache first
-            result = cache.get(cache_key)
-            
-            if result is None:
-                # If not in cache, analyze and store
-                result = cached_analyze_fen(fen)
-                cache.set(cache_key, result, timeout=300)  # Cache for 5 minutes
-            return JsonResponse(result)
-            
-        except Exception as e:
-            return JsonResponse({"error": str(e)}, status=500)
-    
-    return JsonResponse({"error": "Method not allowed"}, status=405)
-
-
 
 
 def all_events(request):
@@ -1379,3 +1695,24 @@ def PlayBot(request):
         
     })
 ###########################################################################################
+
+
+def coach_list(request):
+    coaches = Coach.objects.filter(is_active=True).order_by("order", "-rating")
+    return render(request, "news/academy/coach.html", {"coaches": coaches})
+
+
+def coach_apply(request):
+    if request.method == "POST":
+        form = CoachApplicationForm(request.POST)
+        if form.is_valid():
+            form.save()
+            messages.success(
+                request,
+                "Thanks — your application has been submitted. We'll be in touch."
+            )
+            return redirect("coach_list")
+    else:
+        form = CoachApplicationForm()
+ 
+    return render(request, "news/academy/coach_apply.html", {"form": form})
